@@ -1,0 +1,11 @@
+* Guía de Comandos
+  |-----------------+---------------+----------------------------------------------------------------------|
+  | Comando         | Comando Corto | Descripción                                                          |
+  |-----------------+---------------+----------------------------------------------------------------------|
+  | ~make build~    | ~make b~      | Construir imagen de Docker                                           |
+  | ~make exec~     | ~make e~      | Ejecutar aplicación dentro del contenedor Docker                     |
+  | ~make memcheck~ |               | Ejecutar Memcheck con la aplicación dentro del contenedor Docker     |
+  | ~make stop~     | ~make s~      | Detener ejecución del contenedor de Docker                           |
+  | ~make watch~    | ~make w~      | Observar cambios en data/src data/include y compilar automáticamente |
+  | ~make help~     | ~make h~      | Muestra menú de ayuda                                                |
+  |-----------------+---------------+----------------------------------------------------------------------|
