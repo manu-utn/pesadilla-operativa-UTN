@@ -1,8 +1,6 @@
 -include Makefile.cfg
 -include functions.mk
 
-all: $(DIRS) $(DIR_BIN)/$(BIN)
-
 $(DIRS): ; $(MKDIR) $@
 
 $(DIR_BIN)/$(BIN): $(OBJ)
@@ -17,19 +15,26 @@ $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
 
 # --------------------------------------------------------------------
 
-c clean:
+b build: $(DIRS) $(DIR_BIN)/$(BIN) ## Construir proyecto (compilar y generar ejecutable)
+
+c clean: ## Remover ejecutables, objetos y dependencias
 	$(info Removiendo ejecutable, objetos y dependencias)
 	@-$(RM) $(DIR_BIN)/*.out
 	@-$(RM) $(DIR_OBJ)/*.o
 	@-$(RM) $(DIR_DEP)/*{.d,.tmp.d}
 
-r run: ; @-$(DIR_BIN)/$(BIN)
+r run: ## Ejecutar binario
+	@-$(DIR_BIN)/$(BIN)
+
 
 $(DEP):
 -include $(wildcard $(DEP))
 
-w watch:
+w watch: ## Observar cambios en /src /include y compilar automáticamente
 	$(info Observando cambios en la aplicación...)
 	@while true; do $(MAKE) -q --no-print-directory || $(MAKE) --no-print-directory; sleep 1; done
 
-.PHONY: all c clean r run
+h help: ## Muestra menú de ayuda
+	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.PHONY: c clean r run b build h help
