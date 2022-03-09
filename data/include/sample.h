@@ -5,5 +5,6 @@ typedef struct {
   TIPO_MENSAJE tipo;
 } Mensaje;
 
-void imprimirMensaje(Mensaje);
-Mensaje crearMensajeImportante(char *);
+void imprimir_mensaje(Mensaje);
+Mensaje* crear_mensaje_importante(char *);
+void mensaje_destroy(Mensaje*);

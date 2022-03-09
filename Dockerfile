@@ -6,7 +6,13 @@ RUN apk update && apk add git make cgdb gcc musl-dev neovim screen valgrind
 
 WORKDIR /home/cspec
 RUN git clone http://github.com/mumuki/cspec .
-RUN make clean && make && make install
+RUN make clean all install
+
+WORKDIR /home/so-commons
+RUN git clone https://github.com/sisoputnfrba/so-commons-library .
+# como so-commons sólo contempla ubuntu, removemos el sudo
+RUN sed -i 's/sudo //g' src/makefile
+RUN make clean all test install
 
 # si falla alguna dependencia del cgdb, descomentar esta otra linea
 # apk add autoconf automake libtool flex bison gcc g++ ncurses ncurses-dev texinfo readline readline-dev
