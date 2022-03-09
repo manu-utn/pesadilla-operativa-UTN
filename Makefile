@@ -8,6 +8,10 @@ e exec: ## Ejecutar aplicación dentro del contenedor Docker
 	$(info Ejecutando aplicación del contenedor...)
 	@docker exec $(IMAGE_NAME) make exec
 
+memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
+	$(info Ejecutando aplicación del contenedor...)
+	@docker exec $(IMAGE_NAME) make memcheck
+
 s stop: ## Detener ejecución del contenedor de Docker
 	$(info Deteniendo contenedor...)
 	@docker stop $(IMAGE_NAME)
@@ -18,6 +22,7 @@ w watch: ## Observar cambios en /src /include y compilar automáticamente
 		--user $(UID):$(GID) \
 		$(CONTAINER)
 
+# TODO: la ruta para el clean cambiará cuando haya varios módulos
 c clean:
 	@$(MAKE) --no-print-directory -C data clean
 
