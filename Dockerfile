@@ -22,5 +22,6 @@ COPY . ./data
 
 WORKDIR /home/data
 
-ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["make --no-print-directory watch"]
+ENTRYPOINT ["/bin/sh"]
+#ENTRYPOINT ["/bin/sh", "-c"]
+#CMD ["make --no-print-directory watch"]
