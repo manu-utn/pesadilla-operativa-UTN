@@ -1,5 +1,4 @@
 -include Makefile.cfg
--include functions.mk
 
 $(DIRS): ; $(MKDIR) $@
 
