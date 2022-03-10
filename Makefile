@@ -6,7 +6,10 @@ b build: ## Construir imagen de Docker
 
 e exec: ## Ejecutar aplicación dentro del contenedor Docker
 	$(info Ejecutando aplicación del contenedor...)
-	@docker exec $(IMAGE_NAME) make exec
+	@docker exec $(IMAGE_NAME) make --no-print-directory exec
+
+tests: ## Ejecutar pruebas unitarias con CSpec
+	@docker exec $(IMAGE_NAME) make --no-print-directory -C tests build exec
 
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	$(info Ejecutando aplicación del contenedor...)
