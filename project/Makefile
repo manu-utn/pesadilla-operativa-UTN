@@ -27,9 +27,9 @@ static_lib:
 
 # TODO: Posible refactor (?)
 ifeq ($(BIN_FILE_EXTENSION),.a)
-b build: $(DIRS) $(DIR_BIN)/$(BIN) ## Construir proyecto (compilar y generar ejecutable)
+compile: $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 else
-b build: $(DIRS) static_lib $(DIR_BIN)/$(BIN)
+compile: $(DIRS) static_lib $(DIR_BIN)/$(BIN)
 endif
 
 c clean: ## Remover ejecutables, objetos y dependencias
@@ -55,4 +55,4 @@ w watch: ## Observar cambios en /src /include y compilar automáticamente
 h help: ## Muestra menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: c clean e exec b build h help memcheck static_lib
+.PHONY: c clean e exec compile h help memcheck static_lib
