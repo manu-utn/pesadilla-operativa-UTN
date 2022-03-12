@@ -1,0 +1,2 @@
+-include Makefile.cfg
+-include ../Makefile

@@ -18,9 +18,9 @@ RUN make clean all test install
 # apk add autoconf automake libtool flex bison gcc g++ ncurses ncurses-dev texinfo readline readline-dev
 
 WORKDIR /home
-COPY . ./data
+COPY . ./project
 
-WORKDIR /home/data
+WORKDIR /home/project
 
 ENTRYPOINT ["/bin/sh"]
 #ENTRYPOINT ["/bin/sh", "-c"]
