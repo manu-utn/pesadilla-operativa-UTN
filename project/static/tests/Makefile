@@ -1,2 +1,2 @@
--include ../Makefile
--include Makefile.cfg
+-include test.cfg
+-include ../../Makefile

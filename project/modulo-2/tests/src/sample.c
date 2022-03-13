@@ -20,15 +20,6 @@ context(test_commons) {
     } end
 
 } end
-
-    describe("Commons"){
-    it("El nombre de pikachu es pikachu"){
-        Pokemon *poke = crear_pokemon("pikachu", 10, 10);
-        should_string(poke->nombre) be equal to("pikachu");
-        free_pokemon(poke);
-    } end
-
-  } end
 }
 
 static Pokemon *crear_pokemon(char *nombre, int fuerza, int velocidad) {

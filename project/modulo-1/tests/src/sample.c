@@ -19,15 +19,6 @@ context(test_commons) {
       should_string("fede") be equal to("carlitos");
     } end
 
-} end
-
-    describe("Commons"){
-    it("El nombre de pikachu es pikachu"){
-        Pokemon *poke = crear_pokemon("pikachu", 10, 10);
-        should_string(poke->nombre) be equal to("pikachu");
-        free_pokemon(poke);
-    } end
-
   } end
 }
 

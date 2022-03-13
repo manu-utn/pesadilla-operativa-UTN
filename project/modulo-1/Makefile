@@ -1,2 +1,2 @@
+-include modulo.cfg
 -include ../Makefile
--include Makefile.cfg
