@@ -1,0 +1,2 @@
+-include modulo.cfg
+-include ../Makefile

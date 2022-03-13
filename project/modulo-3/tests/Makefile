@@ -1,0 +1,2 @@
+-include test.cfg
+-include ../../Makefile
