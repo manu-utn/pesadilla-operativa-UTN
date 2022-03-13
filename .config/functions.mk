@@ -3,10 +3,9 @@ define make_cmd
 endef
 
 define docker_cmd
-	@docker $1 $(IMAGE_NAME) $2
+	docker $1 $(IMAGE_NAME) $2
 endef
 
 define docker_make_cmd
-	@docker exec $(IMAGE_NAME) \
-		make --no-print-directory -C $(ARGS) $1
+	docker exec $(IMAGE_NAME) make --no-print-directory -C $(ARGS) $1
 endef
