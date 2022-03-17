@@ -5,11 +5,17 @@ $(DIRS): ; $(MKDIR) $@
 
 # --------------------------------------------------------------------
 
+
 $(DIR_BIN)/$(BIN): $(OBJ)
 	$(info Enlazamos los objetos ("$(notdir $^)") para crear el ejecutable ($(notdir $@)) en $(dir $@))
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+# TODO: Posible refactor (?)
+# Objetivo: Crear/actualizar primero la static lib, para que luego el Linker pueda enlazarla
+ifneq ($(BIN_FILE_EXTENSION),.a)
+	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
+endif
 	$(info Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@))
 	$(info Se modificó el archivo ($?))
 	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
@@ -18,15 +24,7 @@ $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
 
 # --------------------------------------------------------------------
 
-static_lib:$(DIR_BIN)/$(BIN)
-	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
-
-# TODO: Posible refactor (?)
-ifeq ($(BIN_FILE_EXTENSION),.a)
 compile: $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
-else
-compile: $(DIRS) static_lib $(DIR_BIN)/$(BIN)
-endif
 
 tests:
 	@$(MAKE) --no-print-directory -C tests compile exec
