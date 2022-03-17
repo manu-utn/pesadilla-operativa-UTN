@@ -1,14 +1,21 @@
-* Guía de Comandos
-  |---------------------------+---------------+------------------------------------------------------------------|
-  | Comando                   | Comando Corto | Descripción                                                      |
-  |---------------------------+---------------+------------------------------------------------------------------|
-  | ~make docker-build~       | ~make db~     | Construir aplicación con Docker                                  |
-  | ~make docker-start~       | ~make ds~     | Iniciar aplicación con Docker                                    |
-  | ~make stop~               | ~make s~      | Detener ejecución del contenedor de Docker                       |
-  | ~make build nombreModulo~ | ~make b~      | Compilar uno de los módulos                                      |
-  | ~make exec nombreModulo~  | ~make e~      | Ejecutar uno de los módulos                                      |
-  | ~make tests nombreModulo~ |               | Ejecutar pruebas unitarias con CSpec en un módulo                |
-  | ~make build-all~          |               | Compilar todos los módulos                                       |
-  | ~make memcheck~           |               | Ejecutar Memcheck con la aplicación dentro del contenedor Docker |
-  | ~make help~               | ~make h~      | Muestra menú de ayuda                                            |
-  |---------------------------+---------------+------------------------------------------------------------------|
+* Comandos Generales
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | Comando                     | Comando Corto | Descripción                                                                        |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | ~make build~                | ~make b~      | Construir aplicación                                                               |
+  | ~make run~                  | ~make r~      | Iniciar aplicación                                                                 |
+  | ~make stop~                 | ~make s~      | Detener ejecución de la aplicación                                                 |
+  | ~make sh~                   |               | Acceder a la aplicación                                                            |
+  | ~make help~                 | ~make h~      | Muestra menú de ayuda                                                              |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+* Comandos para desarrollo
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | Comando                     | Comando Corto | Descripción                                                                        |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | ~make compile nombreModulo~ |               | Compilar uno de los módulos por su nombre (si no se especifíca, se compilan todos) |
+  | ~make exec nombreModulo~    | ~make e~      | Ejecutar uno de los módulos                                                        |
+  | ~make tests nombreModulo~   |               | Ejecutar pruebas unitarias con CSpec en un módulo                                  |
+  | ~make memcheck~             |               | Ejecutar Memcheck en uno de los módulos                                            |
+  | ~make clean~                | ~make c~      | Remover ejecutables, objetos y dependencias                                        |
+  | ~make list~                 | ~make l~      | Listar los módulos agregados                                                       |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|

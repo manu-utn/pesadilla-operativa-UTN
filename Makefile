@@ -1,10 +1,13 @@
--include Makefile.cfg
+-include .config/Makefile.cfg
 -include project.cfg
--include functions.mk
+-include .config/functions.mk
+
+saludar:
+	@echo hola $(DIR_PROJECT)
 
 b build: ## Construir aplicación
 	$(info Construyendo imagen...)
-	@docker build . -t $(CONTAINER) --build-arg DIR_PROJECT=$(DIR_PROJECT)
+	@docker build .config -t $(CONTAINER) --build-arg DIR_PROJECT=$(DIR_PROJECT)
 
 r run: ## Iniciar aplicación
 	$(info Iniciando aplicación con Docker...)
@@ -15,10 +18,10 @@ r run: ## Iniciar aplicación
 
 s stop: ## Detener ejecución de la aplicación
 	$(info Deteniendo contenedor...)
-	$(call docker_cmd, stop)
+	@$(call docker_cmd, stop)
 
 sh: ## Acceder a la aplicación
-	$(call docker_cmd, exec -it, /bin/sh)
+	@$(call docker_cmd, exec -it, /bin/sh)
 
 l list: ## Lista los módulos agregados
 	$(info $(DIR_MODULOS))
@@ -30,23 +33,23 @@ ifeq ($(COUNT_ARGS), 1)
 		 $(call docker_make_cmd, $(modulo) compile);)
 else
 	$(info Compilando módulo dentro del contenedor...)
-	$(call docker_make_cmd, compile)
+	@$(call docker_make_cmd, compile)
 endif
 
 e exec: ## Ejecutar uno de los módulos
 	$(info Ejecutando aplicación del contenedor...)
-	$(call docker_make_cmd, compile exec)
+	@$(call docker_make_cmd, compile exec)
 
 c clean: ## Remover ejecutables, objetos y dependencias
 	@$(foreach modulo_dir, $(DIR_MODULOS), \
 		$(call make_cmd, $(DIR_PROJECT)/$(modulo_dir) clean);)
 
 tests: ## Ejecutar pruebas unitarias con CSpec en un módulo
-	$(call docker_make_cmd, tests)
+	@$(call docker_make_cmd, tests)
 
 memcheck: ## Ejecutar Memcheck en uno de los módulos
 	$(info Ejecutando aplicación del contenedor...)
-	$(call docker_make_cmd, memcheck)
+	@$(call docker_make_cmd, memcheck)
 
 # TODO: Ya no es útil su queremos observar varios módulos (temporalmente)
 w watch: ## (deprecado) Observar cambios en /src /include y compilar automáticamente
