@@ -30,8 +30,9 @@ r run: ## Iniciar aplicación
 	$(info Iniciando aplicación con Docker...)
 	@docker run --detach -it --rm --name $(IMAGE_NAME) \
 		-v $(CURRENT_PATH)/$(DIR_PROJECT):$(DIR_BASE)/$(DIR_PROJECT) \
-		--user $(UID):$(GID) \
 		$(CONTAINER)
+#		--user $(UID):$(GID) \
+
 s stop: ## Detener ejecución de la aplicación
 	$(info Deteniendo contenedor...)
 	@$(call docker_cmd, stop)
@@ -56,7 +57,7 @@ tests: ## Ejecutar pruebas unitarias en un módulo
 
 ##@ Extra
 sh: ## Acceder a la aplicación por terminal
-	$(call docker_cmd, exec -it, /bin/sh)
+	$(call docker_cmd, exec -it, /bin/bash)
 
 l list: ## Listar nombre de los módulos
 	$(info $(DIR_MODULOS))
@@ -69,7 +70,7 @@ memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
 w watch: # (deprecado) Observar cambios en /src /include y compilar automáticamente
 	@docker run -it --rm --name $(IMAGE_NAME) \
 		-v $(CURRENT_PATH)/$(DIR_PROJECT):$(DIR_BASE)/$(DIR_PROJECT) \
-		--user $(UID):$(GID)\
+#		--user $(UID):$(GID)\
 		$(CONTAINER)
 
 ##@ Utilidades

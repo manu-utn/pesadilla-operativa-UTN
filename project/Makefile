@@ -37,7 +37,7 @@ c clean: ## Remover ejecutables, objetos y dependencias
 	@-$(RM) $(DIR_DEP)/*.{d,tmp.d}
 
 e exec: ## Ejecutar binario
-	@-$(DIR_BIN)/$(BIN)
+	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	@valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
