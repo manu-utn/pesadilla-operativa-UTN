@@ -1,21 +1,32 @@
-* Comandos Generales
+* Comandos de Entorno
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
   | Comando                     | Comando Corto | Descripción                                                                        |
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | ~make build~                | ~make b~      | Construir aplicación                                                               |
+  | ~make setup~                |               | Instalar y configurar entorno (unica vez)                                          |
+  | ~make build~                | ~make b~      | Construir aplicación  (unica vez)                                                  |
   | ~make run~                  | ~make r~      | Iniciar aplicación                                                                 |
   | ~make stop~                 | ~make s~      | Detener ejecución de la aplicación                                                 |
-  | ~make sh~                   |               | Acceder a la aplicación                                                            |
-  | ~make help~                 | ~make h~      | Muestra menú de ayuda                                                              |
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
-* Comandos para desarrollo
+* Comandos Extra
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
   | Comando                     | Comando Corto | Descripción                                                                        |
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | ~make compile nombreModulo~ |               | Compilar uno de los módulos por su nombre (si no se especifíca, se compilan todos) |
+  | ~make compile nombreModulo~ |               | Compilar uno de los módulos (si no se especifíca, se compilan todos)               |
   | ~make exec nombreModulo~    | ~make e~      | Ejecutar uno de los módulos                                                        |
-  | ~make tests nombreModulo~   |               | Ejecutar pruebas unitarias con CSpec en un módulo                                  |
-  | ~make memcheck~             |               | Ejecutar Memcheck en uno de los módulos                                            |
-  | ~make clean~                | ~make c~      | Remover ejecutables, objetos y dependencias                                        |
-  | ~make list~                 | ~make l~      | Listar los módulos agregados                                                       |
+  | ~make tests nombreModulo~   |               | Ejecutar pruebas unitarias en un módulo                                            |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+* Comandos Extra
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | Comando                     | Comando Corto | Descripción                                                                        |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | ~make memcheck~             |               | Ejecutar Memcheck de Valgrind en un módulo                                         |
+  | ~make sh~                   |               | Acceder a la aplicación por terminal                                               |
+  | ~make list~                 | ~make l~      | Listar nombre de los módulos                                                       |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+* Utilidades
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | Comando                     | Comando Corto | Descripción                                                                        |
+  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  | ~make clean~                | ~make c~      | Remover ejecutables y logs de los modulos                                          |
+  | ~make help~                 | ~make h~      | Mostrar menú de ayuda                                                              |
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
