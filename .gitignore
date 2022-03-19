@@ -1,5 +1,6 @@
 ### C Project ###
 .nvimlog
+.vscode
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
