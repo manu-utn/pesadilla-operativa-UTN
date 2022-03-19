@@ -1,27 +1,33 @@
-FROM alpine:latest
+FROM ubuntu:latest
 LABEL maintainer "neverkas"
+USER root
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y \
+    sudo git \
+    make gcc gdb libcunit1 g++ libcunit1-dev \
+    valgrind htop \
+    vim nano \
+    strace ssh make curl wget \
+    libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
+    build-essential
+# libreadline6 libevent1-dev
 
-RUN apk update && apk add git make cgdb gcc musl-dev neovim screen valgrind
-#RUN git clone http://github.com/syl20bnr/spacemacs ~/.emacs.d
-
-WORKDIR /home/cspec
+WORKDIR /usr/src/cspec
 RUN git clone http://github.com/mumuki/cspec .
 RUN make clean all install
 
-WORKDIR /home/so-commons
+WORKDIR /usr/src/so-commons
 RUN git clone https://github.com/sisoputnfrba/so-commons-library .
-# como so-commons sólo contempla ubuntu, removemos el sudo
-RUN sed -i 's/sudo //g' src/makefile
 RUN make clean all test install
 
-# si falla alguna dependencia del cgdb, descomentar esta otra linea
-# apk add autoconf automake libtool flex bison gcc g++ ncurses ncurses-dev texinfo readline readline-dev
-
-WORKDIR /home
+WORKDIR /home/utnso
 COPY . ./project
 
-WORKDIR /home/project
+WORKDIR /home/utnso/project
 
-ENTRYPOINT ["/bin/sh"]
-#ENTRYPOINT ["/bin/sh", "-c"]
-#CMD ["make --no-print-directory watch"]
+RUN useradd utnso
+RUN adduser utnso sudo
+RUN echo "utnso ALL=(ALL:ALL) ALL" >> /etc/sudoers
+USER utnso
+
+ENTRYPOINT ["/bin/bash"]
