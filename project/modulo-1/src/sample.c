@@ -4,11 +4,28 @@
 #include "sample.h"
 #include <commons/collections/list.h>
 #include <commons/log.h>
+#include "sample1.h"
+#include "sample2.h"
 
 int main(){
+  int numero;
+  numero=5;
+  numero++;
+  numero++;
+  numero=0;
+
+  int resultado = sumar(1,1);
+  printf("1+1 es %d\n", resultado);
+
   t_list *mensajes;
+  // es necesario la ruta absoluta para que lo entienda el debugger
+  char temp_file_path[] = "/home/jelou/Documents/git/manu-cproject/project/modulo-1/";
+  //char temp_file_path[] = "/home/utnso/tp/project/modulo-1/";
+
   char temp_file[] = "logs/sample.txt"; // se creará en la raíz del proyecto
-  t_log *logger = log_create(temp_file, "TEST", true, LOG_LEVEL_INFO);
+  strcat(temp_file_path, temp_file);
+
+  t_log *logger = log_create(temp_file_path, "TEST", true, LOG_LEVEL_INFO);
   mensajes = list_create();
 
   list_add(mensajes, crear_mensaje_importante("holis"));
@@ -19,10 +36,11 @@ int main(){
   t_list *textos = list_map(mensajes, (void *)_get_texto);
 
   for (int i = 0; i < list_size(textos); i++) {
-    log_info(logger, "%s", list_get(textos, i));
+    log_info(logger, "%s", (char*) list_get(textos, i));
   }
 
   list_destroy_and_destroy_elements(mensajes, (void *)mensaje_destroy);
+  list_destroy(textos);
   log_destroy(logger);
 
   return 0;

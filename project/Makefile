@@ -1,19 +1,16 @@
 # - Este makefile actúa de template para el Makefile cada módulo
+
 -include modulos.cfg
 
 $(DIRS): ; $(MKDIR) $@
 
 # --------------------------------------------------------------------
 
-
 $(DIR_BIN)/$(BIN): $(OBJ)
 	$(info > Enlazamos los objetos ("$(notdir $^)") para crear el ejecutable ($(notdir $@)) en $(dir $@))
-	@echo -e "\n----------------------------------------------------------------------------------------------------------\n"
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-# TODO: Posible refactor (?)
-# Objetivo: Crear/actualizar primero la static lib, para que luego el Linker pueda enlazarla
 ifneq ($(BIN_FILE_EXTENSION),.a)
 	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
 endif
@@ -45,6 +42,9 @@ e exec: ## Ejecutar binario
 
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	@valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
+
+debug:
+	@$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 $(DEP):
 -include $(wildcard $(DEP))
