@@ -1,0 +1,33 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Compilar con Make",
+            "command": "make",
+            "args": [
+                "compile"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Ejecutar Modulo 3",
+            "type": "shell",
+            "command": "./bin/modulo-3.out"
+        },
+        {
+            "label": "Ejecutar Modulo 3 con Memcheck-Valgrind",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "memcheck"
+            ],
+        }
+    ],
+    "version": "2.0.0"
+}
