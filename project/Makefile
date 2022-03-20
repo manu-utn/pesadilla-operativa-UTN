@@ -1,10 +1,10 @@
 # - Este makefile actúa de template para el Makefile cada módulo
+
 -include modulos.cfg
 
 $(DIRS): ; $(MKDIR) $@
 
 # --------------------------------------------------------------------
-
 
 $(DIR_BIN)/$(BIN): $(OBJ)
 	$(info > Enlazamos los objetos ("$(notdir $^)") para crear el ejecutable ($(notdir $@)) en $(dir $@))
@@ -17,7 +17,7 @@ endif
 	$(info > Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@))
 	$(info > Se modificó el archivo ($?))
 	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
-	@@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
+	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
 
 
 # --------------------------------------------------------------------
