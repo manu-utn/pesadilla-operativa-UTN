@@ -43,6 +43,9 @@ e exec: ## Ejecutar binario
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	@valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
 
+debug:
+	@$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
+
 $(DEP):
 -include $(wildcard $(DEP))
 
