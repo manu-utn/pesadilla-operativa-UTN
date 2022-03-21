@@ -1,6 +1,6 @@
 -include .config/Makefile.cfg
--include project.cfg
 -include .config/functions.mk
+-include project.cfg
 
 ##@ Entorno
 i install: install-virtualbox install-dev-utils install-lib-cspec install-lib-commons add-user copy-project ## Instalar y configurar entorno (unica vez)
@@ -14,7 +14,7 @@ endif
 
 install-dev-utils:
 	$(info Instalando utilidades de desarrollo...)
-	@sudo apt install -y gcc gdb libcunit1 g++ libcunit1-dev \
+	@sudo apt install -y universal-ctags gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
 	build-essential vagrant nemiver
 
@@ -49,6 +49,8 @@ install-lib-commons:
 	@sudo $(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
 
 ##@ Desarrollo
+
+# TODO: need refactor
 compile: ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
@@ -57,6 +59,10 @@ ifeq ($(COUNT_ARGS), 1)
 else
 	$(info Compilando un módulo...)
 	@$(call module_cmd, compile)
+
+# TODO: need refactor
+	-$(RM) $(PATH_CTAGS)
+	$(foreach source, $(SOURCES), $(call create_ctag,$(source));)
 endif
 
 e exec: ## Ejecutar uno de los módulos
