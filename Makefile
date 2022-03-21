@@ -7,7 +7,7 @@ i install: install-virtualbox install-dev-utils install-lib-cspec install-lib-co
 
 # TODO: pendiente definir
 deploy-dev: popup-confirm-action
-#	$(info turu)
+#	$(info Haciendo deploy)
 
 deploy-prod: popup-confirm-action ## Deploy a servidor remoto
 	$(info Subiendo proyecto a servidor remoto...)
@@ -25,9 +25,11 @@ endif
 
 install-dev-utils:
 	$(info Instalando utilidades de desarrollo...)
-	@sudo apt install -y universal-ctags gcc gdb libcunit1 g++ libcunit1-dev \
+	@-sudo apt install -y gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
-	build-essential vagrant nemiver rsync clang-format
+	build-essential vagrant
+	@-sudo apt install -y nemiver rsync
+	@-sudo apt install -y clang-format universal-ctags
 
 install-virtualbox:
 ifeq ($(VBOX_IS_REQUIRED), true)
@@ -79,10 +81,9 @@ ifeq ($(COUNT_ARGS), 1)
 else
 	$(info Compilando un módulo...)
 	@$(call module_cmd, compile)
-
-# TODO: need refactor
-	-$(RM) $(PATH_CTAGS)
-	$(foreach source, $(SOURCES), $(call create_ctag,$(source));)
+ifneq (, $(shell which universal-ctags))
+	@$(call create_ctags,$(SOURCES))
+endif
 endif
 
 e exec: ## Ejecutar uno de los módulos

@@ -10,9 +10,12 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 	$(info > Enlazamos los objetos ("$(notdir $^)") para crear el ejecutable ($(notdir $@)) en $(dir $@))
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
+# TODO: need refactor
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-# formateamos cada archivo fuente .c con segun .clang-format del directorio raiz
+ifneq (, $(shell which clang-format))
+	$(info Formateando archivo $(DIR_SRC)/$*.c con clang-format..)
 	@clang-format $(DIR_SRC)/$*.c --style=file -i
+endif
 ifneq ($(BIN_FILE_EXTENSION),.a)
 	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
 endif

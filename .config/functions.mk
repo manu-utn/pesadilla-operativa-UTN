@@ -10,14 +10,19 @@ define module_cmd
 	$(MAKE) --no-print-directory -C $(DIR_PROJECT)/$(ARGS) $1
 endef
 
+# 1er param: $1 rutas de los archivos fuente .c
 define create_ctags
-	@-rm project/$(ARGS)/include/ctags.h
-	@$(foreach source, $(SOURCES), $(call create_ctag,$(source));)
+	@-$(RM) $(PATH_CTAGS)
+	ctags -o - --kinds-C=f -x \
+	--_xformat="%{typeref} %{name}%{signature};" $1 | \
+	tr ':' ' ' | sed -e 's/^typename //' >> $(PATH_CTAGS)
 endef
 
-# 1er param: $1 ruta del archivo fuente .c
-define create_ctag
-		ctags -o - --kinds-C=f -x \
-		--_xformat="%{typeref} %{name}%{signature};" $1 | \
-		tr ':' ' ' | sed -e 's/^typename //' >> $(PATH_CTAGS)
-endef
+# TODO: pendiente, problemas al hacer $(eval $(call apply_clang_format, nombrearchivo.c))
+#
+# define apply_clang_format
+# ifneq (, $$(shell which clang-format))
+# 	$$(info Formateando archivo $1 fuente con clang-format..)
+# 	@clang-format $$1 --style=file -i
+# endif
+# endef
