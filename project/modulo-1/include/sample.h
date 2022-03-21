@@ -1,3 +1,5 @@
+#ifndef __SAMPLE__H
+#define __SAMPLE__H
 typedef enum {MENSAJE_IMPORTANTE, MENSAJE_COMUN} TIPO_MENSAJE;
 
 typedef struct {
@@ -8,3 +10,5 @@ typedef struct {
 void imprimir_mensaje(Mensaje);
 Mensaje* crear_mensaje_importante(char *);
 void mensaje_destroy(Mensaje*);
+#endif
+
