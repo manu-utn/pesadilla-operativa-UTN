@@ -19,11 +19,18 @@ install-dev-utils:
 	build-essential vagrant nemiver
 
 install-virtualbox:
+ifeq (VBOX_LATEST, true)
 # Adding VirtualBox Package Repository:
 	@echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian bionic contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
 # Adding VirtualBox Public PGP Key:
 	@wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
 	@sudo apt update && sudo apt install -y virtualbox virtualbox-ext-pack
+else
+	cd /tmp && \
+	wget https://download.virtualbox.org/virtualbox/6.0.24/virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb && \
+	sudo dpkg -i virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb && \
+	sudo rm -vf virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb
+endif
 
 add-user:
 ifeq ($(ENVIRONMENT_PROD), false)
@@ -82,7 +89,7 @@ l list: ## Listar nombre de los módulos
 
 memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
 	$(info Ejecutando aplicación del contenedor...)
-#	@$(call docker_make_cmd, memcheck)
+	@$(call docker_make_cmd, memcheck)
 
 ##@ Utilidades
 c clean: ## Remover ejecutables y logs de los modulos
