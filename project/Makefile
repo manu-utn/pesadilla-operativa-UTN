@@ -11,6 +11,8 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+# formateamos cada archivo fuente .c con segun .clang-format del directorio raiz
+	@clang-format $(DIR_SRC)/$*.c --style=file -i
 ifneq ($(BIN_FILE_EXTENSION),.a)
 	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
 endif
@@ -18,7 +20,6 @@ endif
 	$(info > Se modificó el archivo ($?))
 	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
 	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
-
 
 # --------------------------------------------------------------------
 
