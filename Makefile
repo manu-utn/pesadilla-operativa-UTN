@@ -17,7 +17,7 @@ popup-confirm-action:
 	@.config/popup-confirm-action.sh
 
 copy-project:
-ifeq ($(ENVIRONMENT_PROD), false)
+ifeq ($(USER_UTNSO_IS_REQUIRED), false)
 	@sudo rsync -rvz . $(DIR_BASE)
 	@sudo chown -R utnso:utnso $(DIR_BASE)
 	@sudo chmod -R ug+rwx $(DIR_BASE)
@@ -30,7 +30,8 @@ install-dev-utils:
 	build-essential vagrant nemiver rsync clang-format
 
 install-virtualbox:
-ifeq (VBOX_LATEST, true)
+ifeq ($(VBOX_IS_REQUIRED), true)
+ifeq ($(VBOX_LATEST), true)
 # Adding VirtualBox Package Repository:
 	@echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian bionic contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
 # Adding VirtualBox Public PGP Key:
@@ -42,9 +43,10 @@ else
 	sudo dpkg -i virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb && \
 	sudo rm -vf virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb
 endif
+endif
 
 add-user:
-ifeq ($(ENVIRONMENT_PROD), false)
+ifeq ($(USER_UTNSO_IS_REQUIRED), true)
 	$(info Configurando usuario utnso...)
 # creamos el usuario, le asignamos una shell, un directorio y lo agregamos al grupo de sudo
 	@sudo useradd -s /bin/bash -d $(DIR_BASE) -m -G sudo utnso
