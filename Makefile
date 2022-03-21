@@ -5,6 +5,17 @@
 ##@ Entorno
 i install: install-virtualbox install-dev-utils install-lib-cspec install-lib-commons add-user copy-project ## Instalar y configurar entorno (unica vez)
 
+# TODO: pendiente definir
+deploy-dev: popup-confirm-action
+#	$(info turu)
+
+deploy-prod: popup-confirm-action ## Deploy a servidor remoto
+	$(info Subiendo proyecto a servidor remoto...)
+	@rsync -a --progress --partial --rsh=ssh . $(SSH_USER)@$(SSH_IP):$(SSH_PATH_DEST)
+
+popup-confirm-action:
+	@.config/popup-confirm-action.sh
+
 copy-project:
 ifeq ($(ENVIRONMENT_PROD), false)
 	@sudo rsync -rvz . $(DIR_BASE)
@@ -16,7 +27,7 @@ install-dev-utils:
 	$(info Instalando utilidades de desarrollo...)
 	@sudo apt install -y universal-ctags gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
-	build-essential vagrant nemiver
+	build-essential vagrant nemiver rsync
 
 install-virtualbox:
 ifeq (VBOX_LATEST, true)
@@ -100,4 +111,4 @@ h help: ## Mostrar menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nOpciones para usar:\n  make \033[36m\033[0m\n"} /^[$$()% 0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 #	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: i install b build r run s stop e exec w watch h help c clean l list install-virtualbox install-dev-utils install-lib-cspec install-lib-commons add-user copy-project
+.PHONY: i install b build r run s stop e exec w watch h help c clean l list install-virtualbox install-dev-utils install-lib-cspec install-lib-commons add-user copy-project deploy-dev deploy-prod
