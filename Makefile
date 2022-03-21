@@ -27,7 +27,7 @@ install-dev-utils:
 	$(info Instalando utilidades de desarrollo...)
 	@sudo apt install -y universal-ctags gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
-	build-essential vagrant nemiver rsync
+	build-essential vagrant nemiver rsync clang-format
 
 install-virtualbox:
 ifeq (VBOX_LATEST, true)
