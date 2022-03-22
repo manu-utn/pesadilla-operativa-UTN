@@ -1,5 +1,6 @@
 ### C Project ###
 .nvimlog
+.bash_history
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
