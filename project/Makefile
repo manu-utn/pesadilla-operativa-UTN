@@ -28,7 +28,7 @@ endif
 
 compile: $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
-tests:
+test:
 	@$(MAKE) --no-print-directory -C tests compile exec
 
 c clean: ## Remover ejecutables, objetos y dependencias
