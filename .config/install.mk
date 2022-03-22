@@ -22,7 +22,8 @@ install-dev-utils:
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
 	build-essential vagrant
 	@-sudo apt install -y nemiver rsync
-	@-sudo apt install -y clang-format universal-ctags
+	@-sudo apt install -y clang-format
+	@-sudo apt install -y universal-ctags
 
 install-virtualbox:
 ifeq ($(VBOX_IS_REQUIRED), true)
@@ -33,7 +34,7 @@ ifeq ($(VBOX_LATEST), true)
 	@wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
 	@sudo apt update && sudo apt install -y virtualbox virtualbox-ext-pack
 else
-	cd /tmp && \
+	@cd /tmp && \
 	wget https://download.virtualbox.org/virtualbox/6.0.24/virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb && \
 	sudo dpkg -i virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb && \
 	sudo rm -vf virtualbox-6.0_6.0.24-139119~Ubuntu~bionic_amd64.deb
@@ -63,4 +64,12 @@ install-lib-commons:
 	sudo git clone http://github.com/sisoputnfrba/so-commons-library
 	@sudo $(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
 
-.PHONY: install-virtualbox install-dev-utils install-lib-cspec install-lib-commons add-user copy-project deploy-dev deploy-prod
+install-ctags:
+ifneq (, $(shell which universal-ctags))
+	$(info Instalando ctags...)
+	@cd /tmp && \
+			git clone https://github.com/universal-ctags/ctags.git && cd ctags && \
+    ./autogen.sh && ./configure && make && sudo make install
+endif
+
+.PHONY: install-virtualbox install-dev-utils install-ctags install-lib-cspec install-lib-commons add-user copy-project deploy-dev deploy-prod
