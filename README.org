@@ -5,20 +5,21 @@
   | ~make install~ | ~make i~      | Instalar y configurar entorno (unica vez) |
   |----------------+---------------+-------------------------------------------|
 * Comandos Extra
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | Comando                     | Comando Corto | Descripción                                                                        |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | ~make compile nombreModulo~ |               | Compilar uno de los módulos (si no se especifíca, se compilan todos)               |
-  | ~make exec nombreModulo~    | ~make e~      | Ejecutar uno de los módulos                                                        |
-  | ~make tests nombreModulo~   |               | Ejecutar pruebas unitarias en un módulo                                            |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  |-----------------------------+---------------+----------------------------------------------------------------------|
+  | Comando                     | Comando Corto | Descripción                                                          |
+  |-----------------------------+---------------+----------------------------------------------------------------------|
+  | ~make compile nombreModulo~ |               | Compilar uno de los módulos (si no se especifíca, se compilan todos) |
+  | ~make exec nombreModulo~    | ~make e~      | Ejecutar uno de los módulos                                          |
+  | ~make test nombreModulo~    | ~make t~      | Ejecutar pruebas unitarias en un módulo                              |
+  |-----------------------------+---------------+----------------------------------------------------------------------|
 * Comandos Extra
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | Comando                     | Comando Corto | Descripción                                                                        |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | ~make memcheck~             |               | Ejecutar Memcheck de Valgrind en un módulo                                         |
-  | ~make list~                 | ~make l~      | Listar nombre de los módulos                                                       |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+  |-------------------+---------------+-----------------------------------------------------------------------|
+  | Comando           | Comando Corto | Descripción                                                           |
+  |-------------------+---------------+-----------------------------------------------------------------------|
+  | ~make memcheck~   |               | Ejecutar Memcheck de Valgrind en un módulo                            |
+  | ~make list~       | ~make l~      | Listar nombre de los módulos                                          |
+  | ~make simulation~ |               | Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal) |
+  |-------------------+---------------+-----------------------------------------------------------------------|
 * Utilidades
   |-----------------------------+---------------+------------------------------------------------------------------------------------|
   | Comando                     | Comando Corto | Descripción                                                                        |

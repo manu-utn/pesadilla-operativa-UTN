@@ -10,7 +10,12 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 	$(info > Enlazamos los objetos ("$(notdir $^)") para crear el ejecutable ($(notdir $@)) en $(dir $@))
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
+# TODO: need refactor
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+ifneq (, $(shell which clang-format))
+	$(info Formateando archivo $(DIR_SRC)/$*.c con clang-format..)
+	@clang-format $(DIR_SRC)/$*.c --style=file -i
+endif
 ifneq ($(BIN_FILE_EXTENSION),.a)
 	@$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB)
 endif
@@ -19,12 +24,11 @@ endif
 	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
 	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
 
-
 # --------------------------------------------------------------------
 
 compile: $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
-tests:
+test:
 	@$(MAKE) --no-print-directory -C tests compile exec
 
 c clean: ## Remover ejecutables, objetos y dependencias
