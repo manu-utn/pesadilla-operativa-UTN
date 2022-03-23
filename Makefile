@@ -57,13 +57,15 @@ simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por termi
 # - si usamos `nohup` al matar la sesion de `screen` pasandole `quit` igual seguira ejecutando
 # - si usamos `&` para dejar la tarea en background, sucede lo mismo que con hup
 # - si usamos `bash -c` seguido del comando, se queda en foreground
-watch: ## Observar cambios y compilar automaticamente todos los modulos
+w watch: ## Observar cambios y compilar automaticamente todos los modulos
+	$(info Observando cambios en la aplicación...)
 	@$(foreach modulo, $(DIR_MODULOS), \
-		screen -dm $(modulo) && \
-		screen -S $(modulo) -X stuff "make -C project/$(modulo) watch\n";)
+		screen -dmS $(modulo) && \
+		screen -S $(modulo) -X stuff "make -C project/$(modulo) watch 2>error.log\n";)
+	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 stopwatch: ## Dejar de observar cambios
-	@pkill screen
+	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 # alternativas que no funcionan de manera eficiente..
 #
@@ -79,6 +81,7 @@ stopwatch: ## Dejar de observar cambios
 
 ##@ Utilidades
 c clean: ## Remover ejecutables y logs de los modulos
+	$(call specific_module_cmd,clean,static)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		$(call specific_module_cmd,clean,$(modulo));)
 
@@ -87,3 +90,4 @@ h help: ## Mostrar menú de ayuda
 #	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: i install b build r run s stop e exec w watch stopwatch h help c clean l list t test simulation
+PHONY += $(MAKECMDGOALS)

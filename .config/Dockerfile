@@ -18,7 +18,7 @@ RUN apt update && apt install -y \
 # libreadline6 libevent1-dev
 
 RUN apt install -y \
-    pkg-config autoconf automake \
+    pkg-config autoconf automake screen \
     python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
 
 # necesario, porque en el release Xenial no se puede instalar mediante `apt install universal-ctags`
