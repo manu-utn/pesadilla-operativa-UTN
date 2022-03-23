@@ -1,4 +1,5 @@
 -include .config/Makefile.cfg
+-include .config/message-colors.mk
 -include .config/functions.mk
 -include .config/docker.mk
 -include .config/install.mk
@@ -68,7 +69,7 @@ stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 ##@ Utilidades
-c clean: ## Remover ejecutables y logs de los modulos
+clean: ## Remover ejecutables y logs de los modulos
 	$(call specific_module_cmd,clean,static)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		$(call specific_module_cmd,clean,$(modulo));)
@@ -77,5 +78,4 @@ h help: ## Mostrar menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nOpciones para usar:\n  make \033[36m\033[0m\n"} /^[$$()% 0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 #	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: i install b build r run s stop e exec w watch stopwatch h help c clean l list t test simulation
-PHONY += $(MAKECMDGOALS)
+.PHONY: i install b build r run s stop e exec w watch stopwatch h help l list t test simulation

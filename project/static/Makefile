@@ -7,12 +7,19 @@
 # c: crea la biblioteca pero tiene que existir el .a
 # s: agrega/actualiza un índice del archivo que usará el compilador
 
-$(DIR_BIN)/$(BIN): $(DIR_OBJ)/$(STATIC_LIB).o
-	$(info Creando biblioteca estática para compartir código entre módulos...)
+# $(DIR_BIN)/$(BIN): $(DIR_OBJ)/$(STATIC_LIB).o
+# 	$(info Creando biblioteca estática para compartir código entre módulos...)
+# 	@ar $(AR_OPTIONS) $@ $^
+
+compile_static: $(DIR_STATIC_BIN)/$(STATIC_BIN)
+
+$(DIR_STATIC_BIN)/$(STATIC_BIN): $(DIR_OBJ)/$(STATIC_LIB).o
+	@echo "Creando biblioteca estática para compartir código entre módulos..." $(MSG_OK)
 	@ar $(AR_OPTIONS) $@ $^
 
-c clean:
-	$(info > Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME))
+clean:
+	@echo "Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME)" $(MSG_OK)
+
 	@-$(RM) $(DIR_BIN)/*.a
 	@-$(RM) $(DIR_OBJ)/*.o
 	@-$(RM) $(DIR_LOGS)/*.txt
@@ -23,3 +30,5 @@ c clean:
 ifneq ($(CURRENT_MODULE_NAME),tests)
 	@$(MAKE) --no-print-directory -C tests clean
 endif
+
+.PHONY: clean compile_static
