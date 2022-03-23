@@ -67,18 +67,6 @@ w watch: ## Observar cambios y compilar automaticamente todos los modulos
 stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
-# alternativas que no funcionan de manera eficiente..
-#
-# screen -S modulo1 -m bash -c "make -C project/modulo-1 watch"
-# screen -S modulo1 -X stuff "make -C project/modulo-1 watch"
-# screen -S modulo1 -X stuff "nohup make -C project/modulo-1 watch"
-# screen -S modulo1 -X stuff "nohup make -C project/modulo-1 watch&>modulo.log"
-
-#	screen -S modulo1 -d -m bash -c "nohup $(MAKE) -C $(DIR_PROJECT)/modulo-1 watch > modulo-1.txt &"
-# $(foreach modulo, $(DIR_MODULOS), \
-# screen -S sisop-$(modulo) -d -m bash -c "nohup $(MAKE) -C $(modulo) watch > $(modulo).txt &";)
-
-
 ##@ Utilidades
 c clean: ## Remover ejecutables y logs de los modulos
 	$(call specific_module_cmd,clean,static)
