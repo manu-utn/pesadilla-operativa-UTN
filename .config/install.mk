@@ -21,8 +21,11 @@ install-dev-utils:
 	@-sudo apt install -y gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
 	build-essential vagrant
-	@-sudo apt install -y nemiver rsync
+	@-sudo apt install -y nemiver rsync screen
 	@-sudo apt install -y clang-format
+	@-sudo apt install -y \
+    pkg-config autoconf automake \
+    python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
 	@-sudo apt install -y universal-ctags
 
 install-virtualbox:
@@ -53,16 +56,22 @@ ifeq ($(USER_UTNSO_IS_REQUIRED), true)
 endif
 
 install-lib-cspec:
+# validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
+ifneq ("", "$(wildcard $(DIR_LIBS)/cspec)")
 	$(info Instalando cspec library...)
 	@cd $(DIR_LIBS) && \
 	sudo git clone http://github.com/mumuki/cspec
 	@sudo $(MAKE) -C $(DIR_LIBS)/cspec clean all install
+endif
 
 install-lib-commons:
+# validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
+ifneq ("", "$(wildcard $(DIR_LIBS)/so-commons-library)")
 	$(info Instalando so-commons...)
 	@cd $(DIR_LIBS) && \
 	sudo git clone http://github.com/sisoputnfrba/so-commons-library
 	@sudo $(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
+endif
 
 install-ctags:
 ifneq (, $(shell which universal-ctags))
