@@ -8,30 +8,28 @@ $(DIRS): ; $(MKDIR) $@
 # --------------------------------------------------------------------
 
 $(DIR_BIN)/$(BIN): $(OBJ)
-	@echo "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
+	@echo "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
 
-$(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-# TODO: need refactor
-ifneq (, $(shell which clang-format))
-	@echo "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
-	@clang-format $(DIR_SRC)/$*.c --style=file -i
-endif
 # TODO: need refactor
 # 1. Evitamos recursividad: chequeando si el binario a crear no es del modulo static, entonces solicitamos que se cree primero
 # 2. Evitamos compilar varias veces la static lib: chequeando si ya se creo, entonces no pida crearla por cada .c que convierte en .o
 # (evaluar porque en este segundo no anduvo la alternativa con wildcard)
+$(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+ifneq (, $(shell which clang-format))
+	@clang-format $(DIR_SRC)/$*.c --style=file -i
+	@echo "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
+endif
 ifneq ($(notdir $(CURDIR)),static)
 #ifeq ("$(wildcard $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a)","")
-	@[ -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ] || \
-	$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static
+	@@[ -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ] || $(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static
 #endif
 endif
-	@echo "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK)
-	@echo "Se modificó el archivo ($?)" $(MSG_OK)
-
 	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
 	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
+
+	@echo "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK)
+	@echo "Se modificó el archivo ($?)" $(MSG_OK)
 	@echo ""
 
 # --------------------------------------------------------------------
@@ -41,31 +39,27 @@ compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 test:
 	@$(MAKE) --no-print-directory -C tests compile exec
 
-.PHONY: saludar-base
-saludar-base:
-	@echo lalala
-
 clean-base: ## Remover ejecutables, objetos y dependencias
-	@echo "Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME)" $(MSG_OK)
-
 	@-$(RM) $(DIR_BIN)/*.out
 	@-$(RM) $(DIR_OBJ)/*.o
 	@-$(RM) $(DIR_LOGS)/*.txt
 	@-$(RM) $(DIR_LOGS)/*.log
 	@-$(RM) $(DIR_DEP)/*.d
 	@-$(RM) $(DIR_DEP)/*.tmp.d
+
+	@echo "Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME)" $(MSG_OK)
 ifneq ($(CURRENT_MODULE_NAME),tests)
-#	@$(MAKE) --no-print-directory -C tests clean
+	@$(MAKE) --no-print-directory -C tests clean
 endif
 
 e exec: ## Ejecutar binario
 	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
-	@valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
+	@-valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
 
 debug:
-	@$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
+	@-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 $(DEP):
 -include $(wildcard $(DEP))
