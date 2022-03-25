@@ -1,0 +1,6 @@
+[{
+        "directory":"/home/jelou/Documents/git/manu-cproject/project/modulo-3",
+        "command": "/bin/clang sample.c -I/home/jelou/Documents/git/manu-cproject/project/modulo-3/include -I/home/jelou/Documents/git/manu-cproject/project/static/include",
+        "file":"sample.c"
+}]
+
