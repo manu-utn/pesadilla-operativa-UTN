@@ -3,6 +3,8 @@
 .bash_history
 error.log
 
+!.gitkeep
+
 ### Emacs ###
 # -*- mode: gitignore; -*-
 *~
