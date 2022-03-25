@@ -1,7 +1,6 @@
 ---
 BasedOnStyle: Mozilla
 AlignAfterOpenBracket: Align
-AlignEscapedNewlines: Left
 AlignTrailingComments: 'true'
 AllowAllParametersOfDeclarationOnNextLine: 'false'
 AllowShortBlocksOnASingleLine: 'false'
@@ -15,17 +14,13 @@ BinPackArguments: 'false'
 BinPackParameters: 'false'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
-BreakBeforeInheritanceComma: 'true'
 BreakBeforeTernaryOperators: 'false'
 ColumnLimit: '80'
-CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ContinuationIndentWidth: '2'
 Cpp11BracedListStyle: 'true'
 DerivePointerAlignment: 'true'
-FixNamespaceComments: 'true'
 IndentCaseLabels: 'true'
-IndentPPDirectives: None
 IndentWidth: '2'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
@@ -33,7 +28,6 @@ MaxEmptyLinesToKeep: '2'
 NamespaceIndentation: All
 ObjCBlockIndentWidth: '2'
 SortIncludes: 'true'
-SortUsingDeclarations: 'true'
 SpaceAfterCStyleCast: 'false'
 SpaceBeforeAssignmentOperators: 'true'
 SpaceBeforeParens: ControlStatements
