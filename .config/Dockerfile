@@ -19,7 +19,10 @@ RUN apt update && apt install -y \
 
 RUN apt install -y \
     pkg-config autoconf automake screen \
-    python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
+    python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev \
+    python3-pip
+
+RUN apt update && pip3 install valgreen
 
 # necesario, porque en el release Xenial no se puede instalar mediante `apt install universal-ctags`
 WORKDIR /tmp

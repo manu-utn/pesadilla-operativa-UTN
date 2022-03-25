@@ -25,8 +25,9 @@ install-dev-utils:
 	@-sudo apt install -y clang-format
 	@-sudo apt install -y \
     pkg-config autoconf automake \
-    python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
+    python3-pip python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
 	@-sudo apt install -y universal-ctags
+	@-sudo apt update && pip3 install valgreen
 
 install-virtualbox:
 ifeq ($(VBOX_IS_REQUIRED), true)

@@ -56,7 +56,10 @@ e exec: ## Ejecutar binario
 	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
-	@-valgrind $(MEMCHECK_FLAGS) $(DIR_BIN)/$(BIN)
+	@-valgrind $(MEMCHECK_FLAGS) --log-file="logs/memcheck.log" $(DIR_BIN)/$(BIN)
+ifneq (, $(shell which valgreen))
+	@-valgreen $(DIR_BIN)/$(BIN)
+endif
 
 debug:
 	@-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)

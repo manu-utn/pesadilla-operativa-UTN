@@ -39,8 +39,8 @@ l list: ## Listar nombre de los módulos
 	$(info $(DIR_MODULOS))
 
 memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
-	$(info Ejecutando aplicación del contenedor...)
-	@$(call docker_make_cmd, memcheck)
+	$(info Ejecutando Memcheck de Valgrind en el modulo...)
+	@$(call module_cmd,memcheck)
 
 simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
 	$(info Iniciando simulacion en Ubuntu 14.0...)
