@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main()
-{
+int main() {
   t_list *publicaciones;
   char temp_file[] =
     "logs/publicaciones.txt"; // se creará en la raíz del proyecto
@@ -15,15 +14,13 @@ int main()
 
   list_add(publicaciones, crear_publicacion("holis"));
 
-  char *_get_texto(Publicacion * publicacion)
-  {
+  char *_get_texto(Publicacion * publicacion) {
     return publicacion->texto;
   }; // fundamental ese ; en las nested functions
 
   t_list *textos = list_map(publicaciones, (void *)_get_texto);
 
-  for (int i = 0; i < list_size(textos); i++)
-  {
+  for (int i = 0; i < list_size(textos); i++) {
     log_info(logger, "%s", (char *)list_get(textos, i));
   }
 
@@ -33,8 +30,7 @@ int main()
   return 0;
 }
 
-Publicacion *crear_publicacion(char *texto)
-{
+Publicacion *crear_publicacion(char *texto) {
   Publicacion *publicacion = malloc(sizeof(Publicacion));
 
   publicacion->texto = strdup(texto);
@@ -42,13 +38,11 @@ Publicacion *crear_publicacion(char *texto)
   return publicacion;
 }
 
-void publicacion_destroy(Publicacion *publicacion)
-{
+void publicacion_destroy(Publicacion *publicacion) {
   free(publicacion->texto);
   free(publicacion);
 }
 
-void imprimir_publicacion(Publicacion publicacion)
-{
+void imprimir_publicacion(Publicacion publicacion) {
   printf("%s\n", publicacion.texto);
 }
