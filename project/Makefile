@@ -2,6 +2,7 @@
 
 -include modulos.cfg
 -include ../../.config/message-colors.mk
+-include ../../.config/log.mk
 
 $(DIRS): ; $(MKDIR) $@
 
@@ -9,7 +10,7 @@ $(DIRS): ; $(MKDIR) $@
 
 $(DIR_BIN)/$(BIN): $(OBJ)
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
-	@echo "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
+	@echo $(LOG) "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
 
 # TODO: need refactor
 # 1. Evitamos recursividad: chequeando si el binario a crear no es del modulo static, entonces solicitamos que se cree primero
@@ -18,20 +19,24 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
 ifneq (, $(shell which clang-format))
 	@clang-format $(DIR_SRC)/$*.c --style=file -i
-	@echo "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
+	@echo $(LOG) "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
 endif
 ifneq ($(notdir $(CURDIR)),static)
 #ifeq ("$(wildcard $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a)","")
 	@@[ -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ] || $(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static
 #endif
 endif
-	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
-	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
 
-	@echo "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK)
-	@echo "Se modificó el archivo ($?)" $(MSG_OK)
+	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
+	then \
+		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
+		echo $(LOG) "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK);\
+		echo $(LOG) "Se modificó el archivo ($?)" $(MSG_OK);\
+	else \
+		echo $(LOG) "Ocurrio un error al compilar $(OBJ)" $(MSG_ERROR);\
+		sleep 2 && exit 1;\
+	fi
 	@echo ""
-
 # --------------------------------------------------------------------
 
 compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo

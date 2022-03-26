@@ -34,13 +34,11 @@ d debug: ## Debugear uno de los módulos
 t test: ## Ejecutar pruebas unitarias en un módulo
 	@$(call module_cmd,test)
 
-##@ Extra
-l list: ## Listar nombre de los módulos
-	$(info $(DIR_MODULOS))
-
 memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
-	$(info Ejecutando Memcheck de Valgrind en el modulo...)
-	@$(call module_cmd,memcheck)
+	$(info Ejecutando aplicación del contenedor...)
+	@$(call docker_make_cmd, memcheck)
+
+##@ Extra
 
 simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
 	$(info Iniciando simulacion en Ubuntu 14.0...)
@@ -53,26 +51,28 @@ simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por termi
 		$(CONTAINER)
 # --user $(UID):$(GID) \
 
-# TODO: need refactor, deberiamos poder guardar un log de su ejecucion
-#
-# - si usamos `nohup` al matar la sesion de `screen` pasandole `quit` igual seguira ejecutando
-# - si usamos `&` para dejar la tarea en background, sucede lo mismo que con hup
-# - si usamos `bash -c` seguido del comando, se queda en foreground
 w watch: ## Observar cambios y compilar automaticamente todos los modulos
 	$(info Observando cambios en la aplicación...)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		screen -dmS $(modulo) && \
-		screen -S $(modulo) -X stuff "make -C project/$(modulo) watch 2>error.log\n";)
+		screen -S $(modulo) -X stuff "make --no-print-directory -C project/$(modulo) watch 1>logs/compilation.log 2>/dev/null\n";)
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
+
+logs: ## Ver logs de compilacion
+	@lnav $(DIR_COMPILE_LOGS)/compilation.log
+
+logs-error: ## Ver logs de error
+	@lnav $(DIR_COMPILE_LOGS)/error.log
 
 ##@ Utilidades
 clean: ## Remover ejecutables y logs de los modulos
 	@$(call specific_module_cmd,clean,static)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		$(call specific_module_cmd,clean,$(modulo));)
+	@-$(RM) $(DIR_COMPILE_LOGS)/*.log
 
 h help: ## Mostrar menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nOpciones para usar:\n  make \033[36m\033[0m\n"} /^[$$()% 0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -83,4 +83,4 @@ h help: ## Mostrar menú de ayuda
 %:
 	@true
 
-.PHONY: i install b build r run s stop e exec w watch stopwatch h help l list t test simulation
+.PHONY: i install b build r run s stop e exec w watch stopwatch h help t test simulation logs logs-error
