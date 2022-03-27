@@ -18,11 +18,13 @@ define create_ctags
 	tr ':' ' ' | sed -e 's/^typename //' >> $(PATH_CTAGS)
 endef
 
-# TODO: pendiente, problemas al hacer $(eval $(call apply_clang_format, nombrearchivo.c))
-#
-# define apply_clang_format
-# ifneq (, $$(shell which clang-format))
-# 	$$(info Formateando archivo $1 fuente con clang-format..)
-# 	@clang-format $$1 --style=file -i
-# endif
-# endef
+define apply_clang_format
+	@echo $(LOG) "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
+	@clang-format $1 --style=file -i
+endef
+
+define check_package_installed
+ifeq (, $$(shell which $$1))
+	$$(warning No tenes instalado el package $1 ejecuta `make install` e intentalo de nuevo)
+endif
+endef
