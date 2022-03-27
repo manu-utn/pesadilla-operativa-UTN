@@ -14,10 +14,10 @@ compile: ## Compilar un módulo por su nombre (si no se especifíca el nombre, s
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
-			$(call specific_module_cmd,compile,$(modulo));)
+			$(call specific_module_cmd,compile,$(modulo)) | tee -a logs/compilation.log;)
 else
 	$(info Compilando un módulo...)
-	@$(call module_cmd, compile)
+	@$(call module_cmd, compile) | tee -a logs/compilation.log
 ifneq (, $(shell which universal-ctags))
 	@$(call create_ctags,$(SOURCES))
 endif
