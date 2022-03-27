@@ -1,8 +1,9 @@
 # - Este makefile actúa de template para el Makefile cada módulo
 
--include modulos.cfg
--include ../../.config/message-colors.mk
--include ../../.config/log.mk
+CONFIGS=message-colors.mk log.mk functions.mk
+
+-include $(DIR_BASE)/$(DIR_PROJECT)/Makefile.cfg
+-include $(foreach config, $(CONFIGS), $(addprefix $(DIR_CONFIGS), $(config)))
 
 $(DIRS): ; $(MKDIR) $@
 
@@ -17,16 +18,19 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 # 2. Evitamos compilar varias veces la static lib: chequeando si ya se creo, entonces no pida crearla por cada .c que convierte en .o
 # (evaluar porque en este segundo no anduvo la alternativa con wildcard)
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-ifneq (, $(shell which clang-format))
-	@clang-format $(DIR_SRC)/$*.c --style=file -i
-	@echo $(LOG) "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
-endif
-ifneq ($(notdir $(CURDIR)),static)
-#ifeq ("$(wildcard $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a)","")
-	@@[ -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ] || $(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static
-#endif
+ifeq (warning, $(shell which xclang-format))
+	$(error No tenes instalado el package clang-format ejecuta `make install` e intentalo de nuevo)
 endif
 
+ifneq (static,$(notdir $(CURDIR)))
+	@if [ ! -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ]; \
+	then \
+		$(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static; \
+	fi
+endif
+
+	$(call apply_clang_format,$(DIR_SRC)/$*.c)
+# redireccionamos el stderr al stdout con 2>&1 y el stodut a error.log con 1>>error.log (es importante el orden en que se hace)
 	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
 	then \
 		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
@@ -42,10 +46,12 @@ endif
 compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
 test:
-	@$(MAKE) --no-print-directory -C tests compile exec
+	@$(MAKE) -C tests compile exec
+#	@$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
 	@-$(RM) $(DIR_BIN)/*.out
+	@-$(RM) $(DIR_BIN)/*.a
 	@-$(RM) $(DIR_OBJ)/*.o
 	@-$(RM) $(DIR_LOGS)/*.txt
 	@-$(RM) $(DIR_LOGS)/*.log

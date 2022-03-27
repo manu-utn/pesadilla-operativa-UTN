@@ -68,10 +68,12 @@ logs-error: ## Ver logs de error
 	@lnav $(DIR_COMPILE_LOGS)/error.log
 
 ##@ Utilidades
-clean: ## Remover ejecutables y logs de los modulos
+clean: clean-logs ## Remover ejecutables y logs de los modulos
+	@$(foreach modulo, $(DIR_MODULOS), $(call specific_module_cmd,clean,$(modulo));)
 	@$(call specific_module_cmd,clean,static)
-	@$(foreach modulo, $(DIR_MODULOS), \
-		$(call specific_module_cmd,clean,$(modulo));)
+
+clean-logs:
+	@echo "Removiendo logs de compilacion"
 	@-$(RM) $(DIR_COMPILE_LOGS)/*.log
 
 h help: ## Mostrar menú de ayuda
@@ -83,4 +85,4 @@ h help: ## Mostrar menú de ayuda
 %:
 	@true
 
-.PHONY: i install b build r run s stop e exec w watch stopwatch h help t test simulation logs logs-error
+.PHONY: i install b build r run s stop e exec w watch stopwatch h help t test simulation logs logs-error clean-logs

@@ -1,5 +1,7 @@
+# TODO: fundamental respetar el orden de los includes
 -include modulo.cfg
--include ../Makefile
+-include ../modulos.cfg
+#-include ../Makefile
 
 # opciones del comando `ar`
 #
@@ -13,16 +15,4 @@ $(DIR_STATIC_BIN)/$(STATIC_BIN): $(DIR_OBJ)/$(STATIC_LIB).o
 	@echo "Creando biblioteca estática para compartir código entre módulos..." $(MSG_OK)
 	@ar $(AR_OPTIONS) $@ $^
 
-clean:
-	@-$(RM) $(DIR_BIN)/*.a
-	@-$(RM) $(DIR_OBJ)/*.o
-	@-$(RM) $(DIR_LOGS)/*.txt
-	@-$(RM) $(DIR_LOGS)/*.log
-	@-$(RM) $(DIR_DEP)/*.d
-	@-$(RM) $(DIR_DEP)/*.tmp.d
-	@echo "Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME)" $(MSG_OK)
-ifneq ($(CURRENT_MODULE_NAME),tests)
-	@$(MAKE) --no-print-directory -C tests clean
-endif
-
-.PHONY: clean compile_static
+.PHONY: compile_static

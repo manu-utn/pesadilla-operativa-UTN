@@ -9,7 +9,7 @@
 
 int main() {
   int numero;
-  numero = 3;
+  numero = 2;
   numero++;
   numero++;
   numero = 3;
