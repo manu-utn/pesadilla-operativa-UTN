@@ -62,10 +62,18 @@ stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 logs: ## Ver logs de compilacion
+ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/compilation.log)")
 	@lnav $(DIR_COMPILE_LOGS)/compilation.log
+else
+	$(error No se crearon logs de compilacion aun)
+endif
 
 logs-error: ## Ver logs de error
+ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/error.log)")
 	@lnav $(DIR_COMPILE_LOGS)/error.log
+else
+	$(error No se crearon logs de error de compilacion aun)
+endif
 
 ##@ Utilidades
 clean: clean-logs ## Remover ejecutables y logs de los modulos
