@@ -9,6 +9,8 @@ $(DIRS): ; $(MKDIR) $@
 
 # --------------------------------------------------------------------
 
+$(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+
 $(DIR_BIN)/$(BIN): $(OBJ)
 	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
 	@echo $(LOG) "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
@@ -18,7 +20,7 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 # 2. Evitamos compilar varias veces la static lib: chequeando si ya se creo, entonces no pida crearla por cada .c que convierte en .o
 # (evaluar porque en este segundo no anduvo la alternativa con wildcard)
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-ifeq (warning, $(shell which xclang-format))
+ifeq (, $(shell which clang-format))
 	$(error No tenes instalado el package clang-format ejecuta `make install` e intentalo de nuevo)
 endif
 
@@ -46,8 +48,7 @@ endif
 compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
 test:
-	@$(MAKE) -C tests compile exec
-#	@$(MAKE) --no-print-directory -C tests compile exec
+	@$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
 	@-$(RM) $(DIR_BIN)/*.out
