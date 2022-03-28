@@ -2,5 +2,9 @@
 #include <stdio.h>
 
 void cantar(void) {
-  printf("Lalala..!\n");
+  printf("Lalala..!");
+}
+
+char* gritar() {
+  return "aaa";
 }

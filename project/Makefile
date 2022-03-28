@@ -23,8 +23,6 @@ DIR_STATIC_LIBS?=
 #
 # - Con (lib:%=%/bin/lib$(notdir $(lib)).ext) le agrega al final de cada ruta `/bin/lib/nombre.ext`
 
-#LIB_DEPS=$(foreach lib,$(DIR_STATIC_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).a))
-
 LIB_DEPS=$(foreach lib,$(DIR_SHARED_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).so)) \
 	$(foreach lib,$(DIR_STATIC_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).a))
 
@@ -44,12 +42,12 @@ LIB_DEPS=$(foreach lib,$(DIR_SHARED_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).so))
 .SECONDEXPANSION:
 $(LIB_DEPS): $$(shell find $$(patsubst %bin/,%src/,$$(dir $$@)) -iname "*.c") \
 	$$(shell find $$(patsubst %bin/,%include/,$$(dir $$@)) -iname "*.h")
-	make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
-	@echo desactualizado..??????
+	@-make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
+
 ####################################################################################################################
 
 $(DIR_BIN)/$(BIN): $(OBJ)
-	$(COMPILE)
+	@$(COMPILE)
 	@echo $(LOG) $(COMPILE_DESCRIPTION) $(MSG_OK)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(LIB_DEPS) $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
@@ -59,7 +57,9 @@ endif
 
 	$(call apply_clang_format,$(DIR_SRC)/$*.c)
 # redireccionamos el stderr al stdout con 2>&1 y el stodut a error.log con 1>>error.log (es importante el orden en que se hace)
-	if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
+#	if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1;
+
+	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
 	then \
 		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
 		echo $(LOG) "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK);\
@@ -73,7 +73,7 @@ endif
 
 compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
-test:
+test: compile
 	@$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
