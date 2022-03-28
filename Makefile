@@ -78,7 +78,7 @@ endif
 ##@ Utilidades
 clean: clean-logs ## Remover ejecutables y logs de los modulos
 	@$(foreach modulo, $(DIR_MODULOS), $(call specific_module_cmd,clean,$(modulo));)
-	@$(call specific_module_cmd,clean,static)
+	@$(foreach lib, $(DIR_LIBRARIES), $(call specific_module_cmd,clean,$(lib));)
 
 clean-logs:
 	@echo "Removiendo logs de compilacion"
