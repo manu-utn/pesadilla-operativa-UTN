@@ -3,6 +3,7 @@
 -include .config/functions.mk
 -include .config/docker.mk
 -include .config/install.mk
+-include .config/packages-installed.mk
 -include project.cfg
 
 ##@ Entorno
@@ -10,7 +11,7 @@ i install: install-virtualbox install-dev-utils install-ctags install-lib-cspec 
 
 ##@ Desarrollo
 # TODO: need refactor
-compile: ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
+compile: ctags-installed libcommons-installed ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
@@ -18,40 +19,38 @@ ifeq ($(COUNT_ARGS), 1)
 else
 	$(info Compilando un módulo...)
 	@$(call module_cmd, compile) | tee -a logs/compilation.log
-ifneq (, $(shell which universal-ctags))
 	@$(call create_ctags,$(SOURCES))
-endif
 endif
 
 e exec: ## Ejecutar uno de los módulos
 	$(info Ejecutando modulo...)
 	@$(call module_cmd,compile exec)
 
-d debug: ## Debugear uno de los módulos
+d debug: debugger-installed ## Debugear uno de los módulos
 	$(info Debugeando modulo...)
 	@$(call module_cmd,debug)
 
-t test: ## Ejecutar pruebas unitarias en un módulo
+t test: libcspecs-installed ## Ejecutar pruebas unitarias en un módulo
 	@$(call module_cmd,test)
 
-memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
-	$(info Ejecutando aplicación del contenedor...)
-	@$(call docker_make_cmd, memcheck)
+memcheck: valgreen-installed ## Ejecutar Memcheck de Valgrind en un módulo
+	$(info Ejecutando memcheck de valgrind en un modulo...)
+	@$(call module_cmd, memcheck)
 
 ##@ Extra
 
-simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
-	$(info Iniciando simulacion en Ubuntu 14.0...)
 # - el parametro -f nos cambiar el contexto que usa docker, asignandole el directorio actual
 # - docker por defecto usa como contexto la ruta donde esta el Dockerfile,
 # siendo  esta su ruta relativa, no pudiendo usar COPY .. . es decir no copiaria la ruta padre
+simulation: docker-installed ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
+	$(info Iniciando simulacion en Ubuntu 14.0...)
 	@docker build -f .config/Dockerfile . -t $(CONTAINER)
 	@docker run -it --rm --name $(IMAGE_NAME) \
 		-v $(CURRENT_PATH):/home/utnso/tp \
 		$(CONTAINER)
 # --user $(UID):$(GID) \
 
-w watch: ## Observar cambios y compilar automaticamente todos los modulos
+w watch: screen-installed ## Observar cambios y compilar automaticamente todos los modulos
 	$(info Observando cambios en la aplicación...)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		screen -dmS $(modulo) && \
@@ -61,14 +60,14 @@ w watch: ## Observar cambios y compilar automaticamente todos los modulos
 stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
-logs: ## Ver logs de compilacion
+logs: lnav-installed ## Ver logs de compilacion
 ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/compilation.log)")
 	@lnav $(DIR_COMPILE_LOGS)/compilation.log
 else
 	$(error No se crearon logs de compilacion aun)
 endif
 
-logs-error: ## Ver logs de error
+logs-error: lnav-installed ## Ver logs de error
 ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/error.log)")
 	@lnav $(DIR_COMPILE_LOGS)/error.log
 else
@@ -76,7 +75,7 @@ else
 endif
 
 ##@ Utilidades
-clean: clean-logs ## Remover ejecutables y logs de los modulos
+clean: ## Remover ejecutables y logs de los modulos
 	@$(foreach modulo, $(DIR_MODULOS), $(call specific_module_cmd,clean,$(modulo));)
 	@$(foreach lib, $(DIR_LIBRARIES), $(call specific_module_cmd,clean,$(lib));)
 

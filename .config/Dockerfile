@@ -20,7 +20,7 @@ RUN apt update && apt install -y \
 RUN apt install -y \
     pkg-config autoconf automake screen \
     python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev \
-    python3-pip lnav
+    python3-pip lnav clang-format
 
 RUN apt update && pip3 install valgreen
 

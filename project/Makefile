@@ -1,6 +1,6 @@
 # - Este makefile actúa de template para el Makefile cada módulo
 
-CONFIGS=message-colors.mk log.mk functions.mk
+CONFIGS=message-colors.mk log.mk functions.mk packages-installed
 
 -include $(DIR_BASE)/$(DIR_PROJECT)/Makefile.cfg
 -include $(foreach config, $(CONFIGS), $(addprefix $(DIR_CONFIGS), $(config)))
@@ -51,14 +51,8 @@ $(DIR_BIN)/$(BIN): $(OBJ)
 	@echo $(LOG) $(COMPILE_DESCRIPTION) $(MSG_OK)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(LIB_DEPS) $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-ifeq (, $(shell which clang-format))
-	$(error No tenes instalado el package clang-format ejecuta `make install` e intentalo de nuevo)
-endif
-
 	$(call apply_clang_format,$(DIR_SRC)/$*.c)
 # redireccionamos el stderr al stdout con 2>&1 y el stodut a error.log con 1>>error.log (es importante el orden en que se hace)
-#	if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1;
-
 	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
 	then \
 		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
@@ -71,9 +65,9 @@ endif
 	@echo ""
 # --------------------------------------------------------------------
 
-compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
+compile: ctags-installed libcommons-installed $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
-test: compile
+test: libcspecs-installed compile
 	@$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
@@ -94,13 +88,13 @@ endif
 e exec: ## Ejecutar binario
 	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
-memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
+memcheck: valgreen-installed ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	@-valgrind $(MEMCHECK_FLAGS) --log-file="logs/memcheck.log" $(DIR_BIN)/$(BIN)
 ifneq (, $(shell which valgreen))
 	@-valgreen $(DIR_BIN)/$(BIN)
 endif
 
-debug:
+debug: debugger-installed
 	@-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 $(DEP):
