@@ -5,6 +5,18 @@ CONFIGS=message-colors.mk log.mk functions.mk packages-installed
 -include $(DIR_BASE)/$(DIR_PROJECT)/Makefile.cfg
 -include $(foreach config, $(CONFIGS), $(addprefix $(DIR_CONFIGS), $(config)))
 
+ifeq (false,$(GNU_MAKE_PRINT_RECIPE))
+AT:=@
+endif
+
+ifeq (true,$(GCC_REDIRECT_LOGS))
+ifeq (true,$(GCC_PRINT_LOGS))
+CMD_REDIRECT_LOGS=2>&1 | tee -a $(DIR_COMPILE_LOGS)/compilation.log
+else
+CMD_REDIRECT_LOGS=1>>$(DIR_COMPILE_LOGS)/compilation.log 2>&1
+endif
+endif
+
 $(DIRS): ; $(MKDIR) $@
 
 # TODO: la primera manera no considero que sea la mejor, la segunda con `undefine` no funciona como se espera
@@ -42,18 +54,19 @@ LIB_DEPS=$(foreach lib,$(DIR_SHARED_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).so))
 .SECONDEXPANSION:
 $(LIB_DEPS): $$(shell find $$(patsubst %bin/,%src/,$$(dir $$@)) -iname "*.c") \
 	$$(shell find $$(patsubst %bin/,%include/,$$(dir $$@)) -iname "*.h")
-	@-make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
+	$(AT)-make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
 
 ####################################################################################################################
 
 $(DIR_BIN)/$(BIN): $(OBJ)
-	@$(COMPILE)
+	$(AT)$(COMPILE)
 	@echo $(LOG) $(COMPILE_DESCRIPTION) $(MSG_OK)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(LIB_DEPS) $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
 	$(call apply_clang_format,$(DIR_SRC)/$*.c)
 # redireccionamos el stderr al stdout con 2>&1 y el stodut a error.log con 1>>error.log (es importante el orden en que se hace)
-	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
+
+	$(AT) if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c $(CMD_REDIRECT_LOGS); \
 	then \
 		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
 		echo $(LOG) "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK);\
@@ -68,7 +81,7 @@ $(OBJ): $(DIR_OBJ)/%.o: $(LIB_DEPS) $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
 compile: ctags-installed libcommons-installed $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
 test: libcspecs-installed compile
-	@$(MAKE) --no-print-directory -C tests compile exec
+	$(AT)$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
 	@-$(RM) $(DIR_BIN)/*.out
@@ -82,27 +95,27 @@ clean-base: ## Remover ejecutables, objetos y dependencias
 
 	@echo "Removiendo ejecutable, objetos y dependencias desde $(CURRENT_MODULE_NAME)" $(MSG_OK)
 ifneq ($(CURRENT_MODULE_NAME),tests)
-	@$(MAKE) --no-print-directory -C tests clean
+	$(AT)$(MAKE) --no-print-directory -C tests clean
 endif
 
 e exec: ## Ejecutar binario
-	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
+	$(AT)-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 memcheck: valgreen-installed ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
-	@-valgrind $(MEMCHECK_FLAGS) --log-file="logs/memcheck.log" $(DIR_BIN)/$(BIN)
+	$(AT)-valgrind $(MEMCHECK_FLAGS) --log-file="logs/memcheck.log" $(DIR_BIN)/$(BIN)
 ifneq (, $(shell which valgreen))
-	@-valgreen $(DIR_BIN)/$(BIN)
+	$(AT)-valgreen $(DIR_BIN)/$(BIN)
 endif
 
 debug: debugger-installed
-	@-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
+	$(AT)-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 $(DEP):
 -include $(wildcard $(DEP))
 
 w watch: ## Observar cambios en /src /include y compilar automáticamente
 	$(info Observando cambios en la aplicación...)
-	@while true; do $(MAKE) -q --no-print-directory || $(MAKE) --no-print-directory; sleep 1; done
+	$(AT)while true; do $(MAKE) -q --no-print-directory || $(MAKE) --no-print-directory; sleep 1; done
 
 h help: ## Muestra menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nGuía de Comandos:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

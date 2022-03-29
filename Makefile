@@ -15,10 +15,10 @@ compile: ctags-installed libcommons-installed ## Compilar un módulo por su nomb
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
-			$(call specific_module_cmd,compile,$(modulo)) | tee -a logs/compilation.log;)
+			$(call specific_module_cmd,compile,$(modulo)) 2>&1 | tee -a logs/compilation.log;)
 else
 	$(info Compilando un módulo...)
-	@$(call module_cmd, compile) | tee -a logs/compilation.log
+	@$(call module_cmd, compile) 2>&1 | tee -a logs/compilation.log
 	@$(call create_ctags,$(SOURCES))
 endif
 
@@ -54,7 +54,8 @@ w watch: screen-installed ## Observar cambios y compilar automaticamente todos l
 	$(info Observando cambios en la aplicación...)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		screen -dmS $(modulo) && \
-		screen -S $(modulo) -X stuff "make --no-print-directory -C project/$(modulo) watch 1>logs/compilation.log 2>/dev/null\n";)
+		screen -S $(modulo) -X stuff "make --no-print-directory -C project/$(modulo) watch 1>logs/compilation.log 2>&1\n";)
+#		screen -S $(modulo) -X stuff "make --no-print-directory -C project/$(modulo) watch 1>logs/compilation.log 2>/dev/null\n";)
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 stopwatch: ## Dejar de observar cambios
@@ -67,15 +68,8 @@ else
 	$(error No se crearon logs de compilacion aun)
 endif
 
-logs-error: lnav-installed ## Ver logs de error
-ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/error.log)")
-	@lnav $(DIR_COMPILE_LOGS)/error.log
-else
-	$(error No se crearon logs de error de compilacion aun)
-endif
-
 ##@ Utilidades
-clean: ## Remover ejecutables y logs de los modulos
+clean: clean-logs ## Remover ejecutables y logs de compilacion
 	@$(foreach modulo, $(DIR_MODULOS), $(call specific_module_cmd,clean,$(modulo));)
 	@$(foreach lib, $(DIR_LIBRARIES), $(call specific_module_cmd,clean,$(lib));)
 
