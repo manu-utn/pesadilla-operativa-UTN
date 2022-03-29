@@ -17,13 +17,13 @@
 ** Make help
    [[doc/make-help.png]]
 ** Make compile
-   [[doc/make-compile.png]]
+   [[doc/make-compile-modulo.png]]
 ** Make clean
    [[doc/make-clean.png]]
 ** Make memcheck
-   [[doc/make-memcheck.png]]
+   [[doc/make-memcheck-modulo.png]]
 ** Make test
-   [[doc/make-test.png]]
+   [[doc/make-test-modulo.png]]
 * Configuraciones
   #+BEGIN_QUOTE
   Las configuraciones aparecen en el archivo ~project.cfg~ que esta en la raiz del proyecto
