@@ -7,4 +7,5 @@ typedef struct {
 void imprimir_publicacion(Publicacion);
 Publicacion* crear_publicacion(char *);
 void publicacion_destroy(Publicacion*);
+int numero_loco();
 #endif

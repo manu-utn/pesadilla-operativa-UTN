@@ -1,5 +1,6 @@
 #ifndef __MY_STATIC_LIB_H__
 #define __MY_STATIC_LIB_H__
 
-void saludar(void);
+void cantar(void);
+char* gritar();
 #endif
