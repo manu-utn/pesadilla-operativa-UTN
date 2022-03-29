@@ -1,46 +1,79 @@
 # - Este makefile actúa de template para el Makefile cada módulo
 
--include modulos.cfg
--include ../../.config/message-colors.mk
+CONFIGS=message-colors.mk log.mk functions.mk packages-installed
+
+-include $(DIR_BASE)/$(DIR_PROJECT)/Makefile.cfg
+-include $(foreach config, $(CONFIGS), $(addprefix $(DIR_CONFIGS), $(config)))
 
 $(DIRS): ; $(MKDIR) $@
 
-# --------------------------------------------------------------------
+# TODO: la primera manera no considero que sea la mejor, la segunda con `undefine` no funciona como se espera
+# - Le asignamos el valor en las configs modulos.cfg para desacoplar las static/shared libraries
+# con ?= le asignamos un valor vacio si ningun modulo le asigna un valor
+DIR_SHARED_LIBS?=
+DIR_STATIC_LIBS?=
+#undefine DIR_STATIC_LIBS
+
+####################################################################################################################
+# rani you're the best one :)
+# https://www.gnu.org/software/make/manual/html_node/Secondary-Expansion.html
+
+# 1. Guardamos el nombre de las dependencias de las shared/static libraries
+# - Agarra el nombre de la biblioteca Ej. `static-pepon` y convierte esta cadena `static-peon/bin/static-pepon.a`
+#
+# - Con (lib:%=%/bin/lib$(notdir $(lib)).ext) le agrega al final de cada ruta `/bin/lib/nombre.ext`
+
+LIB_DEPS=$(foreach lib,$(DIR_SHARED_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).so)) \
+	$(foreach lib,$(DIR_STATIC_LIBS),$(lib:%=%/bin/lib$(notdir $(lib)).a))
+
+# 2. Cada dependencia (ej: ../static/bin/libstatic.a) se actualiza solo si se modifica algun fichero de su src/ o include/
+# - Hara un nuevo build de cada shared/static library siempre que alguno de sus archivo fuente .c o archivos cabecera .h sean modificadas
+# (compara el timestamp del binario .so o .a de sus codigos fuente .c y .h, si los binarios estan desactualizados
+# entonces ejecuta la orden/recipe para el build)
+#
+# - El target `LID_DEPS` contiene la ruta de los binarios (.so y .a) lo reutiliza de la macro
+#
+# - La dependencia $$(shell find ...) reemplaza de la ruta que contiene el target el `bin/` por `/src`  usando la macro $@
+# y los busca con `find` (comando de linux)
+#
+# - La orden/recipe `make -C ruta..` ejecuta el Makefile de la shared/static library
+# - con `patsubt` remueve de la ruta el bin/
+# - con $(dir $@) remueve el nombre del fichero de la ruta, solo queda una ruta
+.SECONDEXPANSION:
+$(LIB_DEPS): $$(shell find $$(patsubst %bin/,%src/,$$(dir $$@)) -iname "*.c") \
+	$$(shell find $$(patsubst %bin/,%include/,$$(dir $$@)) -iname "*.h")
+	@-make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
+
+####################################################################################################################
 
 $(DIR_BIN)/$(BIN): $(OBJ)
-	@$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ $(LDLIBS)
-	@echo "Enlazamos los objetos (\"$(notdir $^)\") para crear el ejecutable ($(notdir $@)) en $(dir $@)" $(MSG_OK)
+	@$(COMPILE)
+	@echo $(LOG) $(COMPILE_DESCRIPTION) $(MSG_OK)
 
-# TODO: need refactor
-# 1. Evitamos recursividad: chequeando si el binario a crear no es del modulo static, entonces solicitamos que se cree primero
-# 2. Evitamos compilar varias veces la static lib: chequeando si ya se creo, entonces no pida crearla por cada .c que convierte en .o
-# (evaluar porque en este segundo no anduvo la alternativa con wildcard)
-$(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
-ifneq (, $(shell which clang-format))
-	@clang-format $(DIR_SRC)/$*.c --style=file -i
-	@echo "Formateando archivo $(DIR_SRC)/$*.c con clang-format.." $(MSG_OK)
-endif
-ifneq ($(notdir $(CURDIR)),static)
-#ifeq ("$(wildcard $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a)","")
-	@@[ -f $(DIR_STATIC_LIB)/$(DIR_BIN)/lib_mylib.a  ] || $(MAKE) --no-print-directory -C $(DIR_STATIC_LIB) compile_static
-#endif
-endif
-	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $(DIR_SRC)/$*.c -o $(DIR_OBJ)/$*.o
-	@mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@ # se ejecuta si no hubo error de compilación
-
-	@echo "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK)
-	@echo "Se modificó el archivo ($?)" $(MSG_OK)
+$(OBJ): $(DIR_OBJ)/%.o: $(LIB_DEPS) $(DIR_SRC)/%.c $(DIR_DEP)/%.d | $(DIR_DEP)
+	$(call apply_clang_format,$(DIR_SRC)/$*.c)
+# redireccionamos el stderr al stdout con 2>&1 y el stodut a error.log con 1>>error.log (es importante el orden en que se hace)
+	@if $(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(DIR_OBJ)/$*.o -c $(DIR_SRC)/$*.c 1>>$(DIR_COMPILE_LOGS)/error.log 2>&1; \
+	then \
+		mv -f $(DIR_DEP)/$*.tmp.d $(DIR_DEP)/$*.d && touch $@;\
+		echo $(LOG) "Compilamos el archivo fuente ($(notdir $<)) en objeto en $(dir $@)" $(MSG_OK);\
+		echo $(LOG) "Se modificó el archivo ($?)" $(MSG_OK);\
+	else \
+		echo $(LOG) "Ocurrio un error al compilar $(OBJ)" $(MSG_ERROR);\
+		sleep 2 && exit 1;\
+	fi
 	@echo ""
-
 # --------------------------------------------------------------------
 
-compile:$(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
+compile: ctags-installed libcommons-installed $(DIRS) $(DIR_BIN)/$(BIN) ## Compilar módulo
 
-test:
+test: libcspecs-installed compile
 	@$(MAKE) --no-print-directory -C tests compile exec
 
 clean-base: ## Remover ejecutables, objetos y dependencias
 	@-$(RM) $(DIR_BIN)/*.out
+	@-$(RM) $(DIR_BIN)/*.a
+	@-$(RM) $(DIR_BIN)/*.so
 	@-$(RM) $(DIR_OBJ)/*.o
 	@-$(RM) $(DIR_LOGS)/*.txt
 	@-$(RM) $(DIR_LOGS)/*.log
@@ -55,13 +88,13 @@ endif
 e exec: ## Ejecutar binario
 	@-$(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
-memcheck: ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
+memcheck: valgreen-installed ## Ejecutar Memcheck con la aplicación dentro del contenedor Docker
 	@-valgrind $(MEMCHECK_FLAGS) --log-file="logs/memcheck.log" $(DIR_BIN)/$(BIN)
 ifneq (, $(shell which valgreen))
 	@-valgreen $(DIR_BIN)/$(BIN)
 endif
 
-debug:
+debug: debugger-installed
 	@-$(DEBUGGER) $(CURRENT_PATH)/$(DIR_BIN)/$(BIN)
 
 $(DEP):

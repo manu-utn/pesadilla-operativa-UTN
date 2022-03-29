@@ -3,6 +3,7 @@
 -include .config/functions.mk
 -include .config/docker.mk
 -include .config/install.mk
+-include .config/packages-installed.mk
 -include project.cfg
 
 ##@ Entorno
@@ -10,69 +11,77 @@ i install: install-virtualbox install-dev-utils install-ctags install-lib-cspec 
 
 ##@ Desarrollo
 # TODO: need refactor
-compile: ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
+compile: ctags-installed libcommons-installed ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
-			$(call specific_module_cmd,compile,$(modulo));)
+			$(call specific_module_cmd,compile,$(modulo)) | tee -a logs/compilation.log;)
 else
 	$(info Compilando un módulo...)
-	@$(call module_cmd, compile)
-ifneq (, $(shell which universal-ctags))
+	@$(call module_cmd, compile) | tee -a logs/compilation.log
 	@$(call create_ctags,$(SOURCES))
-endif
 endif
 
 e exec: ## Ejecutar uno de los módulos
 	$(info Ejecutando modulo...)
 	@$(call module_cmd,compile exec)
 
-d debug: ## Debugear uno de los módulos
+d debug: debugger-installed ## Debugear uno de los módulos
 	$(info Debugeando modulo...)
 	@$(call module_cmd,debug)
 
-t test: ## Ejecutar pruebas unitarias en un módulo
+t test: libcspecs-installed ## Ejecutar pruebas unitarias en un módulo
 	@$(call module_cmd,test)
 
+memcheck: valgreen-installed ## Ejecutar Memcheck de Valgrind en un módulo
+	$(info Ejecutando memcheck de valgrind en un modulo...)
+	@$(call module_cmd, memcheck)
+
 ##@ Extra
-l list: ## Listar nombre de los módulos
-	$(info $(DIR_MODULOS))
 
-memcheck: ## Ejecutar Memcheck de Valgrind en un módulo
-	$(info Ejecutando Memcheck de Valgrind en el modulo...)
-	@$(call module_cmd,memcheck)
-
-simulation: ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
-	$(info Iniciando simulacion en Ubuntu 14.0...)
 # - el parametro -f nos cambiar el contexto que usa docker, asignandole el directorio actual
 # - docker por defecto usa como contexto la ruta donde esta el Dockerfile,
 # siendo  esta su ruta relativa, no pudiendo usar COPY .. . es decir no copiaria la ruta padre
+simulation: docker-installed ## Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal)
+	$(info Iniciando simulacion en Ubuntu 14.0...)
 	@docker build -f .config/Dockerfile . -t $(CONTAINER)
 	@docker run -it --rm --name $(IMAGE_NAME) \
 		-v $(CURRENT_PATH):/home/utnso/tp \
 		$(CONTAINER)
 # --user $(UID):$(GID) \
 
-# TODO: need refactor, deberiamos poder guardar un log de su ejecucion
-#
-# - si usamos `nohup` al matar la sesion de `screen` pasandole `quit` igual seguira ejecutando
-# - si usamos `&` para dejar la tarea en background, sucede lo mismo que con hup
-# - si usamos `bash -c` seguido del comando, se queda en foreground
-w watch: ## Observar cambios y compilar automaticamente todos los modulos
+w watch: screen-installed ## Observar cambios y compilar automaticamente todos los modulos
 	$(info Observando cambios en la aplicación...)
 	@$(foreach modulo, $(DIR_MODULOS), \
 		screen -dmS $(modulo) && \
-		screen -S $(modulo) -X stuff "make -C project/$(modulo) watch 2>error.log\n";)
+		screen -S $(modulo) -X stuff "make --no-print-directory -C project/$(modulo) watch 1>logs/compilation.log 2>/dev/null\n";)
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
 stopwatch: ## Dejar de observar cambios
 	@$(DIR_BASE)/.config/popup-confirm-stopwatch.sh
 
+logs: lnav-installed ## Ver logs de compilacion
+ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/compilation.log)")
+	@lnav $(DIR_COMPILE_LOGS)/compilation.log
+else
+	$(error No se crearon logs de compilacion aun)
+endif
+
+logs-error: lnav-installed ## Ver logs de error
+ifneq ("", "$(wildcard $(DIR_COMPILE_LOGS)/error.log)")
+	@lnav $(DIR_COMPILE_LOGS)/error.log
+else
+	$(error No se crearon logs de error de compilacion aun)
+endif
+
 ##@ Utilidades
 clean: ## Remover ejecutables y logs de los modulos
-	@$(call specific_module_cmd,clean,static)
-	@$(foreach modulo, $(DIR_MODULOS), \
-		$(call specific_module_cmd,clean,$(modulo));)
+	@$(foreach modulo, $(DIR_MODULOS), $(call specific_module_cmd,clean,$(modulo));)
+	@$(foreach lib, $(DIR_LIBRARIES), $(call specific_module_cmd,clean,$(lib));)
+
+clean-logs:
+	@echo "Removiendo logs de compilacion"
+	@-$(RM) $(DIR_COMPILE_LOGS)/*.log
 
 h help: ## Mostrar menú de ayuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nOpciones para usar:\n  make \033[36m\033[0m\n"} /^[$$()% 0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -83,4 +92,4 @@ h help: ## Mostrar menú de ayuda
 %:
 	@true
 
-.PHONY: i install b build r run s stop e exec w watch stopwatch h help l list t test simulation
+.PHONY: i install b build r run s stop e exec w watch stopwatch h help t test simulation logs logs-error clean-logs

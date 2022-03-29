@@ -1,11 +1,20 @@
 #include "sample.h"
 #include <commons/collections/list.h>
 #include <commons/log.h>
+#include <libshared.h> // <-- SHARED LIB
+#include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int main() {
+  cantar();
+
+  saludar();
+
+  printf("tururu...");
+
+  /*
   t_list *publicaciones;
   char temp_file[] =
     "logs/publicaciones.txt"; // se creará en la raíz del proyecto
@@ -26,6 +35,7 @@ int main() {
 
   list_destroy_and_destroy_elements(publicaciones, (void *)publicacion_destroy);
   log_destroy(logger);
+   */
 
   return 0;
 }
@@ -45,4 +55,8 @@ void publicacion_destroy(Publicacion *publicacion) {
 
 void imprimir_publicacion(Publicacion publicacion) {
   printf("%s\n", publicacion.texto);
+}
+
+int numero_loco() {
+  return 666;
 }

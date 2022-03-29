@@ -24,7 +24,7 @@ install-dev-utils:
 	@-sudo apt install -y nemiver rsync screen
 	@-sudo apt install -y clang-format
 	@-sudo apt install -y \
-    pkg-config autoconf automake \
+    pkg-config autoconf automake lnav \
     python3-pip python3-docutils libseccomp-dev libjansson-dev libyaml-dev libxml2-dev
 	@-sudo apt install -y universal-ctags
 	@-sudo apt update && pip3 install valgreen

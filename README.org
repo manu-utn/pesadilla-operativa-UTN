@@ -1,31 +1,18 @@
 * Comandos de Entorno
-  |----------------+---------------+-------------------------------------------|
-  | Comando        | Comando Corto | Descripción                               |
-  |----------------+---------------+-------------------------------------------|
-  | ~make install~ | ~make i~      | Instalar y configurar entorno (unica vez) |
-  |----------------+---------------+-------------------------------------------|
+   - ~make install~ para instalar y configurar entorno ~make i~  
 * Comandos Desarrollo
-  |-----------------------------+---------------+----------------------------------------------------------------------|
-  | Comando                     | Comando Corto | Descripción                                                          |
-  |-----------------------------+---------------+----------------------------------------------------------------------|
-  | ~make compile nombreModulo~ |               | Compilar uno de los módulos (si no se especifíca, se compilan todos) |
-  | ~make exec nombreModulo~    | ~make e~      | Ejecutar uno de los módulos                                          |
-  | ~make test nombreModulo~    | ~make t~      | Ejecutar pruebas unitarias en un módulo                              |
-  | ~make memcheck~             |               | Ejecutar Memcheck de Valgrind en un módulo                           |
-  |-----------------------------+---------------+----------------------------------------------------------------------|
+   - ~make compile nombreModulo~ compila uno de los módulos (si no se especifíca, se compilan todos) 
+   - ~make exec nombreModulo~ ejecuta uno de los módulos                                          
+   - ~make test nombreModulo~ ejecuta pruebas unitarias en un módulo                              
+   - ~make memcheck~ ejecuta Memcheck de Valgrind en un módulo                           
 * Comandos Extra
-  |-------------------+---------------+-----------------------------------------------------------------------|
-  | Comando           | Comando Corto | Descripción                                                           |
-  |-------------------+---------------+-----------------------------------------------------------------------|
-  | ~make list~       | ~make l~      | Listar nombre de los módulos                                          |
-  | ~make simulation~ |               | Simulacion en un Servidor Ubuntu 14.0 (interaccion solo por terminal) |
-  | ~make watch~      | ~make w~      | Observar cambios y compilar automaticamente todos los modulos         |
-  | ~make stopwatch~  |               | Dejar de observar cambios                                             |
-  |-------------------+---------------+-----------------------------------------------------------------------|
+   - ~make simulation~ simula un Servidor Ubuntu 14.0 (interaccion solo por terminal)
+   - ~make watch~ observa cambios y compila automaticamente todos los modulos
+   - ~make stopwatch~ deja de observar cambios
+   - ~make logs~ muestra logs de compilacion
+   - ~make logs-error~ muestra logs de error de compilacion
 * Utilidades
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | Comando                     | Comando Corto | Descripción                                                                        |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
-  | ~make clean~                | ~make c~      | Remover ejecutables y logs de los modulos                                          |
-  | ~make help~                 | ~make h~      | Mostrar menú de ayuda                                                              |
-  |-----------------------------+---------------+------------------------------------------------------------------------------------|
+   - ~make clean~ remueve ejecutables y logs de los modulos
+   - ~make help~ muestra menú de ayuda
+* Contributors
+  - [[https://github.com/RaniAgus][RaniAgus]] - Fue la inspiracion detras de todo esto con [[https://github.com/RaniAgus/so-project-template][so-template-project]], ademas de su ayuda constante ^_^

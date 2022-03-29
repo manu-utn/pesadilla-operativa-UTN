@@ -2,6 +2,11 @@
 .nvimlog
 .bash_history
 error.log
+logs/*
+compile_commands.json
+*.o
+*.out
+*.d
 
 !.gitkeep
 

@@ -9,7 +9,7 @@
 
 int main() {
   int numero;
-  numero = 3;
+  numero = 2;
   numero++;
   numero++;
   numero = 3;
@@ -19,8 +19,9 @@ int main() {
   printf("1+1 es %d\n", resultado);
 
   t_list *mensajes;
-  // es necesario la ruta absoluta para que lo entienda el debugger
-  char temp_file_path[] =
+  // 1. es necesario la ruta absoluta para que lo entienda el debugger
+  // 2. la cadena de caracteres debe tener memoria reservada de mas si haces un strcat
+  char temp_file_path[100] =
     "/home/jelou/Documents/git/manu-cproject/project/modulo-1/";
   // char temp_file_path[] = "/home/utnso/tp/project/modulo-1/";
 
