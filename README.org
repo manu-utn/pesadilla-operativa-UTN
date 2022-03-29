@@ -14,3 +14,5 @@
 * Utilidades
    - ~make clean~ remueve ejecutables y logs de los modulos
    - ~make help~ muestra menú de ayuda
+* Contributors
+  - [[https://github.com/RaniAgus][RaniAgus]] - Fue la inspiracion detras de todo esto con [[https://github.com/RaniAgus/so-project-template][so-template-project]], ademas de su ayuda constante ^_^
