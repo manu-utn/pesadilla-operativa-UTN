@@ -13,6 +13,8 @@
 
 #include "libstatic.h"
 
+t_log *logger;
+
 void *recibir_buffer(int *, int);
 int iniciar_servidor(char *, char *);
 int esperar_cliente(int);

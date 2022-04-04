@@ -13,7 +13,7 @@ int main() {
   int conexion;
   char* ip;
   char* puerto;
-  char* valor;
+  char* mensaje;
 
   t_config* config;
 
@@ -21,15 +21,15 @@ int main() {
 
   log_info(logger, "Hola! Soy un log");
   config = iniciar_config(DIR_CLIENTE_CFG);
-  valor = config_get_string_value(config, "MENSAJE");
+  mensaje = config_get_string_value(config, "MENSAJE");
 
-  log_info(logger, valor);
+  log_info(logger, mensaje);
 
   ip = config_get_string_value(config, "IP");
   puerto = config_get_string_value(config, "PUERTO");
   conexion = conectar_a_servidor(ip, puerto);
 
-  enviar_mensaje(valor, conexion);
+  enviar_mensaje(mensaje, conexion);
   paquete(conexion);
 
   terminar_programa(conexion, logger, config);

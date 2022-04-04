@@ -26,6 +26,8 @@ int main() {
   t_list *lista;
   while (1) {
     int cod_op = recibir_operacion(cliente_fd);
+
+    // MENSAJE=0, PAQUETE=1
     switch (cod_op) {
       case MENSAJE:
         recibir_mensaje(cliente_fd);

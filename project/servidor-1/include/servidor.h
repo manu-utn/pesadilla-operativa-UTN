@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-t_log *logger;
+/* t_log *logger; */
 
 #define DIR_BASE "/home/jelou/Documents/git/manu-cproject/project/"
 #define MODULO "servidor-1"

@@ -13,6 +13,8 @@
 
 #include "libstatic.h"
 
+t_log *logger;
+
 typedef struct {
   int size;
   void *stream;
