@@ -1,5 +1,6 @@
 #include <commons/collections/list.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <libshared.h> // <-- SHARED LIB
 #include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
@@ -16,15 +17,10 @@ int main() {
 
   t_config* config;
 
-  logger = log_create("/home/jelou/Documents/git/manu-cproject/project/"
-                      "cliente-1/logs/messages.log",
-                      "Cliente",
-                      1,
-                      LOG_LEVEL_INFO);
+  logger = log_create(DIR_LOG_MESSAGES, "Cliente-1", 1, LOG_LEVEL_INFO);
 
   log_info(logger, "Hola! Soy un log");
-  config = iniciar_config("/home/jelou/Documents/git/manu-cproject/project/"
-                          "cliente-1/config/cliente.cfg");
+  config = iniciar_config(DIR_CLIENTE_CFG);
   valor = config_get_string_value(config, "MENSAJE");
 
   log_info(logger, valor);

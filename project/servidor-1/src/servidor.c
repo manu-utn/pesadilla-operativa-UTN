@@ -8,18 +8,14 @@
 #include "servidor.h"
 
 int main() {
-  logger = log_create("/home/jelou/Documents/git/manu-cproject/project/"
-                      "servidor-1/logs/messages.log",
-                      "Servidor",
-                      1,
-                      LOG_LEVEL_DEBUG);
+  logger = log_create(DIR_LOG_MESSAGES, "Servidor-1", 1, LOG_LEVEL_DEBUG);
 
   char *ip;
   char *puerto;
 
   t_config *config;
-  config = iniciar_config("/home/jelou/Documents/git/manu-cproject/project/"
-                          "servidor-1/config/servidor.cfg");
+
+  config = iniciar_config(DIR_SERVIDOR_CFG);
   ip = config_get_string_value(config, "IP");
   puerto = config_get_string_value(config, "PUERTO");
 
