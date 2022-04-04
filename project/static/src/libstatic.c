@@ -1,10 +1,7 @@
 #include "libstatic.h"
+#include "utils-servidor.h"
 #include <stdio.h>
 
-void cantar(void) {
-  printf("Lalala..!");
-}
-
-char* gritar() {
-  return "aaa";
+t_config* iniciar_config(char* config) {
+  return config_create(config);
 }
