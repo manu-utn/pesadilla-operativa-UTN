@@ -1,4 +1,2 @@
-Publicacion * crear_publicacion(char * texto);
 int main();
-void imprimir_publicacion(Publicacion publicacion);
-void publicacion_destroy(Publicacion * publicacion);
+void terminar_programa(int conexion,t_log * logger,t_config * config);

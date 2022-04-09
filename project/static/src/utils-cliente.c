@@ -1,21 +1,5 @@
 #include "utils-cliente.h"
 
-
-void* serializar_paquete(t_paquete* paquete, int bytes) {
-  void* magic = malloc(bytes);
-  int desplazamiento = 0;
-
-  memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
-  desplazamiento += sizeof(int);
-  memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
-  desplazamiento += sizeof(int);
-  memcpy(
-    magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
-  desplazamiento += paquete->buffer->size;
-
-  return magic;
-}
-
 int conectar_a_servidor(char* ip, char* puerto) {
   log_info(logger, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
 
@@ -46,86 +30,36 @@ int conectar_a_servidor(char* ip, char* puerto) {
   return socket_cliente;
 }
 
-void enviar_mensaje(char* mensaje, int socket_destino) {
-  log_info(logger,
-           "Enviando mensaje... (socket_destino=%d, mensaje=%s)",
-           socket_destino,
-           mensaje);
+int enviar(int socket_destino, t_paquete* paquete) {
+  int size_paquete = get_paquete_size(paquete);
+  void* paquete_serializado =
+    serializar_paquete(paquete); // TODO: need free (1)
 
-  t_paquete* paquete = malloc(sizeof(t_paquete));
+  int status = send(socket_destino, paquete_serializado, size_paquete, 0);
 
+  free(paquete_serializado);
+
+  return status;
+}
+
+void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = MENSAJE;
-  paquete->buffer = malloc(sizeof(t_buffer));
-  paquete->buffer->size = strlen(mensaje) + 1;
-  paquete->buffer->stream = malloc(paquete->buffer->size);
-  memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
-
-  int bytes = paquete->buffer->size + 2 * sizeof(int);
-
-  void* a_enviar = serializar_paquete(paquete, bytes);
-
-  int status_send = send(socket_destino, a_enviar, bytes, 0);
-
-  if (status_send != -1) {
-    log_info(
-      logger, "Mensaje enviado con éxito (socket_destino=%d)", socket_destino);
-  }
-
-  free(a_enviar);
-  eliminar_paquete(paquete);
-}
-
-
-void crear_buffer(t_paquete* paquete) {
-  paquete->buffer = malloc(sizeof(t_buffer));
-  paquete->buffer->size = 0;
-  paquete->buffer->stream = NULL;
-}
-
-t_paquete* crear_paquete(void) {
-  log_info(logger, "Creando paquete..");
-
-  t_paquete* paquete = malloc(sizeof(t_paquete));
-  paquete->codigo_operacion = PAQUETE;
-  crear_buffer(paquete);
-
-  log_info(logger, "Paquete creado con éxito (codigo_operacion=%d)", PAQUETE);
-  return paquete;
-}
-
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
-  paquete->buffer->stream = realloc(
-    paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
-
-  memcpy(
-    paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-  memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int),
-         valor,
-         tamanio);
-
-  paquete->buffer->size += tamanio + sizeof(int);
-
-  log_info(logger, "Paquete agregado con éxito (tamaño=%d) ", tamanio);
-}
-
-void enviar_paquete(t_paquete* paquete, int socket_destino) {
-  log_info(logger, "Enviando paquete... (socket_destino=%d) ", socket_destino);
-
-  int bytes = paquete->buffer->size + 2 * sizeof(int);
-  void* a_enviar = serializar_paquete(paquete, bytes);
-
-  int status = send(socket_destino, a_enviar, bytes, 0);
+  int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Paquete enviado con éxito... (socket_destino=%d, tamaño=%d) ",
-             socket_destino,
-             bytes);
+    printf("Mensaje enviado con éxito (socket_destino=%d)\n", socket_destino);
   }
-
-  free(a_enviar);
 }
 
+void enviar_paquete(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = PAQUETE;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    printf("Paquete enviado con éxito (socket_destino=%d)\n", socket_destino);
+  }
+}
 void eliminar_paquete(t_paquete* paquete) {
   free(paquete->buffer->stream);
   free(paquete->buffer);
