@@ -10,9 +10,54 @@
    - ~make watch~ observa cambios y compila automaticamente todos los modulos
    - ~make stopwatch~ deja de observar cambios
    - ~make logs~ muestra logs de compilacion
-   - ~make logs-error~ muestra logs de error de compilacion
 * Utilidades
    - ~make clean~ remueve ejecutables y logs de los modulos
    - ~make help~ muestra menú de ayuda
+* Ejemplos de uso
+** Make help
+   [[doc/make-help.png]]
+** Make compile
+   [[doc/make-compile-modulo.png]]
+** Make clean
+   [[doc/make-clean.png]]
+** Make memcheck
+   [[doc/make-memcheck-modulo.png]]
+** Make test
+   [[doc/make-test-modulo.png]]
+* Configuraciones
+  #+BEGIN_QUOTE
+  Las configuraciones aparecen en el archivo ~project.cfg~ que esta en la raiz del proyecto
+  #+END_QUOTE
+
+  #+BEGIN_SRC makefile
+  DIR_PROJECT=project
+  DIR_MODULOS=modulo-1 modulo-2 modulo-3
+  DIR_LIBRARIES=shared static
+
+  # - habilitar si queremos guardar los mensajes de gcc en logs/
+  GCC_REDIRECT_LOGS=true
+
+  # - habilitar si queremos ver los logs del compilador gcc por pantalla
+  # - requiere tener habilitado `GCC_REDIRECT_LOGS`
+  GCC_PRINT_LOGS=true
+
+  # - habilitar si queremos ver algunos de los comandos que ejecuta GNU Make por detras
+  GNU_MAKE_PRINT_RECIPE=false
+
+  # - no habilitar si ya existe un usuario `utnso` creado
+  USER_UTNSO_IS_REQUIRED=false
+
+  # - habilitar solo si usamos linux y ya tenemos un usuario creado llamado `jelou`
+  # y no queremos cambiar al usuario `utnso`
+  # - se requiere cambiar la ruta de `DIR_BASE_FAKE` (solo si habilitas la opcion anterior mencionada)
+  LINUX_MANY_USERS=true
+  DIR_BASE_FAKE=/home/jelou/Documents/git/manu-cproject
+
+  # elegir false si tu BIOS no soporta VT-x y se instalara la version 6.0
+  VBOX_LATEST=true
+
+  # - no habilitar si ya estas dentro de una virtual box
+  VBOX_IS_REQUIRED=false
+  #+END_SRC
 * Contributors
   - [[https://github.com/RaniAgus][RaniAgus]] - Fue la inspiracion detras de todo esto con [[https://github.com/RaniAgus/so-project-template][so-template-project]], ademas de su ayuda constante ^_^
