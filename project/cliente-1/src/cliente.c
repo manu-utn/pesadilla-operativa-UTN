@@ -17,7 +17,7 @@ int main() {
 
   t_config* config;
 
-  logger = log_create(DIR_LOG_MESSAGES, "Cliente-1", 1, LOG_LEVEL_INFO);
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "Cliente-1");
 
   config = iniciar_config(DIR_CLIENTE_CFG);
   /* mensaje = config_get_string_value(config, "MENSAJE"); */
@@ -26,29 +26,32 @@ int main() {
   puerto = config_get_string_value(config, "PUERTO");
   fd_servidor = conectar_a_servidor(ip, puerto);
 
-  /* t_paquete *paquete = paquete_create(); */
-  /* paquete->buffer = crear_mensaje("hola"); // TODO: need free (2) -> y otro
-   * free en buffer->stream */
-  /* enviar_mensaje(fd_servidor, paquete); */
-  /* paquete_destroy(paquete); */
+  // Enviamos un mensaje
+  t_paquete* paquete1 = paquete_create();
+  paquete1->buffer = crear_mensaje("tururu"); // TODO: need free x2
+  enviar_mensaje(fd_servidor, paquete1);
+  paquete_destroy(paquete1);
 
+  // Enviamos otro mensaje
   t_paquete* paquete2 = paquete_create();
-  t_buffer* mensaje1 = crear_mensaje("chau");
-  t_buffer* mensaje2 = crear_mensaje("wi");
+  paquete2->buffer = crear_mensaje("aaaaa"); // TODO: need free x2
+  enviar_mensaje(fd_servidor, paquete2);
+  paquete_destroy(paquete2);
 
-  paquete_add_mensaje(paquete2, mensaje1);
-  paquete_add_mensaje(paquete2, mensaje2);
+  // Enviamos un paquete con 2 mensajes
+  t_paquete* paquete3 = paquete_create();     // TODO: need free x3
+  t_buffer* mensaje1 = crear_mensaje("chau"); // TODO: need free x2
+  t_buffer* mensaje2 = crear_mensaje("wi");   // TODO: need free x2
 
-  enviar_paquete(fd_servidor, paquete2);
+  paquete_add_mensaje(paquete3, mensaje1);
+  paquete_add_mensaje(paquete3, mensaje2);
+
+  enviar_paquete(fd_servidor, paquete3);
 
   mensaje_destroy(mensaje1);
   mensaje_destroy(mensaje2);
-  paquete_destroy(paquete2);
+  paquete_destroy(paquete3);
+
   terminar_programa(fd_servidor, logger, config);
   return 0;
-}
-
-
-void terminar_programa(int conexion, t_log* logger, t_config* config) {
-  log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
 }

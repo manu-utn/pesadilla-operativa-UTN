@@ -77,59 +77,50 @@ int recibir_operacion(int socket_cliente) {
   }
 }
 
-// recv(socket, void* buffer, tamaño_buffer, flags)
-void recibir_mensaje(int socket_cliente) {
-  // validar_conexion();
-
-  int size; // recv/4 requiere que la variable para guardar lo que recibamos sea
-            // un (void*) ptr
-  void* buffer = NULL;
-  buffer = empty_buffer();
-
-  recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
-
-  // 2. alocamos espacio para guardar los datos serializados que recibiremos
-  // (la cant. de espacio se indicaba en el paquete recibido antes,
-  // desreferenciamos size para obtener ese valor)
-  buffer = malloc(size);
-
-  // 3. recibimos los datos serializados y lo guardamos en `buffer`
-  if (recv(socket_cliente, buffer, size, MSG_WAITALL) != -1) {
-    log_info(logger,
-             "Se recibió un mensaje (socket=%d, stream=%s)",
-             socket_cliente,
-             (char*)buffer);
-  }
-
-
-  free(buffer);
-}
-
-// 1. Usa recv(socket, void* buffer, tamaño_buffer, flags)
-t_paquete* recibir_paquete(int socket_cliente) {
-  // TODO: usar paquete_create() q crea un paquete con buffer vacío
-  t_paquete* paquete = paquete_create();
-
-  paquete->codigo_operacion = PAQUETE;
-
+int recibir(int socket_cliente, t_buffer* buffer) {
   // 1. recibimos el paquete->stream->size y lo guardamos en size
-  recv(socket_cliente, &(paquete->buffer->size), sizeof(int), MSG_WAITALL);
+  // recv(socket, void* buffer, tamaño_buffer, flags)
+  recv(socket_cliente, &(buffer->size), sizeof(int), MSG_WAITALL);
 
   // 2. alocamos espacio para guardar los datos serializados que recibiremos
   // (la cant. de espacio se indicaba en el paquete recibido antes)
-  paquete->buffer->stream = malloc(paquete->buffer->size);
+  buffer->stream = malloc(buffer->size); // TODO: need free
 
   // 3. recibimos los datos serializados y lo guardamos en `buffer`
-  if (recv(socket_cliente,
-           paquete->buffer->stream,
-           paquete->buffer->size,
-           MSG_WAITALL) != -1) {
+  int status = recv(socket_cliente, buffer->stream, buffer->size, MSG_WAITALL);
+
+  return status;
+}
+
+// recv(socket, void* buffer, tamaño_buffer, flags)
+t_buffer* recibir_mensaje(int socket_cliente) {
+  t_buffer* buffer = empty_buffer(); // TODO: need free x2
+  int status = recibir(socket_cliente, buffer);
+
+  if (status != -1) {
+    log_info(logger,
+             "Se recibió un mensaje (socket=%d, size=%d, stream=%s)",
+             socket_cliente,
+             buffer->size,
+             (char*)buffer->stream);
+  }
+
+  return buffer;
+}
+
+t_paquete* recibir_paquete(int socket_cliente) {
+  t_paquete* paquete = paquete_create(); // TODO: need free x3
+  paquete->codigo_operacion = PAQUETE;
+
+  int status = recibir(socket_cliente, paquete->buffer);
+
+  // 3. recibimos los datos serializados y lo guardamos en `buffer`
+  if (status != -1) {
     log_info(logger,
              "Se recibió un paquete (socket=%d, buffer_bytes=%d)",
              socket_cliente,
              paquete->buffer->size);
   }
-
 
   return paquete;
 }

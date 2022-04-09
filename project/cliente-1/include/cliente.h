@@ -17,9 +17,4 @@
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_CLIENTE_CFG DIR_BASE MODULO "/config/cliente.cfg"
 
-t_log *iniciar_logger(void);
-void leer_consola(t_log *);
-void paquete(int);
-void terminar_programa(int, t_log *, t_config *);
-
 #endif

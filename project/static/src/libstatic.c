@@ -6,6 +6,10 @@ t_config* iniciar_config(char* config) {
   return config_create(config);
 }
 
+t_log* iniciar_logger(char* archivo, char* nombre) {
+  return log_create(archivo, nombre, 1, LOG_LEVEL_INFO);
+}
+
 int get_paquete_size(t_paquete* paquete) {
   // tamaño de paquete->codigo_operacion + tamaño de paquete->buffer->stream +
   // tamaño de paquete->buffer->size
@@ -113,4 +117,14 @@ void paquete_destroy(t_paquete* paquete) {
 void mensaje_destroy(t_buffer* mensaje) {
   free(mensaje->stream);
   free(mensaje);
+}
+
+void liberar_conexion(int socket) {
+  close(socket);
+
+  log_info(logger, "Se cerró la conexion con éxito (socket=%d)", socket);
+}
+
+void terminar_programa(int conexion, t_log* logger, t_config* config) {
+  log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
 }

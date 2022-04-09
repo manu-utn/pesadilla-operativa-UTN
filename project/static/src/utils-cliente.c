@@ -47,7 +47,12 @@ void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    printf("Mensaje enviado con éxito (socket_destino=%d)", socket_destino);
+    log_info(logger,
+             "Mensaje enviado con éxito (socket_destino=%d, stream_bytes=%d, "
+             "stream=%s)",
+             socket_destino,
+             paquete->buffer->size,
+             (char*)(paquete->buffer->stream));
   }
 }
 
@@ -62,12 +67,4 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
              socket_destino,
              paquete->buffer->size);
   }
-}
-
-void liberar_conexion(int socket_servidor) {
-  close(socket_servidor);
-
-  log_info(logger,
-           "Se cerró la conexion establecida con éxito (socket=%d)",
-           socket_servidor);
 }

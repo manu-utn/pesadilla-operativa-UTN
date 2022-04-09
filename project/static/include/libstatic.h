@@ -24,7 +24,7 @@ typedef struct {
 } t_paquete;
 
 t_config* iniciar_config(char*);
-void iterator_paquete(void* valor);
+t_log* iniciar_logger(char* archivo, char* nombre);
 
 t_buffer* crear_mensaje(char* texto);
 t_paquete* paquete_create();
@@ -35,4 +35,7 @@ void* paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje);
 
 void mensaje_destroy(t_buffer* mensaje);
 void paquete_destroy(t_paquete* paquete);
+
+void liberar_conexion(int socket);
+void terminar_programa(int conexion, t_log* logger, t_config* config);
 #endif

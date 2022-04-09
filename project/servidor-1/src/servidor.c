@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libstatic.h"
 #include "servidor.h"
 
 int main() {
-  logger = log_create(DIR_LOG_MESSAGES, "Servidor-1", 1, LOG_LEVEL_DEBUG);
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "Servidor-1");
 
   char* ip;
   char* puerto;
@@ -28,11 +29,19 @@ int main() {
 
     // MENSAJE=0, PAQUETE=1
     switch (cod_op) {
-      case MENSAJE:
-        recibir_mensaje(cliente_fd);
-        break;
+      case MENSAJE: {
+        t_buffer* mensaje = recibir_mensaje(cliente_fd); // TODO: need free x2
+
+        void* stream = ((t_buffer*)mensaje)->stream;
+        int size = ((t_buffer*)mensaje)->size;
+
+        log_info(
+          logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
+
+        mensaje_destroy(mensaje);
+      } break;
       case PAQUETE: {
-        t_paquete* paquete = recibir_paquete(cliente_fd); // TODO: need free
+        t_paquete* paquete = recibir_paquete(cliente_fd); // TODO: need free x3
         void** mensajes = deserializar_paquete(paquete);
 
         void** aux = mensajes;
@@ -49,9 +58,9 @@ int main() {
 
         free(mensajes);
         paquete_destroy(paquete);
+
       } break;
       case -1:
-        // list_destroy_and_destroy_elements(lista, (void *)paquete_destroy)
         log_error(logger, "el cliente se desconecto. Terminando servidor");
         return EXIT_FAILURE;
       default:
@@ -59,6 +68,8 @@ int main() {
         break;
     }
   }
+
+  terminar_programa(server_fd, logger, config);
 
   return 0;
 }
