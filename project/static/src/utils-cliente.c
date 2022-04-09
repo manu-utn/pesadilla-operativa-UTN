@@ -60,15 +60,6 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
     printf("Paquete enviado con éxito (socket_destino=%d)\n", socket_destino);
   }
 }
-void eliminar_paquete(t_paquete* paquete) {
-  free(paquete->buffer->stream);
-  free(paquete->buffer);
-  free(paquete);
-
-  log_info(logger,
-           "Se liberaron con éxito los recursos asignados durante de la "
-           "creación del paquete");
-}
 
 void liberar_conexion(int socket_servidor) {
   close(socket_servidor);

@@ -35,15 +35,14 @@ void* serializar_paquete(t_paquete* paquete) {
 }
 
 void** deserializar_paquete(t_paquete* paquete_serializado) {
-  int offset, size_mensaje, size_mensajes;
+  int offset, size_mensaje;
 
   // lo tratamos como un arreglo de mensajes
   void** mensajes = NULL; // TODO: need free()
 
   offset = 0;
 
-  // tamaño de cada mensaje dentro del paquete, aumenta por cada mensaje
-  // delpaquete
+  // tamaño de cada mensaje dentro del paquete, varía según el contenido de cada mensaje
   size_mensaje = 0;
   for (int index = 0, n = 1; offset < paquete_serializado->buffer->size;
        n++, index++) {
@@ -52,8 +51,6 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
     t_buffer* mensaje = empty_buffer();
 
     size_mensaje = *(int*)(paquete_serializado->buffer->stream + offset);
-    size_mensajes += size_mensaje;
-
     mensaje->size = size_mensaje;
 
     // nos desplazamos 4 bytes, para no pisar el `buffer->size` que escribimos
@@ -64,6 +61,7 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
            paquete_serializado->buffer->stream + offset,
            size_mensaje);
 
+    // agregamos el mensaje como un elemento de un arreglo
     mensajes[index] = (t_buffer*)mensaje;
 
     // nos desplazamos buffer->size es decir el tamaño de buffer->stream
