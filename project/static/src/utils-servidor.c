@@ -39,7 +39,7 @@ int iniciar_servidor(char* ip, char* puerto) {
 
   if (status_listen != -1) {
     log_info(
-      logger, "Esperando conexiones entrantes por el puerto %d...", puerto);
+      logger, "Esperando conexiones entrantes por el puerto %s...", puerto);
   }
 
   freeaddrinfo(servinfo);
@@ -76,44 +76,51 @@ int recibir_operacion(int socket_cliente) {
   }
 }
 
-void* recibir_buffer(int* size, int socket_cliente) {
+// recv(socket, void* buffer, tamaño_buffer, flags)
+void recibir_mensaje(int socket_cliente) {
+  // validar_conexion();
+
+  int size; // recv/4 requiere que la variable para guardar lo que recibamos sea
+            // un (void*) ptr
   void* buffer;
 
-  recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-  buffer = malloc(*size);
-  recv(socket_cliente, buffer, *size, MSG_WAITALL);
+  recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
 
-  return buffer;
-}
+  // 2. alocamos espacio para guardar los datos serializados que recibiremos
+  // (la cant. de espacio se indicaba en el paquete recibido antes,
+  // desreferenciamos size para obtener ese valor)
+  buffer = malloc(size);
 
-void recibir_mensaje(int socket_cliente) {
-  int size;
-  char* buffer = recibir_buffer(&size, socket_cliente);
+  // 3. recibimos los datos serializados y lo guardamos en `buffer`
+  recv(socket_cliente, buffer, size, MSG_WAITALL);
 
   log_info(logger,
-           "Se recibió un mensaje (socket=%d, mensaje=%s)",
+           "Se recibió un mensaje (socket=%d, mensaje=%s)\n",
            socket_cliente,
-           buffer);
+           (char*)buffer);
 
   free(buffer);
 }
 
-t_list* recibir_paquete(int socket_cliente) {
-  int size;
-  int desplazamiento = 0;
-  void* buffer;
-  t_list* valores = list_create();
-  int tamanio;
+// 1. Usa recv(socket, void* buffer, tamaño_buffer, flags)
+t_paquete* recibir_paquete(int socket_cliente) {
+  // TODO: usar paquete_create() q crea un paquete con buffer vacío
+  t_paquete* paquete = paquete_create();
 
-  buffer = recibir_buffer(&size, socket_cliente);
-  while (desplazamiento < size) {
-    memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    char* valor = malloc(tamanio);
-    memcpy(valor, buffer + desplazamiento, tamanio);
-    desplazamiento += tamanio;
-    list_add(valores, valor);
-  }
-  free(buffer);
-  return valores;
+  paquete->codigo_operacion = PAQUETE;
+
+  // 1. recibimos el paquete->stream->size y lo guardamos en size
+  recv(socket_cliente, &(paquete->buffer->size), sizeof(int), MSG_WAITALL);
+
+  // 2. alocamos espacio para guardar los datos serializados que recibiremos
+  // (la cant. de espacio se indicaba en el paquete recibido antes)
+  paquete->buffer->stream = malloc(paquete->buffer->size);
+
+  // 3. recibimos los datos serializados y lo guardamos en `buffer`
+  recv(socket_cliente,
+       paquete->buffer->stream,
+       paquete->buffer->size,
+       MSG_WAITALL);
+
+  return paquete;
 }

@@ -12,13 +12,14 @@
 #include <unistd.h>
 
 #include "libstatic.h"
+#include "serializado.h"
 
 t_log *logger;
 
 void *recibir_buffer(int *, int);
 int iniciar_servidor(char *, char *);
 int esperar_cliente(int);
-t_list *recibir_paquete(int);
+t_paquete *recibir_paquete(int socket_cliente);
 void recibir_mensaje(int);
 int recibir_operacion(int);
 

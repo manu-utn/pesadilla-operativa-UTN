@@ -10,10 +10,10 @@
 int main() {
   logger = log_create(DIR_LOG_MESSAGES, "Servidor-1", 1, LOG_LEVEL_DEBUG);
 
-  char *ip;
-  char *puerto;
+  char* ip;
+  char* puerto;
 
-  t_config *config;
+  t_config* config;
 
   config = iniciar_config(DIR_SERVIDOR_CFG);
   ip = config_get_string_value(config, "IP");
@@ -23,7 +23,6 @@ int main() {
   log_info(logger, "Servidor listo para recibir al cliente");
   int cliente_fd = esperar_cliente(server_fd);
 
-  t_list *lista;
   while (1) {
     int cod_op = recibir_operacion(cliente_fd);
 
@@ -32,11 +31,25 @@ int main() {
       case MENSAJE:
         recibir_mensaje(cliente_fd);
         break;
-      case PAQUETE:
-        lista = recibir_paquete(cliente_fd);
-        log_info(logger, "Me llegaron los siguientes valores:\n");
-        break;
+      case PAQUETE: {
+        t_paquete* paquete = recibir_paquete(cliente_fd); // TODO: need free
+        void** mensajes = deserializar_paquete(paquete);
+
+        void** aux = mensajes;
+
+        for (int i = 0; *aux != NULL; aux++, i++) {
+          void* stream = ((t_buffer*)mensajes[i])->stream;
+
+          log_info(logger, "[MENSAJE] %s", (char*)stream);
+
+          mensaje_destroy(mensajes[i]);
+        }
+
+        free(mensajes);
+        paquete_destroy(paquete);
+      } break;
       case -1:
+        // list_destroy_and_destroy_elements(lista, (void *)paquete_destroy)
         log_error(logger, "el cliente se desconecto. Terminando servidor");
         return EXIT_FAILURE;
       default:
