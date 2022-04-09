@@ -84,9 +84,11 @@ void* paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
   memcpy(paquete->buffer->stream + offset,
          nuevo_mensaje->stream,
          nuevo_mensaje->size);
-  log_info(logger,
-           "Se agregó al paquete este mensaje: %s\n",
-           (char*)(paquete->buffer->stream + offset));
+  log_info(
+    logger,
+    "Se agregó con éxito mensaje al paquete (stream_bytes=%d, stream=%s)",
+    nuevo_mensaje->size,
+    (char*)(paquete->buffer->stream + offset));
 
   // generamos efecto en el paquete, indicamos que su tamaño aumentó (porque
   // agregamos un nuevo mensaje)
@@ -104,7 +106,8 @@ void paquete_destroy(t_paquete* paquete) {
   free(paquete);
 
   log_info(logger,
-           "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
+           "Se liberaron con éxito los recursos asignados durante de la "
+           "creación del paquete");
 }
 
 void mensaje_destroy(t_buffer* mensaje) {

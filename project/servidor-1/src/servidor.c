@@ -39,8 +39,10 @@ int main() {
 
         for (int i = 0; *aux != NULL; aux++, i++) {
           void* stream = ((t_buffer*)mensajes[i])->stream;
+          int size = ((t_buffer*)mensajes[i])->size;
 
-          log_info(logger, "[MENSAJE] %s", (char*)stream);
+          log_info(
+            logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
 
           mensaje_destroy(mensajes[i]);
         }

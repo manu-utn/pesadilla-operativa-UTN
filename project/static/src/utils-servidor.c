@@ -1,4 +1,5 @@
 #include "utils-servidor.h"
+#include "libstatic.h"
 
 int iniciar_servidor(char* ip, char* puerto) {
   int socket_servidor;
@@ -82,7 +83,8 @@ void recibir_mensaje(int socket_cliente) {
 
   int size; // recv/4 requiere que la variable para guardar lo que recibamos sea
             // un (void*) ptr
-  void* buffer;
+  void* buffer = NULL;
+  buffer = empty_buffer();
 
   recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
 
@@ -92,12 +94,13 @@ void recibir_mensaje(int socket_cliente) {
   buffer = malloc(size);
 
   // 3. recibimos los datos serializados y lo guardamos en `buffer`
-  recv(socket_cliente, buffer, size, MSG_WAITALL);
+  if (recv(socket_cliente, buffer, size, MSG_WAITALL) != -1) {
+    log_info(logger,
+             "Se recibió un mensaje (socket=%d, stream=%s)",
+             socket_cliente,
+             (char*)buffer);
+  }
 
-  log_info(logger,
-           "Se recibió un mensaje (socket=%d, mensaje=%s)\n",
-           socket_cliente,
-           (char*)buffer);
 
   free(buffer);
 }
@@ -117,10 +120,16 @@ t_paquete* recibir_paquete(int socket_cliente) {
   paquete->buffer->stream = malloc(paquete->buffer->size);
 
   // 3. recibimos los datos serializados y lo guardamos en `buffer`
-  recv(socket_cliente,
-       paquete->buffer->stream,
-       paquete->buffer->size,
-       MSG_WAITALL);
+  if (recv(socket_cliente,
+           paquete->buffer->stream,
+           paquete->buffer->size,
+           MSG_WAITALL) != -1) {
+    log_info(logger,
+             "Se recibió un paquete (socket=%d, buffer_bytes=%d)",
+             socket_cliente,
+             paquete->buffer->size);
+  }
+
 
   return paquete;
 }

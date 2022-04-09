@@ -47,7 +47,7 @@ void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    printf("Mensaje enviado con éxito (socket_destino=%d)\n", socket_destino);
+    printf("Mensaje enviado con éxito (socket_destino=%d)", socket_destino);
   }
 }
 
@@ -57,7 +57,10 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    printf("Paquete enviado con éxito (socket_destino=%d)\n", socket_destino);
+    log_info(logger,
+             "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
   }
 }
 

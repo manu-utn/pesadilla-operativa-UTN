@@ -42,7 +42,8 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
 
   offset = 0;
 
-  // tamaño de cada mensaje dentro del paquete, varía según el contenido de cada mensaje
+  // tamaño de cada mensaje dentro del paquete, varía según el contenido de cada
+  // mensaje
   size_mensaje = 0;
   for (int index = 0, n = 1; offset < paquete_serializado->buffer->size;
        n++, index++) {
