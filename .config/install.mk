@@ -20,7 +20,7 @@ install-dev-utils:
 	$(info Instalando utilidades de desarrollo...)
 	@-sudo apt install -y gcc gdb libcunit1 g++ libcunit1-dev \
   libncurses5 tig autotools-dev libfuse-dev libreadline6-dev \
-	build-essential vagrant
+	build-essential valgrind
 	@-sudo apt install -y nemiver rsync screen
 	@-sudo apt install -y clang-format
 	@-sudo apt install -y \
