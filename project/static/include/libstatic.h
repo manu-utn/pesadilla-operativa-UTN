@@ -11,6 +11,28 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-typedef enum { MENSAJE, PAQUETE } op_code;
+typedef enum { MENSAJE=0, PAQUETE=1} op_code;
+
+typedef struct {
+  int size;
+  void* stream;
+} t_buffer;
+
+typedef struct {
+  op_code codigo_operacion;
+  t_buffer* buffer;
+} t_paquete;
+
 t_config* iniciar_config(char*);
+void iterator_paquete(void* valor);
+
+t_buffer* crear_mensaje(char* texto);
+t_paquete* paquete_create();
+t_buffer* empty_buffer();
+int get_paquete_size(t_paquete* paquete);
+
+void* paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje);
+
+void mensaje_destroy(t_buffer* mensaje);
+void paquete_destroy(t_paquete* paquete);
 #endif
