@@ -60,14 +60,19 @@ int main() {
             mensaje_destroy(mensajes[i]);
           }
 
-          // free(mensajes);
+          free(mensajes);
           paquete_destroy(paquete);
 
         } break;
         case -1: {
           log_info(logger, "el cliente se desconecto");
           cliente_estado = EXIT;
-          // return 0;
+
+          // suponiendo que queremos matar el servidor
+          // terminar_programa(server_fd, logger, config);
+          terminar_servidor(server_fd, logger, config);
+          return 0;
+
           break;
         }
         default:
@@ -78,7 +83,8 @@ int main() {
     }
   }
 
-  terminar_programa(server_fd, logger, config);
+
+  // terminar_programa(server_fd, logger, config);
 
   return 0;
 }

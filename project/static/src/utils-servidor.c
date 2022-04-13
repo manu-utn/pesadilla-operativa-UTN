@@ -124,3 +124,9 @@ t_paquete* recibir_paquete(int socket_cliente) {
 
   return paquete;
 }
+
+void terminar_servidor(int fd_servidor, t_log* logger, t_config* config) {
+  log_destroy(logger);
+  config_destroy(config);
+  close(fd_servidor);
+}
