@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 typedef enum { INICIO = 0, MENSAJE = 1, PAQUETE = 2 } op_code;
+typedef enum { EXIT = 0, RUNNING = 1} cliente_status;
 
 typedef struct {
   int size;

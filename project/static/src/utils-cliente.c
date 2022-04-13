@@ -70,3 +70,9 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
              paquete->buffer->size);
   }
 }
+
+void terminar_cliente(int fd_servidor, t_log* logger, t_config* config) {
+  close(fd_servidor);
+  log_destroy(logger);
+  config_destroy(config);
+}

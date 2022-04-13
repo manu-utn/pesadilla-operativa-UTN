@@ -37,27 +37,18 @@ t_paquete* paquete_create() {
   nuevo_paquete = malloc(sizeof(t_paquete));
 
   nuevo_paquete->buffer = NULL;
-  // nuevo_paquete->buffer = empty_buffer(); // TODO: need free()
-
-  // TODO: refactor, chequea empty_buffer() generaba memory leaks antes
-  nuevo_paquete->buffer = malloc(sizeof(t_buffer));
-  nuevo_paquete->buffer->stream = NULL;
-  nuevo_paquete->buffer->size = 0;
+  nuevo_paquete->buffer = empty_buffer(); // TODO: need free()
 
   return nuevo_paquete; // TODO: need free()
 }
 
 t_buffer* crear_mensaje(char* texto) {
-  /* char texto[4] = "hola"; // {'h', 'o', 'l', 'a', '\0'} */
-
   int mensaje_longitud =
     strlen(texto) + 1; // sumamos el '\0' que indica fin de cadena
   int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
 
   t_buffer* mensaje = NULL;
-  // mensaje = empty_buffer(); // <- generaba leaks
-  mensaje = malloc(sizeof(t_buffer));
-  mensaje->stream = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   mensaje->size = mensaje_size;
 

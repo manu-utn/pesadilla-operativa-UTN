@@ -25,9 +25,9 @@ int main() {
 
   while (1) {
     int cliente_fd = esperar_cliente(server_fd);
-    int exit_while = 0;
+    cliente_status cliente_estado = RUNNING;
 
-    while (exit_while != -1) {
+    while (cliente_estado) {
       int cod_op = recibir_operacion(cliente_fd);
 
       // MENSAJE=0, PAQUETE=1
@@ -65,19 +65,11 @@ int main() {
 
         } break;
         case -1: {
-          // TODO: chequear que la desconexión sea sincronizada, si no.. hay
-          // valgrind "still reachable"
           log_info(logger, "el cliente se desconecto");
-          exit_while = -1;
+          cliente_estado = EXIT;
           // return 0;
           break;
-          // TODO: se agrega temporalmente para evitar los still reachable de
-          // TODO: se deben poder conectar/desconectar varios clientes
-          // valgrind del lado de cliente-1
         }
-          /* log_error(logger, "el cliente se desconecto. Terminando servidor");
-           */
-          /* return EXIT_FAILURE; */
         default:
           log_warning(logger,
                       "Operacion desconocida. No quieras meter la pata");

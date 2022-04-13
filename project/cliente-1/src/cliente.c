@@ -56,10 +56,7 @@ int main() {
   mensaje_destroy(mensaje2);
   paquete_destroy(paquete3);
 
-  // terminar_programa(fd_servidor, logger, config);
-  close(fd_servidor);
-  log_destroy(logger);
-  config_destroy(config);
+  terminar_cliente(fd_servidor, logger, config);
 
   return 0;
 }
