@@ -26,7 +26,6 @@ int main() {
   puerto = config_get_string_value(config, "PUERTO");
   fd_servidor = conectar_a_servidor(ip, puerto);
 
-  /*
   t_paquete* paquete1 = NULL;
   t_buffer* mensaje = NULL;
   paquete1 = paquete_create();
@@ -42,10 +41,10 @@ int main() {
   paquete2->buffer = crear_mensaje("aaaaa"); // TODO: need free x2
   enviar_mensaje(fd_servidor, paquete2);
   paquete_destroy(paquete2);
-   */
   // Enviamos un mensaje
 
   // Enviamos un paquete con 2 mensajes
+
   t_paquete* paquete3 = paquete_create();     // TODO: need free x3
   t_buffer* mensaje1 = crear_mensaje("chau"); // TODO: need free x2
   t_buffer* mensaje2 = crear_mensaje("wi");   // TODO: need free x2

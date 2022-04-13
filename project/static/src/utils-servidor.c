@@ -60,7 +60,7 @@ int esperar_cliente(int socket_servidor) {
 }
 
 int recibir_operacion(int socket_cliente) {
-  int cod_op;
+  int cod_op = -1;
   if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0) {
     log_info(logger,
              "Recibi una operacion (socket=%d, operacion=%d)",

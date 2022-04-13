@@ -31,12 +31,13 @@ t_paquete* paquete_create() {
   t_paquete* nuevo_paquete = NULL;
   nuevo_paquete = malloc(sizeof(t_paquete));
 
-  /*
-    memset(nuevo_paquete, 0, sizeof(t_paquete)); // llenamos con ceros para leer
-    mejor en el hex dump
-  */
   nuevo_paquete->buffer = NULL;
   // nuevo_paquete->buffer = empty_buffer(); // TODO: need free()
+
+  // TODO: refactor, chequea empty_buffer() generaba memory leaks antes
+  nuevo_paquete->buffer = malloc(sizeof(t_buffer));
+  nuevo_paquete->buffer->stream = NULL;
+  nuevo_paquete->buffer->size = 0;
 
   return nuevo_paquete; // TODO: need free()
 }

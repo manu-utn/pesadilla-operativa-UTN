@@ -22,58 +22,65 @@ int main() {
 
   int server_fd = iniciar_servidor(ip, puerto);
   log_info(logger, "Servidor listo para recibir al cliente");
-  int cliente_fd = esperar_cliente(server_fd);
 
   while (1) {
-    int cod_op = recibir_operacion(cliente_fd);
+    int cliente_fd = esperar_cliente(server_fd);
+    int exit_while = 0;
 
-    // MENSAJE=0, PAQUETE=1
-    switch (cod_op) {
-      case MENSAJE: {
-        t_buffer* mensaje = recibir_mensaje(cliente_fd); // TODO: need free x2
+    while (exit_while != -1) {
+      int cod_op = recibir_operacion(cliente_fd);
 
-        void* stream = ((t_buffer*)mensaje)->stream;
-        int size = ((t_buffer*)mensaje)->size;
+      // MENSAJE=0, PAQUETE=1
+      switch (cod_op) {
+        case MENSAJE: {
+          t_buffer* mensaje = recibir_mensaje(cliente_fd); // TODO: need free x2
 
-        log_info(
-          logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
-
-        mensaje_destroy(mensaje);
-      } break;
-      case PAQUETE: {
-        t_paquete* paquete = recibir_paquete(cliente_fd); // TODO: need free x3
-        void** mensajes = deserializar_paquete(paquete);
-
-        void** aux = mensajes;
-
-        for (int i = 0; *aux != NULL; aux++, i++) {
-          void* stream = ((t_buffer*)mensajes[i])->stream;
-          int size = ((t_buffer*)mensajes[i])->size;
+          void* stream = ((t_buffer*)mensaje)->stream;
+          int size = ((t_buffer*)mensaje)->size;
 
           log_info(
             logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
 
-          mensaje_destroy(mensajes[i]);
-        }
+          mensaje_destroy(mensaje);
+        } break;
+        case PAQUETE: {
+          t_paquete* paquete =
+            recibir_paquete(cliente_fd); // TODO: need free x3
+          void** mensajes = deserializar_paquete(paquete);
 
-        // free(mensajes);
-        paquete_destroy(paquete);
+          void** aux = mensajes;
 
-      } break;
-      case -1: {
-        log_info(logger, "el cliente se desconecto");
-        // TODO: se agrega temporalmente para evitar los still reachable de
-        // TODO: se deben poder conectar/desconectar varios clientes
-        // valgrind del lado de cliente-1
-        while (1) {
+          for (int i = 0; *aux != NULL; aux++, i++) {
+            void* stream = ((t_buffer*)mensajes[i])->stream;
+            int size = ((t_buffer*)mensajes[i])->size;
+
+            log_info(
+              logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
+
+            mensaje_destroy(mensajes[i]);
+          }
+
+          // free(mensajes);
+          paquete_destroy(paquete);
+
+        } break;
+        case -1: {
+          log_info(logger, "el cliente se desconecto");
+          exit_while = -1;
+          return 0;
+          /* break; */
+          // TODO: se agrega temporalmente para evitar los still reachable de
+          // TODO: se deben poder conectar/desconectar varios clientes
+          // valgrind del lado de cliente-1
         }
+          /* log_error(logger, "el cliente se desconecto. Terminando servidor");
+           */
+          /* return EXIT_FAILURE; */
+        default:
+          log_warning(logger,
+                      "Operacion desconocida. No quieras meter la pata");
+          break;
       }
-        /* log_error(logger, "el cliente se desconecto. Terminando servidor");
-         */
-        /* return EXIT_FAILURE; */
-      default:
-        log_warning(logger, "Operacion desconocida. No quieras meter la pata");
-        break;
     }
   }
 
