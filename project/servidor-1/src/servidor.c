@@ -65,10 +65,12 @@ int main() {
 
         } break;
         case -1: {
+          // TODO: chequear que la desconexión sea sincronizada, si no.. hay
+          // valgrind "still reachable"
           log_info(logger, "el cliente se desconecto");
           exit_while = -1;
-          return 0;
-          /* break; */
+          // return 0;
+          break;
           // TODO: se agrega temporalmente para evitar los still reachable de
           // TODO: se deben poder conectar/desconectar varios clientes
           // valgrind del lado de cliente-1

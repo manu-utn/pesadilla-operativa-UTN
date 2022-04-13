@@ -27,6 +27,11 @@ t_buffer* empty_buffer() {
   return nuevoBuffer;
 }
 
+void paquete_cambiar_mensaje(t_paquete* paquete, t_buffer* mensaje) {
+  free(paquete->buffer);
+  paquete->buffer = mensaje;
+}
+
 t_paquete* paquete_create() {
   t_paquete* nuevo_paquete = NULL;
   nuevo_paquete = malloc(sizeof(t_paquete));

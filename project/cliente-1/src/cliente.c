@@ -30,21 +30,19 @@ int main() {
   t_buffer* mensaje = NULL;
   paquete1 = paquete_create();
   mensaje = crear_mensaje("chau"); // TODO: need free x2
-  paquete1->buffer = mensaje;
-  // paquete1->buffer = crear_mensaje("tururu"); // TODO: need free x2
+  paquete_cambiar_mensaje(paquete1, mensaje);
   enviar_mensaje(fd_servidor, paquete1);
-
   paquete_destroy(paquete1);
 
   // Enviamos otro mensaje
   t_paquete* paquete2 = paquete_create();
-  paquete2->buffer = crear_mensaje("aaaaa"); // TODO: need free x2
+  // paquete2->buffer = crear_mensaje("aaaaa");  // <-- NO HACER, usar
+  // paquete_cambiar_mensaje()
+  paquete_cambiar_mensaje(paquete2, crear_mensaje("punchi punchi"));
   enviar_mensaje(fd_servidor, paquete2);
   paquete_destroy(paquete2);
-  // Enviamos un mensaje
 
   // Enviamos un paquete con 2 mensajes
-
   t_paquete* paquete3 = paquete_create();     // TODO: need free x3
   t_buffer* mensaje1 = crear_mensaje("chau"); // TODO: need free x2
   t_buffer* mensaje2 = crear_mensaje("wi");   // TODO: need free x2

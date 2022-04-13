@@ -38,4 +38,5 @@ void paquete_destroy(t_paquete* paquete);
 
 void liberar_conexion(int socket);
 void terminar_programa(int conexion, t_log* logger, t_config* config);
+void paquete_cambiar_mensaje(t_paquete* paquete, t_buffer* mensaje);
 #endif
