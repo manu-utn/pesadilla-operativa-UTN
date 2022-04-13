@@ -26,10 +26,15 @@ int main() {
   puerto = config_get_string_value(config, "PUERTO");
   fd_servidor = conectar_a_servidor(ip, puerto);
 
-  // Enviamos un mensaje
-  t_paquete* paquete1 = paquete_create();
-  paquete1->buffer = crear_mensaje("tururu"); // TODO: need free x2
+  /*
+  t_paquete* paquete1 = NULL;
+  t_buffer* mensaje = NULL;
+  paquete1 = paquete_create();
+  mensaje = crear_mensaje("chau"); // TODO: need free x2
+  paquete1->buffer = mensaje;
+  // paquete1->buffer = crear_mensaje("tururu"); // TODO: need free x2
   enviar_mensaje(fd_servidor, paquete1);
+
   paquete_destroy(paquete1);
 
   // Enviamos otro mensaje
@@ -37,6 +42,8 @@ int main() {
   paquete2->buffer = crear_mensaje("aaaaa"); // TODO: need free x2
   enviar_mensaje(fd_servidor, paquete2);
   paquete_destroy(paquete2);
+   */
+  // Enviamos un mensaje
 
   // Enviamos un paquete con 2 mensajes
   t_paquete* paquete3 = paquete_create();     // TODO: need free x3
@@ -52,6 +59,10 @@ int main() {
   mensaje_destroy(mensaje2);
   paquete_destroy(paquete3);
 
-  terminar_programa(fd_servidor, logger, config);
+  // terminar_programa(fd_servidor, logger, config);
+  close(fd_servidor);
+  log_destroy(logger);
+  config_destroy(config);
+
   return 0;
 }

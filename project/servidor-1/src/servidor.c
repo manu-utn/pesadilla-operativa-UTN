@@ -56,13 +56,21 @@ int main() {
           mensaje_destroy(mensajes[i]);
         }
 
-        free(mensajes);
+        // free(mensajes);
         paquete_destroy(paquete);
 
       } break;
-      case -1:
-        log_error(logger, "el cliente se desconecto. Terminando servidor");
-        return EXIT_FAILURE;
+      case -1: {
+        log_info(logger, "el cliente se desconecto");
+        // TODO: se agrega temporalmente para evitar los still reachable de
+        // TODO: se deben poder conectar/desconectar varios clientes
+        // valgrind del lado de cliente-1
+        while (1) {
+        }
+      }
+        /* log_error(logger, "el cliente se desconecto. Terminando servidor");
+         */
+        /* return EXIT_FAILURE; */
       default:
         log_warning(logger, "Operacion desconocida. No quieras meter la pata");
         break;

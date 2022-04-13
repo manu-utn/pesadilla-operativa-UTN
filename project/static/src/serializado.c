@@ -68,6 +68,11 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
     // nos desplazamos buffer->size es decir el tamaño de buffer->stream
     // asi en la sig. iteración obtenemos el siguiente mensaje
     offset += size_mensaje;
+
+    // TODO: chequear
+    // ponemos NULL al final de los mensajes para poder facilmente identificar
+    // el final y que no haya basura
+    mensajes[index + 1] = NULL;
   }
 
   return mensajes;
