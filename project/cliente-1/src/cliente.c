@@ -26,15 +26,19 @@ int main() {
   puerto = config_get_string_value(config, "PUERTO");
   fd_servidor = conectar_a_servidor(ip, puerto);
 
-  // Enviamos un mensaje
-  t_paquete* paquete1 = paquete_create();
-  paquete1->buffer = crear_mensaje("tururu"); // TODO: need free x2
+  t_paquete* paquete1 = NULL;
+  t_buffer* mensaje = NULL;
+  paquete1 = paquete_create();
+  mensaje = crear_mensaje("chau"); // TODO: need free x2
+  paquete_cambiar_mensaje(paquete1, mensaje);
   enviar_mensaje(fd_servidor, paquete1);
   paquete_destroy(paquete1);
 
   // Enviamos otro mensaje
   t_paquete* paquete2 = paquete_create();
-  paquete2->buffer = crear_mensaje("aaaaa"); // TODO: need free x2
+  // paquete2->buffer = crear_mensaje("aaaaa");  // <-- NO HACER, usar
+  // paquete_cambiar_mensaje()
+  paquete_cambiar_mensaje(paquete2, crear_mensaje("punchi punchi"));
   enviar_mensaje(fd_servidor, paquete2);
   paquete_destroy(paquete2);
 
@@ -52,6 +56,7 @@ int main() {
   mensaje_destroy(mensaje2);
   paquete_destroy(paquete3);
 
-  terminar_programa(fd_servidor, logger, config);
+  terminar_cliente(fd_servidor, logger, config);
+
   return 0;
 }

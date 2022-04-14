@@ -1,4 +1,5 @@
 #include "utils-cliente.h"
+#include "libstatic.h"
 
 int conectar_a_servidor(char* ip, char* puerto) {
   log_info(logger, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
@@ -44,6 +45,7 @@ int enviar(int socket_destino, t_paquete* paquete) {
 
 void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = MENSAJE;
+
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
@@ -67,4 +69,10 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
              socket_destino,
              paquete->buffer->size);
   }
+}
+
+void terminar_cliente(int fd_servidor, t_log* logger, t_config* config) {
+  close(fd_servidor);
+  log_destroy(logger);
+  config_destroy(config);
 }

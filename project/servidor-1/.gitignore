@@ -3,7 +3,7 @@
 !.bin/.gitkeep
 !.logs/.gitkeep
 
-.dep/*
-.obj/*
-bin/*
-logs/*
+.dep/*.d
+.obj/*.o
+bin/*.out
+logs/*.log

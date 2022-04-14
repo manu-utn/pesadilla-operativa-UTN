@@ -60,7 +60,7 @@ int esperar_cliente(int socket_servidor) {
 }
 
 int recibir_operacion(int socket_cliente) {
-  int cod_op;
+  int cod_op = -1;
   if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0) {
     log_info(logger,
              "Recibi una operacion (socket=%d, operacion=%d)",
@@ -123,4 +123,10 @@ t_paquete* recibir_paquete(int socket_cliente) {
   }
 
   return paquete;
+}
+
+void terminar_servidor(int fd_servidor, t_log* logger, t_config* config) {
+  log_destroy(logger);
+  config_destroy(config);
+  close(fd_servidor);
 }
