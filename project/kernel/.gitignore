@@ -1,0 +1,9 @@
+!.dep/.gitkeep
+!.obj/.gitkeep
+!.bin/.gitkeep
+!.logs/.gitkeep
+
+.dep/*
+.obj/*
+bin/*
+logs/*

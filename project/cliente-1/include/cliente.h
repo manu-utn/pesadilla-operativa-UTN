@@ -12,7 +12,7 @@
 
 /* t_log *logger; */
 
-#define DIR_BASE "/home/jelou/Documents/git/manu-cproject/project/"
+#define DIR_BASE "/home/mbeorlegui/Escritorio/Matias/so/manu/manu-cproject/project/"
 #define MODULO "cliente-1"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_CLIENTE_CFG DIR_BASE MODULO "/config/cliente.cfg"
