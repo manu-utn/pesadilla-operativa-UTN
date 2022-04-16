@@ -5,12 +5,22 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <commons/collections/list.h>
+#include <commons/config.h>
+#include "dir.h"
+
+#define MODULO "kernel"
+#define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
+#define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/kernel.cfg"
 
 typedef enum { NEW, READY, EXEC, BLOCKED, SUSBLOCKED, SUSREADY, FINISHED } t_pcb_estado;
 
+// TODO: definir atributos: instrucciones y tabla de paginas
 typedef struct {
   uint32_t *socket;
   uint32_t pid;
+  uint32_t tamanio;
+  uint32_t estimacion_rafaga;
+  uint32_t program_counter;
   t_pcb_estado estado;
 } t_pcb;
 

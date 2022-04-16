@@ -1,18 +1,18 @@
-#include <stdio.h>
 #include "planificador.h"
+#include <stdio.h>
 
 // TODO: definir
-void *iniciar_corto_plazo(){
+void *iniciar_corto_plazo() {
   return NULL;
 }
 
 // TODO: definir
-void *iniciar_largo_plazo(){
+void *iniciar_largo_plazo() {
   return NULL;
 }
 
 // TODO: definir
-void *iniciar_mediano_plazo(){
+void *iniciar_mediano_plazo() {
   return NULL;
 }
 
@@ -37,8 +37,7 @@ void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola) {
 
   if (posicion != -1) {
     list_remove(cola->lista, posicion);
-  }
-  else {
+  } else {
     log_error(logger, "No existe tal elemento en la cola");
   }
 

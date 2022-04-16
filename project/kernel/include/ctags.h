@@ -1,1 +1,10 @@
 int main();
+int pcb_get_posicion(t_pcb * pcb,t_list * lista);
+void * iniciar_corto_plazo();
+void * iniciar_largo_plazo();
+void * iniciar_mediano_plazo();
+void agregar_pcb_a_cola(t_pcb * pcb,t_cola_planificacion * cola);
+void cambiar_estado_pcb(t_pcb * pcb,t_pcb_estado nuevoEstado);
+void pasar_de_blocked_a_ready(t_pcb * pcb);
+void pasar_de_susblocked_a_susready(t_pcb * pcb);
+void remover_pcb_de_cola(t_pcb * pcb,t_cola_planificacion * cola);
