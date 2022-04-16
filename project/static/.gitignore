@@ -3,3 +3,4 @@
 bin
 logs/*.txt
 logs/*.log
+compile_commands.json
