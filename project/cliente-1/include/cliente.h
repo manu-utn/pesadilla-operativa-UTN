@@ -7,14 +7,14 @@
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "dir.h"
 #include "utils-cliente.h"
 
-/* t_log *logger; */
+t_log *logger;
 
-#define DIR_BASE "/home/mbeorlegui/Escritorio/Matias/so/manu/manu-cproject/project/"
 #define MODULO "cliente-1"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_CLIENTE_CFG DIR_BASE MODULO "/config/cliente.cfg"
 
+int conectarse_a_kernel();
 #endif
