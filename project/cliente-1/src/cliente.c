@@ -16,18 +16,7 @@ int main() {
 
   int fd_kernel = conectarse_a_kernel();
 
-  // Enviamos otro mensaje
-  /*
-  t_paquete* paquete1 = paquete_create();
-  paquete_cambiar_mensaje(paquete1, crear_mensaje("saludar"));
-  enviar_mensaje(fd_kernel, paquete1);
-  paquete_destroy(paquete1);
-   */
-
-  // Enviamos un paquete con 2 mensajes
   t_paquete* paquete = paquete_create();
-  // asignar_codigo_operacion(CONSOLA, paquete);
-
   t_instruccion* instruccion1 = instruccion_create("NO_OP", "3000");
   t_instruccion* instruccion2 = instruccion_create("WRITE", "4 42");
   t_instruccion* instruccion3 = instruccion_create("READ", "9");
