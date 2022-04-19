@@ -90,3 +90,25 @@ void inicializar_cola(t_cola_planificacion *cola) {
   pthread_mutex_init(&(cola->mutex), NULL);
   sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
 }
+
+
+// TODO: unificar ambos casos para evitar repeticion del codigo
+t_pcb* select_pcb_by_fifo(t_cola_planificacion *cola) {
+  pthread_mutex_lock(&(cola->mutex));
+  t_pcb* primer_pcb = (t_pcb*) list_get(cola->lista_pcbs, 0);
+  pthread_mutex_unlock(&(cola->mutex));
+  remover_pcb_de_cola(primer_pcb, cola);
+  return primer_pcb;
+}
+
+t_pcb* select_pcb_by_srt(t_cola_planificacion *cola) {
+  pthread_mutex_lock(&(cola->mutex));
+  t_pcb* srt_pcb = (t_pcb*) list_get_minimum(cola->lista_pcbs, 0);
+  pthread_mutex_unlock(&(cola->mutex));
+  remover_pcb_de_cola(srt_pcb, cola);
+  return srt_pcb;
+}
+
+t_pcb* minimum_estimacion_rafaga(t_pcb* pcb1, t_pcb* pcb2) {
+  return pcb1->estimacion_rafaga >= pcb2->estimacion_rafaga ? pcb1 : pcb2;
+}
