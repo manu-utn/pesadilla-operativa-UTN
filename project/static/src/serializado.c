@@ -1,4 +1,6 @@
 #include "serializado.h"
+#include "libstatic.h"
+#include <commons/collections/list.h>
 
 void* serializar_paquete(t_paquete* paquete) {
   // int size_paquete = sizeof(int) + sizeof(int) + paquete->buffer->size;
@@ -49,6 +51,50 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
   }
 
   return mensajes;
+}
+
+void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
+  int offset;
+  int paquete_size = sizeof(int) * 5 + sizeof(t_pcb_estado);
+  paquete->buffer->stream = malloc(paquete_size);
+
+  offset = 0,
+  memcpy(paquete->buffer->stream + offset, &(pcb->socket), sizeof(int));
+  offset += sizeof(int),
+    memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(int));
+  offset += sizeof(int),
+    memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(int));
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset,
+                                &(pcb->estimacion_rafaga),
+                                sizeof(int));
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset,
+                                &(pcb->program_counter),
+                                sizeof(int));
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset,
+                                &(pcb->estado),
+                                sizeof(t_pcb_estado));
+  offset += sizeof(t_pcb_estado);
+
+  paquete->buffer->size = offset;
+  for (int i = 0; i < list_size(pcb->instrucciones); i++) {
+    t_instruccion* instruccion = list_get(pcb->instrucciones, i);
+
+    int identificador_longitud = strlen(instruccion->identificador) + 1;
+    int identificador_size = identificador_longitud * sizeof(char);
+
+    int params_longitud = strlen(instruccion->params) + 1;
+    int params_size = params_longitud * sizeof(char);
+
+    int instruccion_size =
+      identificador_size + params_size + sizeof(int) + sizeof(int);
+
+    paquete->buffer->stream =
+      realloc(paquete->buffer->stream, offset + instruccion_size);
+    paquete_add_instruccion(paquete, instruccion);
+
+    offset += instruccion_size;
+  }
+  paquete->buffer->size = offset;
 }
 
 void paquete_add_instruccion(t_paquete* paquete, t_instruccion* instruccion) {
@@ -114,12 +160,60 @@ t_list* paquete_obtener_instrucciones(t_paquete* paquete_serializado) {
            paquete_serializado->buffer->stream + offset,
            params_size);
 
-    imprimir_instruccion(instruccion);
-
     list_add(lista, instruccion);
 
     offset += params_size;
   }
 
   return lista;
+}
+
+t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_pcb* pcb = malloc(sizeof(t_pcb));
+
+  memcpy(
+    &(pcb->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(
+    &(pcb->pid), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(
+    &(pcb->tamanio), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(pcb->estimacion_rafaga),
+         paquete_serializado->buffer->stream + offset,
+         sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(pcb->program_counter),
+         paquete_serializado->buffer->stream + offset,
+         sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(pcb->estado),
+         paquete_serializado->buffer->stream + offset,
+         sizeof(t_pcb_estado));
+
+  offset += sizeof(t_pcb_estado);
+
+  int instrucciones_size = paquete_serializado->buffer->size - offset;
+
+  t_paquete* paquete_con_instrucciones = paquete_create();
+  paquete_con_instrucciones->buffer->stream = malloc(instrucciones_size);
+  paquete_con_instrucciones->buffer->size = instrucciones_size;
+
+  memcpy(paquete_con_instrucciones->buffer->stream,
+         paquete_serializado->buffer->stream + offset,
+         instrucciones_size);
+
+  pcb->instrucciones = paquete_obtener_instrucciones(paquete_con_instrucciones);
+
+  paquete_destroy(paquete_con_instrucciones);
+
+  return pcb;
 }

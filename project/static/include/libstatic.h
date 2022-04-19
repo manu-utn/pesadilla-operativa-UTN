@@ -15,7 +15,8 @@ typedef enum {
   INICIO = 0,
   MENSAJE = 1,
   PAQUETE = 2,
-  CONSOLA = 3
+  CONSOLA = 3,
+  PCB = 4
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
@@ -48,11 +49,11 @@ typedef enum {
 
 // TODO: definir atributos: instrucciones y tabla de paginas
 typedef struct {
-  uint32_t* socket;
-  uint32_t pid;
-  uint32_t tamanio;
-  uint32_t estimacion_rafaga;
-  uint32_t program_counter;
+  int socket;
+  int pid;
+  int tamanio;
+  int estimacion_rafaga;
+  int program_counter;
   t_pcb_estado estado;
   t_list* instrucciones;
 } t_pcb;
@@ -61,6 +62,7 @@ t_config* iniciar_config(char*);
 t_log* iniciar_logger(char* archivo, char* nombre);
 
 t_buffer* crear_mensaje(char* texto);
+t_pcb* pcb_create(int socket, int pid, int tamanio);
 t_instruccion* instruccion_create(char* identificador, char* params);
 t_paquete* paquete_create();
 t_buffer* empty_buffer();
@@ -78,4 +80,6 @@ void paquete_cambiar_mensaje(t_paquete* paquete, t_buffer* mensaje);
 void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete);
 
 void imprimir_instruccion(t_instruccion* instruccion);
+void imprimir_pcb(t_pcb* pcb);
+void pcb_destroy(t_pcb* pcb);
 #endif

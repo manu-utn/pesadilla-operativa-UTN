@@ -18,4 +18,6 @@ void *serializar_paquete(t_paquete *paquete);
 void **deserializar_paquete(t_paquete *paquete_serializado);
 void paquete_add_instruccion(t_paquete *paquete, t_instruccion *instruccion);
 t_list *paquete_obtener_instrucciones(t_paquete *paquete_serializado);
+void paquete_add_pcb(t_paquete *paquete, t_pcb *pcb);
+t_pcb *paquete_obtener_pcb(t_paquete *paquete_serializado);
 #endif

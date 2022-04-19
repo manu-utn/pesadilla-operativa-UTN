@@ -111,6 +111,13 @@ void instruccion_destroy(t_instruccion* instruccion) {
   free(instruccion);
 }
 
+void pcb_destroy(t_pcb* pcb) {
+  list_destroy_and_destroy_elements(pcb->instrucciones,
+                                    (void*)instruccion_destroy);
+  free(pcb);
+}
+
+
 void mensaje_destroy(t_buffer* mensaje) {
   free(mensaje->stream);
   free(mensaje);
@@ -128,6 +135,20 @@ void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete) {
 
 void terminar_programa(int conexion, t_log* logger, t_config* config) {
   log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
+}
+
+t_pcb* pcb_create(int socket, int pid, int tamanio) {
+  t_pcb* pcb = NULL;
+
+  pcb = malloc(sizeof(t_pcb));
+
+  pcb->pid = pid;
+  pcb->tamanio = tamanio;     // TODO: definir
+  pcb->estimacion_rafaga = 0; // TODO: definir
+  pcb->program_counter = 0;   // TODO: definir
+  pcb->estado = NEW;
+
+  return pcb;
 }
 
 t_instruccion* instruccion_create(char* identificador, char* params) {
@@ -152,4 +173,22 @@ void imprimir_instruccion(t_instruccion* instruccion) {
   printf("identificador=%s, params=%s\n",
          instruccion->identificador,
          instruccion->params);
+}
+
+void imprimir_pcb(t_pcb* pcb) {
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, pc=%d, estado=%d\n",
+         pcb->socket,
+         pcb->pid,
+         pcb->tamanio,
+         pcb->estimacion_rafaga,
+         pcb->program_counter,
+         pcb->estado);
+
+  printf("list_size=%d\n", list_size(pcb->instrucciones));
+
+  for (int i = 0; i < list_size(pcb->instrucciones); i++) {
+    printf("instruccion\n");
+    t_instruccion* instruccion = list_get(pcb->instrucciones, i);
+    imprimir_instruccion(instruccion);
+  }
 }
