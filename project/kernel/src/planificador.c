@@ -90,17 +90,3 @@ void inicializar_cola(t_cola_planificacion *cola) {
   pthread_mutex_init(&(cola->mutex), NULL);
   sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
 }
-
-t_pcb *create_pcb(uint32_t socket, uint32_t pid) {
-  t_pcb *pcb = NULL;
-
-  pcb = malloc(sizeof(t_pcb));
-
-  pcb->pid = ULTIMO_PID++;
-  pcb->tamanio = 0;           // TODO: definir
-  pcb->estimacion_rafaga = 0; // TODO: definir
-  pcb->program_counter = 0;   // TODO: definir
-  pcb->estado = NEW;
-
-  return pcb;
-}

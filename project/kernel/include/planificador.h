@@ -39,7 +39,6 @@ void *iniciar_mediano_plazo();
 
 int pcb_get_posicion(t_pcb *pcb, t_list *lista);
 
-t_pcb *create_pcb(uint32_t socket, uint32_t pid);
 void agregar_pcb_a_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado);
