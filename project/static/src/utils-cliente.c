@@ -58,9 +58,22 @@ void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   }
 }
 
-void enviar_paquete(int socket_destino, t_paquete* paquete) {
-  paquete->codigo_operacion = PAQUETE;
+void enviar_instrucciones(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = CONSOLA;
 
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(
+      logger,
+      "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
+      socket_destino,
+      paquete->buffer->size);
+  }
+}
+
+// TODO: log_error si no asignó un codigo de operación
+void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {

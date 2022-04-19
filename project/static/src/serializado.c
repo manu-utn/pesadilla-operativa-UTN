@@ -6,26 +6,13 @@ void* serializar_paquete(t_paquete* paquete) {
   void* paquete_serializado = NULL;
 
   paquete_serializado = malloc(size_paquete); // TODO: need free (3)
-
-  // copiamos el paquete->codigo_operacion, por eso indicamos que el tamaño a
-  // copiar es sizeof(int)
   int offset = 0;
   memcpy(
     paquete_serializado + offset, &(paquete->codigo_operacion), sizeof(int));
 
-  // - copiamos el paquete->buffer->size, por eso indicamos que el tamaño a
-  // copiar es sizeof(int)
-  // - usamos el operador de dirección & porque memcpy se maneja con direcciones
-  // de memoria
-  // - nos desplazamos 4 bytes osea sizeof(int) para no pisar el
-  // `codigo_operacion` copiado en el anterior memcpy
   offset += sizeof(int);
   memcpy(paquete_serializado + offset, &(paquete->buffer->size), sizeof(int));
 
-  // copiamos el paquete->buffer->stream,por eso indicamos que el tamaño a
-  // copiar es paquete->buffer->size
-  // - nos desplazamos otros 4 bytes para no pisar el `paquete->buffer->size`
-  // copiado en el anterior memcpy
   offset += sizeof(int);
   memcpy(paquete_serializado + offset,
          paquete->buffer->stream,
@@ -36,14 +23,10 @@ void* serializar_paquete(t_paquete* paquete) {
 
 void** deserializar_paquete(t_paquete* paquete_serializado) {
   int offset, size_mensaje;
-
-  // lo tratamos como un arreglo de mensajes
-  void** mensajes = NULL; // TODO: need free()
+  void** mensajes = NULL;
 
   offset = 0;
 
-  // tamaño de cada mensaje dentro del paquete, varía según el contenido de cada
-  // mensaje
   size_mensaje = 0;
   for (int index = 0, n = 1; offset < paquete_serializado->buffer->size;
        n++, index++) {
@@ -54,26 +37,89 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
     size_mensaje = *(int*)(paquete_serializado->buffer->stream + offset);
     mensaje->size = size_mensaje;
 
-    // nos desplazamos 4 bytes, para no pisar el `buffer->size` que escribimos
-    // con el anterior memcpy
     offset += sizeof(int);
-    mensaje->stream = malloc(size_mensaje); // TODO: need free()
+    mensaje->stream = malloc(size_mensaje);
     memcpy(mensaje->stream,
            paquete_serializado->buffer->stream + offset,
            size_mensaje);
 
-    // agregamos el mensaje como un elemento de un arreglo
     mensajes[index] = (t_buffer*)mensaje;
-
-    // nos desplazamos buffer->size es decir el tamaño de buffer->stream
-    // asi en la sig. iteración obtenemos el siguiente mensaje
     offset += size_mensaje;
-
-    // TODO: chequear
-    // ponemos NULL al final de los mensajes para poder facilmente identificar
-    // el final y que no haya basura
     mensajes[index + 1] = NULL;
   }
 
   return mensajes;
+}
+
+void paquete_add_instruccion(t_paquete* paquete, t_instruccion* instruccion) {
+  int identificador_longitud = strlen(instruccion->identificador) + 1;
+  int identificador_size = identificador_longitud * sizeof(char);
+
+  int params_longitud = strlen(instruccion->params) + 1;
+  int params_size = params_longitud * sizeof(char);
+
+  int instruccion_size =
+    identificador_size + params_size + sizeof(int) + sizeof(int);
+
+  int offset = 0;
+
+  if (paquete->buffer->stream == NULL) {
+    paquete->buffer->stream = malloc(instruccion_size);
+  } else {
+    paquete->buffer->stream = realloc(paquete->buffer->stream,
+                                      paquete->buffer->size + instruccion_size);
+    offset = paquete->buffer->size;
+  }
+
+  memcpy(paquete->buffer->stream + offset, &identificador_size, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(paquete->buffer->stream + offset,
+         instruccion->identificador,
+         identificador_size);
+
+  offset += identificador_size;
+  memcpy(paquete->buffer->stream + offset, &params_size, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(paquete->buffer->stream + offset, instruccion->params, params_size);
+
+  paquete->buffer->size = paquete->buffer->size + instruccion_size;
+
+  offset += params_size;
+}
+
+t_list* paquete_obtener_instrucciones(t_paquete* paquete_serializado) {
+  int offset = 0;
+  t_list* lista = list_create();
+
+  while (offset < paquete_serializado->buffer->size) {
+    t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+    int identificador_size = 0, params_size = 0;
+
+    identificador_size = *(int*)(paquete_serializado->buffer->stream + offset);
+    instruccion->identificador = malloc(identificador_size);
+
+    offset += sizeof(int);
+    memcpy(instruccion->identificador,
+           paquete_serializado->buffer->stream + offset,
+           identificador_size);
+
+    offset += identificador_size;
+    params_size = *(int*)(paquete_serializado->buffer->stream + offset);
+    instruccion->params = malloc(params_size);
+
+    offset += sizeof(int);
+    memcpy(instruccion->params,
+           paquete_serializado->buffer->stream + offset,
+           params_size);
+
+    imprimir_instruccion(instruccion);
+
+    list_add(lista, instruccion);
+
+    offset += params_size;
+  }
+
+  return lista;
 }

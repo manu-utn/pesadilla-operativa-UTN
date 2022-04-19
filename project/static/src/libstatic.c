@@ -1,5 +1,6 @@
 #include "libstatic.h"
 #include "utils-servidor.h"
+#include <stdint.h>
 #include <stdio.h>
 
 t_config* iniciar_config(char* config) {
@@ -14,6 +15,10 @@ int get_paquete_size(t_paquete* paquete) {
   // tamaño de paquete->codigo_operacion + tamaño de paquete->buffer->stream +
   // tamaño de paquete->buffer->size
   return sizeof(int) + sizeof(int) + paquete->buffer->size;
+}
+
+void buffer_add(t_buffer* buffer, void* stream, int stream_size) {
+  // memcpy(buffer->stream, );
 }
 
 t_buffer* empty_buffer() {
@@ -63,30 +68,16 @@ void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
     paquete->buffer = nuevo_mensaje;
   } else {
     int mensaje_size = nuevo_mensaje->size + sizeof(int);
-    // tamaño del stream del paquete + tamaño de nuevo_mensaje->stream + tamaño
-    // de nuevo_mensaje->size el sizeof(int) es por nuevo_mensaje->size ya que
-    // representa un entero
     int size = paquete->buffer->size + mensaje_size;
 
-    // aumentamos el espacio en memoria para paquete->buffer->stream
-    // al tamaño del bloque de memoria lo aumentamos tanto como el tamaño del
-    // nuevo mensaje
     paquete->buffer->stream = realloc(paquete->buffer->stream, size);
 
     int offset = 0;
 
-    // SERIALIZAMOS para agrupar los mensajes en paquete->buffer->stream
-    //
-    // nos desplazamos en bytes el valor de paquete->buffer->size para no pisar
-    // lo último que tenga, luego de lo último agregaremos el
-    // nuevo_mensaje->size
     offset += paquete->buffer->size;
     memcpy(
       paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
 
-    // nos desplazamos 4 bytes ó bien sizeof(int) para no pisar
-    // nuevo_mensaje->size agregado con el anterior memcpy y agregamos
-    // nuevo_mensaje->stream
     offset += sizeof(int);
     memcpy(paquete->buffer->stream + offset,
            nuevo_mensaje->stream,
@@ -97,8 +88,6 @@ void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
       nuevo_mensaje->size,
       (char*)(paquete->buffer->stream + offset));
 
-    // generamos efecto en el paquete, indicamos que su tamaño aumentó (porque
-    // agregamos un nuevo mensaje)
     paquete->buffer->size += mensaje_size;
   }
 }
@@ -116,6 +105,12 @@ void paquete_destroy(t_paquete* paquete) {
            "creación del paquete");
 }
 
+void instruccion_destroy(t_instruccion* instruccion) {
+  free(instruccion->identificador);
+  free(instruccion->params);
+  free(instruccion);
+}
+
 void mensaje_destroy(t_buffer* mensaje) {
   free(mensaje->stream);
   free(mensaje);
@@ -127,6 +122,34 @@ void liberar_conexion(int socket) {
   log_info(logger, "Se cerró la conexion con éxito (socket=%d)", socket);
 }
 
+void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete) {
+  paquete->codigo_operacion = codigo_operacion;
+}
+
 void terminar_programa(int conexion, t_log* logger, t_config* config) {
   log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
+}
+
+t_instruccion* instruccion_create(char* identificador, char* params) {
+  t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+
+  int identificador_longitud = strlen(identificador) + 1;
+  int identificador_size = sizeof(char) * identificador_longitud;
+
+  int params_longitud = strlen(params) + 1;
+  int params_size = sizeof(char) * params_longitud;
+
+  instruccion->identificador = malloc(identificador_size);
+  instruccion->params = malloc(params_size);
+
+  memcpy(instruccion->identificador, (void*)identificador, identificador_size);
+  memcpy(instruccion->params, params, params_size);
+
+  return instruccion;
+}
+
+void imprimir_instruccion(t_instruccion* instruccion) {
+  printf("identificador=%s, params=%s\n",
+         instruccion->identificador,
+         instruccion->params);
 }
