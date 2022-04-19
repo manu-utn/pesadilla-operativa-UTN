@@ -17,24 +17,32 @@ int main() {
   int fd_kernel = conectarse_a_kernel();
 
   // Enviamos otro mensaje
+  /*
   t_paquete* paquete1 = paquete_create();
-  paquete_cambiar_mensaje(paquete1, crear_mensaje("fingo ser una consola"));
+  paquete_cambiar_mensaje(paquete1, crear_mensaje("saludar"));
   enviar_mensaje(fd_kernel, paquete1);
   paquete_destroy(paquete1);
+   */
 
   // Enviamos un paquete con 2 mensajes
-  t_paquete* paquete2 = paquete_create();
-  t_buffer* mensaje1 = crear_mensaje("instruccion1");
-  t_buffer* mensaje2 = crear_mensaje("instruccion2");
+  t_paquete* paquete = paquete_create();
+  // asignar_codigo_operacion(CONSOLA, paquete);
 
-  paquete_add_mensaje(paquete2, mensaje1);
-  paquete_add_mensaje(paquete2, mensaje2);
+  t_instruccion* instruccion1 = instruccion_create("NO_OP", "3000");
+  t_instruccion* instruccion2 = instruccion_create("WRITE", "4 42");
+  t_instruccion* instruccion3 = instruccion_create("READ", "9");
 
-  enviar_paquete(fd_kernel, paquete2);
+  // serializamos
+  paquete_add_instruccion(paquete, instruccion1);
+  paquete_add_instruccion(paquete, instruccion2);
+  paquete_add_instruccion(paquete, instruccion3);
 
-  mensaje_destroy(mensaje1);
-  mensaje_destroy(mensaje2);
-  paquete_destroy(paquete2);
+  enviar_instrucciones(fd_kernel, paquete);
+
+  instruccion_destroy(instruccion1);
+  instruccion_destroy(instruccion2);
+  instruccion_destroy(instruccion3);
+  paquete_destroy(paquete);
 
   terminar_cliente(fd_kernel, logger, config);
 
