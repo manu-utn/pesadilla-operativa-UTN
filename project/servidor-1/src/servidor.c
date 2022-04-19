@@ -5,74 +5,50 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "libstatic.h"
+#include "serializado.h"
 #include "servidor.h"
+#include <libstatic.h>
 
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "Servidor-1");
 
-  char* ip;
-  char* puerto;
+  t_config* config = iniciar_config(DIR_SERVIDOR_CFG);
 
-  t_config* config;
+  char* ip_cpu = config_get_string_value(config, "IP_CPU");
+  char* puerto_cpu_dispatch =
+    config_get_string_value(config, "PUERTO_CPU_DISPATCH");
 
-  config = iniciar_config(DIR_SERVIDOR_CFG);
-  ip = config_get_string_value(config, "IP");
-  puerto = config_get_string_value(config, "PUERTO");
+  int socket_cpu_dispatch = iniciar_servidor(ip_cpu, puerto_cpu_dispatch);
 
-  int server_fd = iniciar_servidor(ip, puerto);
-  log_info(logger, "Servidor listo para recibir al cliente");
+  log_info(logger, "Servidor listo para recibir al cliente Kernel");
 
+  // TODO: esto debería estar en un hilo, para poder emular e iniciar la
+  // también la conexion interrupt
   while (1) {
-    int cliente_fd = esperar_cliente(server_fd);
-    cliente_status cliente_estado = RUNNING;
+    int cliente_fd = esperar_cliente(socket_cpu_dispatch);
+    cliente_status cliente_estado = CLIENTE_RUNNING;
 
     while (cliente_estado) {
       int cod_op = recibir_operacion(cliente_fd);
 
       // MENSAJE=0, PAQUETE=1
       switch (cod_op) {
-        case MENSAJE: {
-          t_buffer* mensaje = recibir_mensaje(cliente_fd); // TODO: need free x2
+        case PCB: {
+          t_paquete* paquete_con_pcb = recibir_paquete(cliente_fd);
 
-          void* stream = ((t_buffer*)mensaje)->stream;
-          int size = ((t_buffer*)mensaje)->size;
+          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
+          imprimir_pcb(pcb_deserializado);
 
-          log_info(
-            logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
+          pcb_destroy(pcb_deserializado);
+          paquete_destroy(paquete_con_pcb);
 
-          mensaje_destroy(mensaje);
-        } break;
-        case PAQUETE: {
-          t_paquete* paquete =
-            recibir_paquete(cliente_fd); // TODO: need free x3
-          void** mensajes = deserializar_paquete(paquete);
-
-          void** aux = mensajes;
-
-          for (int i = 0; *aux != NULL; aux++, i++) {
-            void* stream = ((t_buffer*)mensajes[i])->stream;
-            int size = ((t_buffer*)mensajes[i])->size;
-
-            log_info(
-              logger, "[MENSAJE] (bytes=%d, stream=%s)", size, (char*)stream);
-
-            mensaje_destroy(mensajes[i]);
-          }
-
-          free(mensajes);
-          paquete_destroy(paquete);
-
+          // descomentar para validar el memcheck
+          // terminar_servidor(socket_cpu_dispatch, logger, config);
+          // return 0;
         } break;
         case -1: {
           log_info(logger, "el cliente se desconecto");
-          cliente_estado = EXIT;
-
-          // suponiendo que queremos matar el servidor
-          // terminar_programa(server_fd, logger, config);
-          terminar_servidor(server_fd, logger, config);
-          return 0;
-
+          cliente_estado = CLIENTE_EXIT;
           break;
         }
         default:
