@@ -11,9 +11,12 @@
 #include "dir.h"
 
 t_log *logger;
+t_config *config;
 
 #define MODULO "servidor-1"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/servidor.cfg"
 
+void* iniciar_conexion_interrupt();
+void* iniciar_conexion_dispatch();
 #endif

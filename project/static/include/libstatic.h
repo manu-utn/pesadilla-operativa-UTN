@@ -16,7 +16,8 @@ typedef enum {
   MENSAJE = 1,
   PAQUETE = 2,
   CONSOLA = 3,
-  PCB = 4
+  PCB = 4,
+  INTERRUPT = 5
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
@@ -79,7 +80,9 @@ void terminar_programa(int conexion, t_log* logger, t_config* config);
 void paquete_cambiar_mensaje(t_paquete* paquete, t_buffer* mensaje);
 void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete);
 
+void imprimir_instrucciones(t_list* lista);
 void imprimir_instruccion(t_instruccion* instruccion);
 void imprimir_pcb(t_pcb* pcb);
 void pcb_destroy(t_pcb* pcb);
+t_pcb* pcb_fake();
 #endif
