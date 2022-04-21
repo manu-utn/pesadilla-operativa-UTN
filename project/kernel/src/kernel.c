@@ -18,13 +18,12 @@ int main() {
   char* ip = config_get_string_value(config, "IP_KERNEL");
   char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
 
-  int socket_cpu_dispatch;
 
   int socket = iniciar_servidor(ip, puerto);
   log_info(logger, "Servidor listo para recibir al cliente Consola");
 
-  // esto fallará si la conexión cpu_interrupt no está ejecutando
-  // enviar_interrupcion();
+  // esto lanza una excepción si la conexión interrupt de cpu no fue iniciada..
+  enviar_interrupcion();
 
   while (1) {
     int cliente_fd = esperar_cliente(socket);
@@ -40,8 +39,12 @@ int main() {
           t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
           imprimir_pcb(pcb_deserializado);
 
-          socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-          enviar_pcb(socket_cpu_dispatch, paquete_con_pcb);
+          // esto lanza una excepción si la conexión dispatch de cpu no fue iniciada..
+          int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+
+          if (socket_cpu_dispatch != -1) {
+            enviar_pcb(socket_cpu_dispatch, paquete_con_pcb);
+          }
           close(socket_cpu_dispatch);
 
           pcb_destroy(pcb_deserializado);
@@ -76,20 +79,30 @@ int conectarse_a_cpu(char* conexion_puerto) {
   char* puerto = config_get_string_value(config, conexion_puerto);
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
+  if (fd_servidor == -1) {
+    log_error(logger,
+              "No se pudo establecer la conexión con CPU, inicie el servidor con %s e intente nuevamente",
+              conexion_puerto);
+
+    return -1;
+  }
+
   return fd_servidor;
 }
 
 void enviar_interrupcion() {
-  int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
-
   t_paquete* paquete = paquete_create();
   paquete->codigo_operacion = INTERRUPT;
 
-  int status = enviar(socket_destino, paquete);
+  int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
 
-  if (status != -1) {
-    log_info(logger, "La interrupcion fue enviada con éxito (socket_destino=%d)", socket_destino);
+  if (socket_destino != -1) {
+    int status = enviar(socket_destino, paquete);
 
-    close(socket_destino);
+    if (status != -1) {
+      log_info(logger, "La interrupcion fue enviada con éxito (socket_destino=%d)", socket_destino);
+
+      close(socket_destino);
+    }
   }
 }
