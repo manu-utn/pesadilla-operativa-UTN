@@ -170,8 +170,26 @@ t_cola_planificacion *cola_planificacion_create() {
 
 // Comentamos código que no fue probado,
 // para evitar arrojar errores en el planificador
-/*
-// TODO: unificar ambos casos para evitar repeticion del codigo
+
+t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo) {
+  pthread_mutex_lock(&(cola->mutex));
+  t_pcb *selected_pcb;
+  switch (algoritmo) {
+    case FIFO:
+      selected_pcb = (t_pcb *)list_get(cola->lista_pcbs, 0);
+      break;
+    case SRT:
+      selected_pcb = (t_pcb *)list_get_minimum(cola->lista_pcbs,
+                                               (void *)minimum_estimacion_rafaga); // si hay empate devuelve por FIFO
+      break;
+    default:
+      break;
+  }
+  pthread_mutex_unlock(&(cola->mutex));
+  remover_pcb_de_cola(selected_pcb, cola);
+  return selected_pcb;
+}
+/* Solucionado con lo de arriba
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
   t_pcb *primer_pcb = (t_pcb *)list_get(cola->lista_pcbs, 0);
@@ -182,13 +200,13 @@ t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
 
 t_pcb *select_pcb_by_srt(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
-  t_pcb *srt_pcb = (t_pcb *)list_get_minimum(cola->lista_pcbs, 0);
+  t_pcb *srt_pcb =
+    (t_pcb *)list_get_minimum(cola->lista_pcbs, (void *)minimum_estimacion_rafaga); // si hay empate devuelve por FIFO
   pthread_mutex_unlock(&(cola->mutex));
   remover_pcb_de_cola(srt_pcb, cola);
   return srt_pcb;
 }
-
+*/
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2) {
-  return pcb1->estimacion_rafaga >= pcb2->estimacion_rafaga ? pcb1 : pcb2;
+  return pcb1->estimacion_rafaga <= pcb2->estimacion_rafaga ? pcb1 : pcb2;
 }
- */
