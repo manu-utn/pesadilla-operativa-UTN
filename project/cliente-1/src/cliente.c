@@ -16,22 +16,20 @@ int main() {
 
   int fd_kernel = conectarse_a_kernel();
 
-  t_paquete* paquete = paquete_create();
-  t_instruccion* instruccion1 = instruccion_create("NO_OP", "3000");
-  t_instruccion* instruccion2 = instruccion_create("WRITE", "4 42");
-  t_instruccion* instruccion3 = instruccion_create("READ", "9");
+  t_list* lista_instrucciones = list_create();
+  list_add(lista_instrucciones, instruccion_create("NO_OP", "3000"));
+  list_add(lista_instrucciones, instruccion_create("WRITE", "4 42"));
+  list_add(lista_instrucciones, instruccion_create("READ", "9"));
 
-  // serializamos
-  paquete_add_instruccion(paquete, instruccion1);
-  paquete_add_instruccion(paquete, instruccion2);
-  paquete_add_instruccion(paquete, instruccion3);
+  t_pcb* pcb = pcb_fake();
+  pcb->tamanio = 11111; // TODO: debe ser información recibida por la terminal
+  pcb->instrucciones = lista_instrucciones; // TODO: debe ser info parseada de un archivo config
+  t_paquete* paquete_con_pcb = paquete_create();
+  paquete_add_pcb(paquete_con_pcb, pcb);
 
-  enviar_instrucciones(fd_kernel, paquete);
+  enviar_pcb(fd_kernel, paquete_con_pcb);
 
-  instruccion_destroy(instruccion1);
-  instruccion_destroy(instruccion2);
-  instruccion_destroy(instruccion3);
-  paquete_destroy(paquete);
+  paquete_destroy(paquete_con_pcb);
 
   terminar_cliente(fd_kernel, logger, config);
 
