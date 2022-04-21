@@ -179,7 +179,7 @@ void imprimir_pcb(t_pcb* pcb) {
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
   for (int i = 0; i < list_size(pcb->instrucciones); i++) {
-    printf("instruccion\n");
+    printf("[INSTRUCCION]: ");
     t_instruccion* instruccion = list_get(pcb->instrucciones, i);
     imprimir_instruccion(instruccion);
   }

@@ -93,8 +93,8 @@ t_cola_planificacion *inicializar_cola() {
   return cola;
 }
 
-
-// TODO: unificar ambos casos para evitar repeticion del codigo
+// Comentamos código que no fue probado,
+// para evitar arrojar errores en el planificador
 
 t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo) {
   pthread_mutex_lock(&(cola->mutex));
@@ -114,7 +114,7 @@ t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algo
   remover_pcb_de_cola(selected_pcb, cola);
   return selected_pcb;
 }
-
+/* Solucionado con lo de arriba
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
   t_pcb *primer_pcb = (t_pcb *)list_get(cola->lista_pcbs, 0);
@@ -131,7 +131,7 @@ t_pcb *select_pcb_by_srt(t_cola_planificacion *cola) {
   remover_pcb_de_cola(srt_pcb, cola);
   return srt_pcb;
 }
-
+*/
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2) {
   return pcb1->estimacion_rafaga <= pcb2->estimacion_rafaga ? pcb1 : pcb2;
 }

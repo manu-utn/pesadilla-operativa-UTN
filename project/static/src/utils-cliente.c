@@ -19,7 +19,10 @@ int conectar_a_servidor(char* ip, char* puerto) {
 
   status = connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen);
 
-  if (status != -1) {
+  if (status == -1) {
+    log_error(logger, "Ocurrió un error al intentar conectarse a un proceso servidor");
+    return -1;
+  } else {
     log_info(logger, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
   }
 
