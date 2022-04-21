@@ -9,65 +9,17 @@
 #include <stdio.h>
 #include <string.h>
 
-t_config* config;
-
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
-
   config = iniciar_config(DIR_SERVIDOR_CFG);
-  char* ip = config_get_string_value(config, "IP_KERNEL");
-  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
-
-
-  int socket = iniciar_servidor(ip, puerto);
-  log_info(logger, "Servidor listo para recibir al cliente Consola");
-
   // esto lanza una excepción si la conexión interrupt de cpu no fue iniciada..
-  enviar_interrupcion();
+  // TODO: se debe usar cuando reciba una IO de CPU
+  // enviar_interrupcion();
 
-  while (1) {
-    int cliente_fd = esperar_cliente(socket);
-    cliente_status cliente_estado = CLIENTE_RUNNING;
+  iniciar_planificacion();
 
-    while (cliente_estado) {
-      int cod_op = recibir_operacion(cliente_fd);
-
-      switch (cod_op) {
-        case PCB: {
-          t_paquete* paquete_con_pcb = recibir_paquete(cliente_fd);
-
-          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-          imprimir_pcb(pcb_deserializado);
-
-          // esto lanza una excepción si la conexión dispatch de cpu no fue iniciada..
-          int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-
-          if (socket_cpu_dispatch != -1) {
-            enviar_pcb(socket_cpu_dispatch, paquete_con_pcb);
-          }
-          close(socket_cpu_dispatch);
-
-          pcb_destroy(pcb_deserializado);
-          paquete_destroy(paquete_con_pcb);
-
-          // descomentar para validar el memcheck
-          // terminar_servidor(socket, logger, config);
-          // return 0;
-        } break;
-        case -1: {
-          log_info(logger, "el cliente se desconecto");
-          cliente_estado = CLIENTE_EXIT;
-          break;
-        }
-        default:
-          log_warning(logger, "Operacion desconocida. No quieras meter la pata");
-          break;
-      }
-    }
-  }
-
-
-  return 0;
+  // necesario en vez de `return 0`, caso contrario el hilo main finalizará antes de los hilos detach
+  pthread_exit(0);
 }
 
 int es_esta_instruccion(char* identificador, char** params) {
