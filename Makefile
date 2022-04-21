@@ -24,7 +24,16 @@ endif
 
 e exec: ## Ejecutar uno de los módulos
 	$(info Ejecutando modulo...)
-	@$(call module_cmd,compile exec)
+	$(call module_cmd,compile exec)
+
+CONSOLA_ARCHIVO=instrucciones.txt
+ARCHIVO?=$(DIR_BASE)/$(DIR_PROJECT)/consola/config/$(CONSOLA_ARCHIVO)
+TAMANIO?=500
+
+exec-consola:
+	$(info Ejecutando modulo consola...)
+	$(MAKE) --no-print-directory -C $(DIR_PROJECT)/consola compile
+	$(DIR_PROJECT)/consola/bin$(DIR_BIN)/consola.out $(ARCHIVO) $(TAMANIO)
 
 d debug: debugger-installed ## Debugear uno de los módulos
 	$(info Debugeando modulo...)
