@@ -20,9 +20,6 @@ void iniciar_planificacion() {
   /* COLA_SUSREADY = inicializar_cola(COLA_SUSREADY); */
   /* COLA_SUSBLOCKED = inicializar_cola(COLA_SUSBLOCKED); */
 
-  COLA_NEW = malloc(sizeof(t_cola_planificacion));
-  COLA_NEW->lista_pcbs = list_create();
-
   pthread_create(&th, NULL, iniciar_largo_plazo, NULL);
   pthread_detach(th);
 
