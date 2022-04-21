@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   // t_list* lista_instrucciones = obtener_instrucciones_de_archivo(DIR_CONFIG "/instrucciones.txt");
   t_list* lista_instrucciones = obtener_instrucciones_de_archivo(path_archivo_instrucciones);
   t_pcb* pcb = pcb_fake();
-  pcb->tamanio = 11111; // TODO: debe ser información recibida por la terminal
+  pcb->tamanio = tamanio_proceso; // TODO: debe ser información recibida por la terminal
   pcb->instrucciones = lista_instrucciones;
 
   t_paquete* paquete_con_pcb = paquete_create();
