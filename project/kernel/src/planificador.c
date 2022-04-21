@@ -91,7 +91,9 @@ void inicializar_cola(t_cola_planificacion *cola) {
   sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
 }
 
-
+// Comentamos código que no fue probado,
+// para evitar arrojar errores en el planificador
+/*
 // TODO: unificar ambos casos para evitar repeticion del codigo
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
@@ -112,3 +114,4 @@ t_pcb *select_pcb_by_srt(t_cola_planificacion *cola) {
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2) {
   return pcb1->estimacion_rafaga >= pcb2->estimacion_rafaga ? pcb1 : pcb2;
 }
+ */
