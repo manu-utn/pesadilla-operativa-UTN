@@ -39,7 +39,10 @@ int main(int argc, char* argv[]) {
   paquete_add_pcb(paquete_con_pcb, pcb);
 
   int fd_kernel = conectarse_a_kernel();
-  enviar_pcb(fd_kernel, paquete_con_pcb);
+
+  if (fd_kernel != -1) {
+    enviar_pcb(fd_kernel, paquete_con_pcb);
+  }
 
   pcb_destroy(pcb);
   paquete_destroy(paquete_con_pcb);
@@ -53,6 +56,12 @@ int conectarse_a_kernel() {
   char* ip = config_get_string_value(config, "IP_KERNEL");
   char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
   int fd_servidor = conectar_a_servidor(ip, puerto);
+
+  if (fd_servidor == -1) {
+    log_error(logger, "No se pudo establecer la conexión con kernel, inicie el servidor kernel e intente nuevamente");
+
+    return -1;
+  }
 
   return fd_servidor;
 }
