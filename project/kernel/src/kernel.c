@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "libstatic.h"
 #include "planificador.h"
 #include "serializado.h"
 #include "utils-cliente.h"
@@ -22,8 +23,8 @@ int main() {
   int socket = iniciar_servidor(ip, puerto);
   log_info(logger, "Servidor listo para recibir al cliente Consola");
 
-  enviar_interrupcion();
-  enviar_interrupcion();
+  // esto fallará si la conexión cpu_interrupt no está ejecutando
+  // enviar_interrupcion();
 
   while (1) {
     int cliente_fd = esperar_cliente(socket);
@@ -33,28 +34,17 @@ int main() {
       int cod_op = recibir_operacion(cliente_fd);
 
       switch (cod_op) {
-        case CONSOLA: {
-          t_paquete* paquete_con_instrucciones = recibir_paquete(cliente_fd);
+        case PCB: {
+          t_paquete* paquete_con_pcb = recibir_paquete(cliente_fd);
 
-          // deserializamos
-          t_list* lista_instrucciones = paquete_obtener_instrucciones(paquete_con_instrucciones);
-          imprimir_instrucciones(lista_instrucciones);
-
-          paquete_destroy(paquete_con_instrucciones);
-
-          // TODO: temporal, hasta definir algunos datos (tamanio, est_raf, program_conter)
-          t_pcb* pcb = pcb_fake();
-          pcb->instrucciones = lista_instrucciones;
-
-          t_paquete* paquete_con_pcb = paquete_create();
-          paquete_add_pcb(paquete_con_pcb, pcb);
+          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
+          imprimir_pcb(pcb_deserializado);
 
           socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
           enviar_pcb(socket_cpu_dispatch, paquete_con_pcb);
           close(socket_cpu_dispatch);
 
-          free(pcb);
-          list_destroy_and_destroy_elements(lista_instrucciones, (void*)instruccion_destroy);
+          pcb_destroy(pcb_deserializado);
           paquete_destroy(paquete_con_pcb);
 
           // descomentar para validar el memcheck
