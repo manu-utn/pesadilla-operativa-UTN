@@ -72,8 +72,57 @@ int main() {
       }
     }
   }
+  
+  /*
+  t_pcb* pcb1 = pcb_fake(); // pid = 10, estimacion_rafaga = 2
+  t_pcb* pcb2 = pcb_fake();
+  pcb2->estimacion_rafaga = 1;
+  pcb2->pid = 2;
+  t_pcb* pcb3 = pcb_fake();
+  pcb3->estimacion_rafaga = 1;
+  pcb3->pid = 4;
 
 
+  t_pcb* pcb_con_menor_rafaga = minimum_estimacion_rafaga(pcb1, pcb2); // Andando
+  log_info(logger, "PID del pcb con menor estimacion de rafaga: %d", pcb_con_menor_rafaga->pid);
+
+  t_cola_planificacion* cola_test = inicializar_cola();
+  agregar_pcb_a_cola(pcb1, cola_test);
+  agregar_pcb_a_cola(pcb2, cola_test);
+  agregar_pcb_a_cola(pcb3, cola_test);
+  log_info(logger, "Cantidad de elementos en cola: %d", list_size(cola_test->lista_pcbs));
+
+  t_pcb* pcb_elegido_por_fifo = select_pcb_by_algorithm(cola_test, FIFO);
+  log_info(logger, "PID del pcb elegido por FIFO: %d", pcb_elegido_por_fifo->pid);
+  t_pcb* pcb_elegido_por_fifo2 = select_pcb_by_algorithm(cola_test, FIFO);
+  log_info(logger, "PID del pcb elegido por FIFO: %d", pcb_elegido_por_fifo2->pid);
+  t_pcb* pcb_elegido_por_fifo3 = select_pcb_by_algorithm(cola_test, FIFO);
+  log_info(logger, "PID del pcb elegido por FIFO: %d", pcb_elegido_por_fifo3->pid);
+  /*
+  t_pcb* pcb_elegido_por_srt = select_pcb_by_algorithm(cola_test, SRT);
+  log_info(logger, "PID del pcb elegido por SRT: %d", pcb_elegido_por_srt->pid);
+  t_pcb* pcb_elegido_por_srt2 = select_pcb_by_algorithm(cola_test, SRT);
+  log_info(logger, "PID del pcb elegido por SRT: %d", pcb_elegido_por_srt2->pid);
+  t_pcb* pcb_elegido_por_srt3 = select_pcb_by_algorithm(cola_test, SRT);
+  log_info(logger, "PID del pcb elegido por SRT: %d", pcb_elegido_por_srt3->pid);
+  
+  log_info(logger, "Cantidad de elementos en cola: %d", list_size(cola_test->lista_pcbs));
+  /*
+  free(pcb_elegido_por_srt);
+  free(pcb_elegido_por_srt2);
+  free(pcb_elegido_por_srt3);
+  
+  free(pcb_elegido_por_fifo);
+  free(pcb_elegido_por_fifo2);
+  free(pcb_elegido_por_fifo3);
+
+
+  // free(pcb1);
+  // free(pcb2);
+  cola_destroy(cola_test);
+  log_destroy(logger);
+  config_destroy(config);
+  */
   return 0;
 }
 

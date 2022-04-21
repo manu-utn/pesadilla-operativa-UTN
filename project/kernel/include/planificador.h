@@ -22,6 +22,11 @@ typedef struct {
   pthread_mutex_t mutex;
 } t_cola_planificacion;
 
+typedef enum {
+  FIFO,
+  SRT
+} algoritmo_planif;
+
 t_log *logger;
 
 t_cola_planificacion *COLA_NEW;
@@ -45,5 +50,11 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado);
 void transicion_blocked_a_ready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 
-void inicializar_cola(t_cola_planificacion *cola);
+t_cola_planificacion *inicializar_cola();
+
+t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2);
+void cola_destroy(t_cola_planificacion* cola);
+t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola);
+t_pcb *select_pcb_by_srt(t_cola_planificacion *cola);
+t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo);
 #endif

@@ -81,18 +81,40 @@ void transicion_susblocked_a_susready(t_pcb *pcb) {
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
 }
 
-void inicializar_cola(t_cola_planificacion *cola) {
+t_cola_planificacion *inicializar_cola() {
   int sem_init_valor = 0;
 
-  cola = (t_cola_planificacion *)malloc(sizeof(t_cola_planificacion));
+  t_cola_planificacion *cola = malloc(sizeof(t_cola_planificacion));
   cola->lista_pcbs = list_create();
 
   pthread_mutex_init(&(cola->mutex), NULL);
   sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
+
+  return cola;
 }
 
 
 // TODO: unificar ambos casos para evitar repeticion del codigo
+
+t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo) {
+  pthread_mutex_lock(&(cola->mutex));
+  t_pcb *selected_pcb;
+  switch (algoritmo) {
+    case FIFO:
+      selected_pcb = (t_pcb *)list_get(cola->lista_pcbs, 0);
+      break;
+    case SRT:
+      selected_pcb = (t_pcb *)list_get_minimum(cola->lista_pcbs,
+                                               (void *)minimum_estimacion_rafaga); // si hay empate devuelve por FIFO
+      break;
+    default:
+      break;
+  }
+  pthread_mutex_unlock(&(cola->mutex));
+  remover_pcb_de_cola(selected_pcb, cola);
+  return selected_pcb;
+}
+
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
   t_pcb *primer_pcb = (t_pcb *)list_get(cola->lista_pcbs, 0);
@@ -103,12 +125,19 @@ t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola) {
 
 t_pcb *select_pcb_by_srt(t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
-  t_pcb *srt_pcb = (t_pcb *)list_get_minimum(cola->lista_pcbs, 0);
+  t_pcb *srt_pcb =
+    (t_pcb *)list_get_minimum(cola->lista_pcbs, (void *)minimum_estimacion_rafaga); // si hay empate devuelve por FIFO
   pthread_mutex_unlock(&(cola->mutex));
   remover_pcb_de_cola(srt_pcb, cola);
   return srt_pcb;
 }
 
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2) {
-  return pcb1->estimacion_rafaga >= pcb2->estimacion_rafaga ? pcb1 : pcb2;
+  return pcb1->estimacion_rafaga <= pcb2->estimacion_rafaga ? pcb1 : pcb2;
+}
+
+void cola_destroy(t_cola_planificacion *cola) {
+  list_destroy_and_destroy_elements(cola->lista_pcbs, (void *)pcb_destroy);
+  pthread_mutex_destroy(&(cola->mutex));
+  free(cola);
 }
