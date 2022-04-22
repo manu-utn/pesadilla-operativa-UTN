@@ -1,6 +1,7 @@
 #ifndef __KERNEL__H
 #define __KERNEL__H
 #include <libstatic.h>
+#include <semaphore.h>
 
 t_config* config;
 

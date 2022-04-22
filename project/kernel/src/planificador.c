@@ -7,6 +7,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <libstatic.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -14,8 +15,12 @@ void iniciar_planificacion() {
   pthread_t th;
   ULTIMO_PID = 0;
 
+  inicializar_grado_multiprogramacion();
+
   COLA_NEW = cola_planificacion_create();
-  /* COLA_READY = inicializar_cola(COLA_READY); */
+  COLA_READY = cola_planificacion_create();
+
+  // TODO: descomentar a medida que se vayan implementando los planificadores
   /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
   /* COLA_SUSREADY = inicializar_cola(COLA_SUSREADY); */
   /* COLA_SUSBLOCKED = inicializar_cola(COLA_SUSBLOCKED); */
@@ -25,6 +30,7 @@ void iniciar_planificacion() {
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
   // cola_destroy(COLA_NEW);
+  // cola_destroy(COLA_READY);
 }
 
 // TODO: validar agregando PCBs con instrucciones
@@ -56,14 +62,14 @@ void *iniciar_largo_plazo() {
       switch (cod_op) {
         case PCB: {
           t_paquete *paquete_con_pcb = recibir_paquete(cliente_fd);
-
           t_pcb *pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-          imprimir_pcb(pcb_deserializado);
+          // imprimir_pcb(pcb_deserializado);
 
           transicion_a_new(pcb_deserializado);
 
-          // TODO: añadir cuando tengas el feature del grado de multiprogramación
-          // sem_wait(&PROCESOS_PENDIENTES_A_INGRESAR);
+          controlar_grado_multiprogramacion();
+          transicion_new_a_ready(pcb_deserializado);
+          // TODO: solicitar_tabla_paginas(fd_memoria);
 
           // esto lanza una excepción si la conexión dispatch de cpu no fue iniciada..
           int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
@@ -83,6 +89,8 @@ void *iniciar_largo_plazo() {
         case -1: {
           log_info(logger, "el cliente se desconecto");
           cliente_estado = CLIENTE_EXIT;
+
+          subir_grado_multiprogramacion();
           break;
         }
         default:
@@ -135,8 +143,18 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 void transicion_a_new(t_pcb *pcb) {
   agregar_pcb_a_cola(pcb, COLA_NEW);
 
+  sem_post(&(COLA_NEW->instancias_disponibles));
+
   log_info(
     logger, "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)", pcb->pid, list_size(COLA_NEW->lista_pcbs));
+}
+
+void transicion_new_a_ready(t_pcb *pcb) {
+  remover_pcb_de_cola(pcb, COLA_NEW);
+  cambiar_estado_pcb(pcb, READY);
+  agregar_pcb_a_cola(pcb, COLA_READY);
+
+  sem_post(&(COLA_READY->instancias_disponibles));
 }
 
 // TODO: Añadir un signal
@@ -154,23 +172,47 @@ void transicion_susblocked_a_susready(t_pcb *pcb) {
 }
 
 t_cola_planificacion *cola_planificacion_create() {
-  // int sem_init_valor = 0;
+  int sem_init_valor = 0;
   t_cola_planificacion *cola = malloc(sizeof(t_cola_planificacion));
 
   cola->lista_pcbs = list_create();
   pthread_mutex_init(&(cola->mutex), NULL);
 
   // TODO: evaluar si recibirlo por parámetro o definir una nueva función cola_asignar_instancias(cola, cantidad)
-  // sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
+  sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
 
   log_info(logger, "Se creó una cola de planificación");
 
   return cola;
 }
 
+void inicializar_grado_multiprogramacion() {
+  int grado = atoi(config_get_string_value(config, "GRADO_MULTIPROGRAMACION"));
+
+  sem_init(&GRADO_MULTIPROGRAMACION, 0, grado);
+}
+
+int obtener_grado_multiprogramacion() {
+  int grado;
+  sem_getvalue(&GRADO_MULTIPROGRAMACION, &grado);
+
+  return grado;
+}
+
+void subir_grado_multiprogramacion() {
+  sem_post(&GRADO_MULTIPROGRAMACION);
+
+  log_info(logger, "Subió el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+}
+
+void controlar_grado_multiprogramacion() {
+  sem_wait(&GRADO_MULTIPROGRAMACION);
+
+  log_info(logger, "Bajó el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+}
+
 // Comentamos código que no fue probado,
 // para evitar arrojar errores en el planificador
-
 t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo) {
   pthread_mutex_lock(&(cola->mutex));
   t_pcb *selected_pcb;

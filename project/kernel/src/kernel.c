@@ -12,8 +12,8 @@
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
   config = iniciar_config(DIR_SERVIDOR_CFG);
-  // esto lanza una excepción si la conexión interrupt de cpu no fue iniciada..
 
+  // esto lanza una excepción si la conexión interrupt de cpu no fue iniciada..
   // TODO: se debe usar cuando reciba una IO de CPU
   // enviar_interrupcion();
 

@@ -9,6 +9,7 @@
 #include <commons/config.h>
 #include <libstatic.h>
 #include "dir.h"
+#include "kernel.h"
 
 #define MODULO "kernel"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -29,13 +30,13 @@ typedef enum {
 
 t_log *logger;
 
+sem_t GRADO_MULTIPROGRAMACION;
+
 t_cola_planificacion *COLA_NEW;
 t_cola_planificacion *COLA_READY;
 t_cola_planificacion *COLA_BLOCKED;
 t_cola_planificacion *COLA_SUSREADY;
 t_cola_planificacion *COLA_SUSBLOCKED;
-
-sem_t PROCESOS_PENDIENTES_A_INGRESAR;
 
 void iniciar_planificacion();
 void *iniciar_corto_plazo();
@@ -49,11 +50,17 @@ void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado);
 
 void transicion_a_new(t_pcb* pcb);
+void transicion_new_a_ready(t_pcb *pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 
 t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
+
+void inicializar_grado_multiprogramacion();
+int obtener_grado_multiprogramacion();
+void controlar_grado_multiprogramacion();
+void subir_grado_multiprogramacion();
 
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2);
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola);
