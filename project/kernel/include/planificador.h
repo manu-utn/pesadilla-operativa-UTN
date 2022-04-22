@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <commons/collections/list.h>
+#include <commons/collections/queue.h>
 #include <commons/config.h>
 #include <libstatic.h>
 #include "dir.h"
@@ -16,6 +17,8 @@
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/kernel.cfg"
 
 int ULTIMO_PID;
+t_queue* PCBS_PROCESOS_ENTRANTES;
+sem_t HAY_PROCESOS_ENTRANTES;
 
 typedef struct {
   t_list *lista_pcbs;
@@ -62,8 +65,13 @@ int obtener_grado_multiprogramacion();
 void controlar_grado_multiprogramacion();
 void subir_grado_multiprogramacion();
 
-t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2);
-t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola);
-t_pcb *select_pcb_by_srt(t_cola_planificacion *cola);
-t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo);
+t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
+t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);
+
+t_pcb *pcb_menor_rafaga_cpu_entre(t_pcb *pcb1, t_pcb *pcb2);
+
+t_pcb *elegir_pcb_segun_algoritmo();
+bool algoritmo_cargado_es(char *algoritmo);
+
+void enviar_interrupcion();
 #endif
