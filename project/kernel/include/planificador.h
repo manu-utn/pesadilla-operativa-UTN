@@ -47,13 +47,15 @@ int pcb_get_posicion(t_pcb *pcb, t_list *lista);
 void agregar_pcb_a_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado);
+
+void transicion_a_new(t_pcb* pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 
-t_cola_planificacion *inicializar_cola();
+t_cola_planificacion* cola_planificacion_create();
+void cola_destroy(t_cola_planificacion *cola);
 
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2);
-void cola_destroy(t_cola_planificacion* cola);
 t_pcb *select_pcb_by_fifo(t_cola_planificacion *cola);
 t_pcb *select_pcb_by_srt(t_cola_planificacion *cola);
 t_pcb *select_pcb_by_algorithm(t_cola_planificacion *cola, algoritmo_planif algoritmo);
