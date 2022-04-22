@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 #include <stdint.h>
-=======
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include <commons/string.h>
 #include <libstatic.h>
->>>>>>> kernel
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
