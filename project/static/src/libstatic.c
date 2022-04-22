@@ -48,7 +48,8 @@ t_paquete* paquete_create() {
 }
 
 t_buffer* crear_mensaje(char* texto) {
-  int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  int mensaje_longitud =
+    strlen(texto) + 1; // sumamos el '\0' que indica fin de cadena
   int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
 
   t_buffer* mensaje = NULL;
@@ -74,14 +75,18 @@ void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
     int offset = 0;
 
     offset += paquete->buffer->size;
-    memcpy(paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
+    memcpy(
+      paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
 
     offset += sizeof(int);
-    memcpy(paquete->buffer->stream + offset, nuevo_mensaje->stream, nuevo_mensaje->size);
-    log_info(logger,
-             "Se agregó con éxito mensaje al paquete (stream_bytes=%d, stream=%s)",
-             nuevo_mensaje->size,
-             (char*)(paquete->buffer->stream + offset));
+    memcpy(paquete->buffer->stream + offset,
+           nuevo_mensaje->stream,
+           nuevo_mensaje->size);
+    log_info(
+      logger,
+      "Se agregó con éxito mensaje al paquete (stream_bytes=%d, stream=%s)",
+      nuevo_mensaje->size,
+      (char*)(paquete->buffer->stream + offset));
 
     paquete->buffer->size += mensaje_size;
   }
@@ -107,7 +112,8 @@ void instruccion_destroy(t_instruccion* instruccion) {
 }
 
 void pcb_destroy(t_pcb* pcb) {
-  list_destroy_and_destroy_elements(pcb->instrucciones, (void*)instruccion_destroy);
+  list_destroy_and_destroy_elements(pcb->instrucciones,
+                                    (void*)instruccion_destroy);
   free(pcb);
 }
 
@@ -174,7 +180,9 @@ t_instruccion* instruccion_create(char* identificador, char* params) {
 }
 
 void imprimir_instruccion(t_instruccion* instruccion) {
-  printf("identificador=%s, params=%s\n", instruccion->identificador, instruccion->params);
+  printf("identificador=%s, params=%s\n",
+         instruccion->identificador,
+         instruccion->params);
 }
 
 void imprimir_pcb(t_pcb* pcb) {
