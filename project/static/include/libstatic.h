@@ -41,7 +41,7 @@ typedef struct{
 typedef enum {
   NEW,
   READY,
-  EXEC,
+  RUNNING,
   BLOCKED,
   SUSBLOCKED,
   SUSREADY,
