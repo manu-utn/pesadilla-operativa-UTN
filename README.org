@@ -1,7 +1,7 @@
 * Diagrama de Casos de Uso
 [[https://user-images.githubusercontent.com/1643177/164763185-fd8a91c5-9cda-4302-a3ed-bb0842013fcb.png]]
 * Diagrama de Secuencia
-[[https://user-images.githubusercontent.com/1643177/164763203-b17ee393-b84e-4296-9b10-3ec439410511.png]]
+[[https://user-images.githubusercontent.com/1643177/164766354-20d79d93-94fd-4264-8b8e-96f2429c687c.png]]
 
 * Comandos de Entorno
    - ~make install~ para instalar y configurar entorno ~make i~  
