@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
   pcb_destroy(pcb);
   paquete_destroy(paquete_con_pcb);
 
-  terminar_cliente(fd_kernel, logger, config);
+  sleep(10), terminar_cliente(fd_kernel, logger, config);
 
   return 0;
 }
