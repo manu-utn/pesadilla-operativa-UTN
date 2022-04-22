@@ -2,7 +2,7 @@
 #include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
 
-int main() {
+int main2() {
   // función de la biblioteca static
   saludar();
 
