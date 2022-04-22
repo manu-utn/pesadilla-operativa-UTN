@@ -22,7 +22,8 @@ int main() {
   int socket_memoria = conectarse_a_memoria();
 
   // HANDSHAKE CON MEMORIA
-  t_mensaje_handshake_cpu_memoria* mensaje_hs = mensaje_handshake_create("MENSAJE PRUEBA");
+  t_mensaje_handshake_cpu_memoria* mensaje_hs =
+    mensaje_handshake_create("MENSAJE PRUEBA");
 
   t_paquete* paquete_con_mensaje = paquete_create();
   paquete_add_mensaje_handshake(paquete_con_mensaje, mensaje_hs);
@@ -32,7 +33,8 @@ int main() {
 
 
   char* ip_cpu = "127.0.0.1";
-  char* puerto_cpu_dispatch = string_itoa(configuracion->puerto_escucha_dispatch);
+  char* puerto_cpu_dispatch =
+    string_itoa(configuracion->puerto_escucha_dispatch);
 
   int socket_cpu_dispatch = iniciar_servidor(ip_cpu, puerto_cpu_dispatch);
 
@@ -68,7 +70,8 @@ int main() {
           break;
         }
         default:
-          log_warning(logger, "Operacion desconocida. No quieras meter la pata");
+          log_warning(logger,
+                      "Operacion desconocida. No quieras meter la pata");
           break;
       }
     }
@@ -80,7 +83,8 @@ int main() {
 /*
 int conectarse_a_memoria() {
   char* ip = config_get_string_value(configuracion, "IP_MEMORIA");
-  char* puerto = string_itoa(config_get_string_value(configuracion, "PUERTO_MEMORIA"));
+  char* puerto = string_itoa(config_get_string_value(configuracion,
+"PUERTO_MEMORIA"));
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   return fd_servidor;

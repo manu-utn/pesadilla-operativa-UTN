@@ -12,7 +12,7 @@
 #include <string.h>
 
 #define DIR_BASE "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/"
-#define MODULO "servidor-1"
+#define MODULO "cpu"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/servidor.cfg"
 
