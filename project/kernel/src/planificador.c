@@ -210,3 +210,8 @@ t_pcb *select_pcb_by_srt(t_cola_planificacion *cola) {
 t_pcb *minimum_estimacion_rafaga(t_pcb *pcb1, t_pcb *pcb2) {
   return pcb1->estimacion_rafaga <= pcb2->estimacion_rafaga ? pcb1 : pcb2;
 }
+
+void cola_destroy(t_cola_planificacion *cola) {
+  list_destroy_and_destroy_elements(cola->lista_pcbs, (void *)pcb_destroy);
+  free(cola);
+}
