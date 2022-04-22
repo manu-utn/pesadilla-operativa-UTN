@@ -232,11 +232,11 @@ t_pcb *pcb_menor_rafaga_cpu_entre(t_pcb *pcb1, t_pcb *pcb2) {
 t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
   t_pcb *pcb = NULL;
 
-  if (algoritmo_cargado_es("SJF")) {
+  if (algoritmo_cargado_es("FIFO")) {
     pcb = elegir_pcb_fifo(cola);
   }
 
-  else if (algoritmo_cargado_es("FIFO")) {
+  else if (algoritmo_cargado_es("SJT")) {
     pcb = elegir_pcb_sjf(cola);
   }
 
