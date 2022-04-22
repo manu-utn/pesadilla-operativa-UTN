@@ -8,12 +8,9 @@ void procesar_intrucciones(t_list* instrucciones) {
   int i = 0;
 
   while (list_get(instrucciones, i) != NULL) {
-    int size_instruccion =
-      strlen(((t_instruccion*)list_get(instrucciones, i))->identificador);
+    int size_instruccion = strlen(((t_instruccion*)list_get(instrucciones, i))->identificador);
     char* instruccion = malloc(size_instruccion + 1);
-    memcpy(instruccion,
-           (((t_instruccion*)list_get(instrucciones, i))->identificador),
-           size_instruccion);
+    memcpy(instruccion, (((t_instruccion*)list_get(instrucciones, i))->identificador), size_instruccion);
 
     if (strcmp(instruccion, "NO_OP")) {
       log_info(logger, "Ejecutando NO_OP...");

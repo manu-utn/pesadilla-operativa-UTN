@@ -1,62 +1,81 @@
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include <commons/string.h>
-#include <libshared.h> // <-- SHARED LIB
-#include <libstatic.h> // <-- STATIC LIB
+#include <libstatic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "cliente.h"
 
-int main() {
-  int fd_servidor;
-  char* ip;
-  char* puerto;
-  /* char* mensaje; */
+t_config* config;
 
-  t_config* config;
-
+int main(int argc, char* argv[]) {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "Cliente-1");
-
   config = iniciar_config(DIR_CLIENTE_CFG);
-  /* mensaje = config_get_string_value(config, "MENSAJE"); */
 
-  ip = config_get_string_value(config, "IP");
-  puerto = config_get_string_value(config, "PUERTO");
-  fd_servidor = conectar_a_servidor(ip, puerto);
+  char path_archivo_instrucciones[100];
+  int tamanio_proceso = 0;
 
-  t_paquete* paquete1 = NULL;
-  t_buffer* mensaje = NULL;
-  paquete1 = paquete_create();
-  mensaje = crear_mensaje("chau"); // TODO: need free x2
-  paquete_cambiar_mensaje(paquete1, mensaje);
-  enviar_mensaje(fd_servidor, paquete1);
-  paquete_destroy(paquete1);
+  if (!argv[1]) {
+    log_error(logger, "se requieren dos parámetros por la consola (ruta archivo de instrucciones + tamanio archivo)");
+  } else {
+    if (!argv[2]) {
+      log_error(logger, "se requiere un segundo parámetro, el tamanio archivo)");
+    }
 
-  // Enviamos otro mensaje
-  t_paquete* paquete2 = paquete_create();
-  // paquete2->buffer = crear_mensaje("aaaaa");  // <-- NO HACER, usar
-  // paquete_cambiar_mensaje()
-  paquete_cambiar_mensaje(paquete2, crear_mensaje("punchi punchi"));
-  enviar_mensaje(fd_servidor, paquete2);
-  paquete_destroy(paquete2);
+    strcpy(path_archivo_instrucciones, argv[1]);
 
-  // Enviamos un paquete con 2 mensajes
-  t_paquete* paquete3 = paquete_create();     // TODO: need free x3
-  t_buffer* mensaje1 = crear_mensaje("chau"); // TODO: need free x2
-  t_buffer* mensaje2 = crear_mensaje("wi");   // TODO: need free x2
+    tamanio_proceso = atoi(argv[2]);
+  }
 
-  paquete_add_mensaje(paquete3, mensaje1);
-  paquete_add_mensaje(paquete3, mensaje2);
+  // t_list* lista_instrucciones = obtener_instrucciones_de_archivo(DIR_CONFIG "/instrucciones.txt");
+  t_list* lista_instrucciones = obtener_instrucciones_de_archivo(path_archivo_instrucciones);
+  t_pcb* pcb = pcb_fake();
+  pcb->tamanio = tamanio_proceso; // TODO: debe ser información recibida por la terminal
+  pcb->instrucciones = lista_instrucciones;
 
-  enviar_paquete(fd_servidor, paquete3);
+  t_paquete* paquete_con_pcb = paquete_create();
+  paquete_add_pcb(paquete_con_pcb, pcb);
 
-  mensaje_destroy(mensaje1);
-  mensaje_destroy(mensaje2);
-  paquete_destroy(paquete3);
+  int fd_kernel = conectarse_a_kernel();
+  enviar_pcb(fd_kernel, paquete_con_pcb);
 
-  terminar_cliente(fd_servidor, logger, config);
+  pcb_destroy(pcb);
+  paquete_destroy(paquete_con_pcb);
+
+  terminar_cliente(fd_kernel, logger, config);
 
   return 0;
+}
+
+int conectarse_a_kernel() {
+  char* ip = config_get_string_value(config, "IP_KERNEL");
+  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+  int fd_servidor = conectar_a_servidor(ip, puerto);
+
+  return fd_servidor;
+}
+
+t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
+  int buffer_tamanio = 255;
+  char buffer[buffer_tamanio];
+  FILE* archivo_con_instrucciones = fopen(ruta_archivo, "r");
+  t_list* lista_instrucciones = list_create();
+
+  while (fgets(buffer, buffer_tamanio, archivo_con_instrucciones)) {
+    buffer[strcspn(buffer, "\n")] = 0; // removemos los saltos de linea
+
+    char** instruccion_texto = string_n_split(buffer, 2, " ");
+    char* identificador = instruccion_texto[0];
+    char* params = instruccion_texto[1] ? instruccion_texto[1] : "";
+    t_instruccion* instruccion = instruccion_create(identificador, params);
+    string_array_destroy(instruccion_texto);
+
+    list_add(lista_instrucciones, instruccion);
+  }
+
+  fclose(archivo_con_instrucciones);
+
+  return lista_instrucciones;
 }

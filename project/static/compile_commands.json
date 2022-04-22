@@ -1,5 +1,0 @@
-[{
-    "directory":"/home/jelou/Documents/git/manu-cproject/project/static",
-    "command": "/bin/clang libstatic.c -I/home/jelou/Documents/git/manu-cproject/project/static/include",
-    "file":"libstatic.c"
-}]

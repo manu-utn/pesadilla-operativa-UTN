@@ -15,15 +15,15 @@ int conectar_a_servidor(char* ip, char* puerto) {
 
   getaddrinfo(ip, puerto, &hints, &server_info);
 
-  int socket_cliente = socket(
-    server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
+  int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
-  status =
-    connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen);
+  status = connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen);
 
-  if (status != -1) {
-    log_info(
-      logger, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
+  if (status == -1) {
+    log_error(logger, "Ocurrió un error al intentar conectarse a un proceso servidor");
+    return -1;
+  } else {
+    log_info(logger, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
   }
 
   freeaddrinfo(server_info);
@@ -33,8 +33,7 @@ int conectar_a_servidor(char* ip, char* puerto) {
 
 int enviar(int socket_destino, t_paquete* paquete) {
   int size_paquete = get_paquete_size(paquete);
-  void* paquete_serializado =
-    serializar_paquete(paquete); // TODO: need free (1)
+  void* paquete_serializado = serializar_paquete(paquete); // TODO: need free (1)
 
   int status = send(socket_destino, paquete_serializado, size_paquete, 0);
 
@@ -64,11 +63,10 @@ void enviar_instrucciones(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(
-      logger,
-      "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
-      socket_destino,
-      paquete->buffer->size);
+    log_info(logger,
+             "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
   }
 }
 
@@ -78,11 +76,10 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(
-      logger,
-      "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-      socket_destino,
-      paquete->buffer->size);
+    log_info(logger,
+             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
   }
 }
 
@@ -92,11 +89,10 @@ void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(
-      logger,
-      "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-      socket_destino,
-      paquete->buffer->size);
+    log_info(logger,
+             "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
   }
 }
 
@@ -105,10 +101,8 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    log_info(
+      logger, "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)", socket_destino, paquete->buffer->size);
   }
 }
 

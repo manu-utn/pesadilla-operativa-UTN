@@ -17,7 +17,8 @@ typedef enum {
   PAQUETE = 2,
   CONSOLA = 3,
   PCB = 4,
-  MENSAJE_HANDSHAKE= 5
+  INTERRUPT = 5,
+  MENSAJE_HANDSHAKE= 6
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
@@ -42,6 +43,7 @@ typedef enum {
   NEW,
   READY,
   EXEC,
+  RUNNING,
   BLOCKED,
   SUSBLOCKED,
   SUSREADY,
@@ -91,4 +93,6 @@ void imprimir_pcb(t_pcb* pcb);
 void pcb_destroy(t_pcb* pcb);
 
 t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
+void imprimir_instrucciones(t_list* lista);
+t_pcb* pcb_fake();
 #endif
