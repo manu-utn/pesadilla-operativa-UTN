@@ -1,10 +1,60 @@
 #include "sample.h"
+#include "memoria.h"
 #include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
 
 int main() {
   // función de la biblioteca static
-  saludar();
+  cargarConfiguracion();
+  char* ip_memoria = "127.0.0.1";
+  char* puerto_memoria = string_itoa(configuracion->puerto_escucha);
 
+  int socket_memoria = iniciar_servidor(ip_memoria, puerto_memoria);
+
+  log_info(logger, "Servidor listo para recibir al cliente Kernel");
+
+  // TODO: esto debería estar en un hilo, para poder emular e iniciar la
+  // también la conexion interrupt
+  while (1) {
+    int cliente_fd = esperar_cliente(socket_memoria);
+    cliente_status cliente_estado = CLIENTE_RUNNING;
+
+    while (cliente_estado) {
+      int cod_op = recibir_operacion(cliente_fd);
+
+      // MENSAJE=0, PAQUETE=1
+      switch (cod_op) {
+        case PCB: {
+          t_paquete* paquete_con_mensaje = recibir_paquete(cliente_fd);
+
+          // t_mensaje_handshake_create* mensaje_handhsake = paquete_obtener_pcb(paquete_con_mensaje);
+
+          /*
+          imprimir_pcb(pcb_deserializado);
+          pcb_destroy(pcb_deserializado);
+          paquete_destroy(paquete_con_pcb);*/
+
+          // descomentar para validar el memcheck
+          // terminar_servidor(socket_cpu_dispatch, logger, config);
+          // return 0;
+
+          //  free(mensaje_handhsake->mensaje_handshake);
+          //  free(mensaje_handhsake);
+        } break;
+        case MENSAJE_HANDSHAKE: {
+          log_info(logger, "Handshake hecho...");
+        }
+        case -1: {
+          log_info(logger, "el cliente se desconecto");
+          cliente_estado = CLIENTE_EXIT;
+          break;
+        }
+        default:
+          log_warning(logger, "Operacion desconocida. No quieras meter la pata");
+          break;
+      }
+    }
+  }
+  limpiarConfiguracion();
   return 0;
 }

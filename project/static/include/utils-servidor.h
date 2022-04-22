@@ -22,6 +22,7 @@ int esperar_cliente(int);
 int recibir(int socket_cliente, t_buffer *mensaje);
 t_paquete *recibir_paquete(int socket_cliente);
 t_buffer* recibir_mensaje(int);
+t_pcb *recibir_proceso(int socket_cliente);
 int recibir_operacion(int);
 void terminar_servidor(int fd_servidor, t_log *logger, t_config *config);
 #endif

@@ -11,7 +11,10 @@
 #include <stdio.h>
 #include <string.h>
 
-
+#define DIR_BASE "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/"
+#define MODULO "servidor-1"
+#define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
+#define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/servidor.cfg"
 
 typedef struct {
 	int entradas_tlb;
@@ -23,7 +26,7 @@ typedef struct {
 	int puerto_escucha_interrupt;
 } t_configuracion;
 
-
+/*
 typedef struct{
     int id_proceso;
     int tamanio_proceso;
@@ -31,7 +34,7 @@ typedef struct{
     int pc;
     int nro_tabla_paginas;
     float estimacion_rafaga;
-}t_pcb;
+}t_pcb;*/
 
 t_configuracion * configuracion;
 t_config * fd_configuracion;
@@ -39,8 +42,10 @@ t_log * logger;
 
 
 int cargarConfiguracion();
-
+int configValida(t_config* fd_configuracion);
+void limpiarConfiguracion();
 void iniciar_ciclo_instruccion();
 
+int conectarse_a_memoria();
 
 #endif /* CPU_H_ */

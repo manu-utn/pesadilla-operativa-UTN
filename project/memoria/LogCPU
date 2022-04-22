@@ -1,0 +1,205 @@
+[INFO] 02:22:12:427 CPU/(2728:2728): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 02:22:12:427 CPU/(2728:2728): Se creo el socket con exito (socket=4)
+[INFO] 02:22:12:427 CPU/(2728:2728): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 02:22:12:427 CPU/(2728:2728): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 02:22:12:427 CPU/(2728:2728): Servidor listo para recibir al cliente Kernel
+[INFO] 02:35:55:270 CPU/(4948:4948): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 02:35:55:270 CPU/(4948:4948): Se creo el socket con exito (socket=4)
+[INFO] 02:35:55:270 CPU/(4948:4948): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 02:35:55:270 CPU/(4948:4948): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 02:35:55:270 CPU/(4948:4948): Servidor listo para recibir al cliente Kernel
+[INFO] 02:37:09:966 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:37:26:679 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:37:26:679 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:37:36:524 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:38:12:577 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:38:12:577 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:38:21:194 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:39:47:352 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:39:47:352 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:39:51:710 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:40:06:602 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:40:06:602 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:40:11:892 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:42:11:163 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:42:11:163 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:42:32:726 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:43:56:179 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:43:56:179 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:46:18:149 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:48:12:582 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:48:12:582 CPU/(4948:4948): el cliente se desconecto
+[INFO] 02:48:21:042 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 02:49:58:878 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 02:49:58:878 CPU/(4948:4948): el cliente se desconecto
+[INFO] 03:02:09:996 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 03:02:50:496 CPU/(4948:4948): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:02:50:496 CPU/(4948:4948): Operacion desconocida. No quieras meter la pata
+[INFO] 03:02:50:496 CPU/(4948:4948): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:02:50:496 CPU/(4948:4948): Operacion desconocida. No quieras meter la pata
+[INFO] 03:06:20:099 CPU/(4948:4948): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:06:20:099 CPU/(4948:4948): el cliente se desconecto
+[INFO] 03:07:53:954 CPU/(4948:4948): Se conectó un cliente (socket=5)
+[INFO] 03:08:18:082 CPU/(4948:4948): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:08:18:082 CPU/(4948:4948): Operacion desconocida. No quieras meter la pata
+[INFO] 03:08:18:082 CPU/(4948:4948): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:08:18:082 CPU/(4948:4948): Operacion desconocida. No quieras meter la pata
+[INFO] 03:10:04:954 CPU/(16587:16587): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 03:10:04:954 CPU/(16587:16587): Se creo el socket con exito (socket=4)
+[INFO] 03:10:04:954 CPU/(16587:16587): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 03:10:04:954 CPU/(16587:16587): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 03:10:04:954 CPU/(16587:16587): Servidor listo para recibir al cliente Kernel
+[INFO] 03:13:25:990 CPU/(19449:19449): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 03:13:25:990 CPU/(19449:19449): Se creo el socket con exito (socket=4)
+[INFO] 03:13:25:990 CPU/(19449:19449): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 03:13:25:990 CPU/(19449:19449): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 03:13:25:990 CPU/(19449:19449): Servidor listo para recibir al cliente Kernel
+[INFO] 03:14:40:254 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:15:13:915 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:15:13:915 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:15:13:915 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:15:13:915 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:15:17:317 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:15:17:317 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:15:19:178 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:18:54:264 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:18:54:264 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:18:54:264 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:18:54:264 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:19:04:113 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:19:04:113 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:19:06:230 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:19:21:049 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:19:21:049 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:19:21:049 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:19:21:049 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:19:39:766 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:19:39:766 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:20:39:364 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:21:03:344 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:21:03:344 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:21:03:344 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:21:03:344 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:21:07:834 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:21:07:834 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:21:24:354 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:22:45:930 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=5)
+[WARNING] 03:22:45:930 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:22:45:930 CPU/(19449:19449): Recibi una operacion (socket=5, operacion=0)
+[WARNING] 03:22:45:930 CPU/(19449:19449): Operacion desconocida. No quieras meter la pata
+[INFO] 03:22:58:685 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:22:58:685 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:23:04:864 CPU/(19449:19449): Se conectó un cliente (socket=5)
+[INFO] 03:23:47:197 CPU/(19449:19449): Se cerró una de las conexiones entrantes (socket=5)
+[INFO] 03:23:47:197 CPU/(19449:19449): el cliente se desconecto
+[INFO] 03:34:24:323 CPU/(25424:25424): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 03:34:24:363 CPU/(25424:25424): Se creo el socket con exito (socket=4)
+[INFO] 03:34:24:363 CPU/(25424:25424): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 03:34:24:363 CPU/(25424:25424): Servidor listo para recibir al cliente Kernel
+[INFO] 03:34:35:085 CPU/(25490:25490): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 03:34:35:105 CPU/(25490:25490): Se creo el socket con exito (socket=4)
+[INFO] 03:34:35:105 CPU/(25490:25490): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 03:34:35:105 CPU/(25490:25490): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 03:34:35:105 CPU/(25490:25490): Servidor listo para recibir al cliente Kernel
+[INFO] 03:57:32:842 CPU/(4192:4192): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 03:57:32:842 CPU/(4192:4192): Se creo el socket con exito (socket=4)
+[INFO] 03:57:32:842 CPU/(4192:4192): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 03:57:32:842 CPU/(4192:4192): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 03:57:32:842 CPU/(4192:4192): Servidor listo para recibir al cliente Kernel
+[INFO] 03:57:52:715 CPU/(4192:4192): Se conectó un cliente (socket=5)
+[INFO] 03:58:17:664 CPU/(4192:4192): Recibi una operacion (socket=5, operacion=5)
+[INFO] 03:58:17:664 CPU/(4192:4192): Handshake hecho...
+[INFO] 03:58:17:664 CPU/(4192:4192): el cliente se desconecto
+[INFO] 03:59:10:006 CPU/(4192:4192): Se conectó un cliente (socket=7)
+[INFO] 03:59:15:088 CPU/(4192:4192): Recibi una operacion (socket=7, operacion=5)
+[INFO] 03:59:15:088 CPU/(4192:4192): Handshake hecho...
+[INFO] 03:59:15:088 CPU/(4192:4192): el cliente se desconecto
+[INFO] 04:01:05:263 CPU/(4192:4192): Se conectó un cliente (socket=8)
+[INFO] 04:01:09:072 CPU/(4192:4192): Recibi una operacion (socket=8, operacion=5)
+[INFO] 04:01:09:072 CPU/(4192:4192): Handshake hecho...
+[INFO] 04:01:09:072 CPU/(4192:4192): el cliente se desconecto
+[INFO] 04:03:38:354 CPU/(4192:4192): Se conectó un cliente (socket=9)
+[INFO] 04:03:39:363 CPU/(4192:4192): Recibi una operacion (socket=9, operacion=5)
+[INFO] 04:03:39:363 CPU/(4192:4192): Handshake hecho...
+[INFO] 04:03:39:363 CPU/(4192:4192): el cliente se desconecto
+[INFO] 04:05:51:612 CPU/(4192:4192): Se conectó un cliente (socket=10)
+[INFO] 04:05:55:970 CPU/(4192:4192): Recibi una operacion (socket=10, operacion=5)
+[INFO] 04:05:55:970 CPU/(4192:4192): Handshake hecho...
+[INFO] 04:05:55:970 CPU/(4192:4192): el cliente se desconecto
+[INFO] 04:12:12:680 CPU/(10291:10291): PUERTO_ESCUCHA: 8002
+TAM_MEMORIA: 4096
+TAM_PAGINA: 64
+PAGINAS_POR_TABLA: 4
+RETARDO_MEMORIA: 1000
+ALGORITMO_REEMPLAZO: CLOCK-M
+MARCOS_POR_PROCESO: 4
+RETARDO_SWAP: 2000
+PATH_SWAP: (null)
+
+[INFO] 04:12:12:680 CPU/(10291:10291): Se creo el socket con exito (socket=4)
+[INFO] 04:12:12:680 CPU/(10291:10291): Se asoció el puerto a la conexión con éxito (socket=4)
+[INFO] 04:12:12:680 CPU/(10291:10291): Esperando conexiones entrantes por el puerto 8002...
+[INFO] 04:12:12:680 CPU/(10291:10291): Servidor listo para recibir al cliente Kernel
