@@ -80,6 +80,11 @@ void *iniciar_largo_plazo() {
     t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
 
     transicion_a_new(pcb);
+    // Revisar si es necesario el if
+    if(list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+      sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
+      sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+    }
 
     controlar_grado_multiprogramacion();
     transicion_new_a_ready(pcb);
@@ -94,7 +99,23 @@ void *iniciar_largo_plazo() {
 
 // TODO: definir
 void *iniciar_mediano_plazo() {
-  return NULL;
+  log_info(logger, "Planificador de Mediano Plazo: Ejecutando...");
+
+  // TODO: Agregar logica transicion de blocked a susblocked 
+
+  while (1) {
+    sem_wait(&(COLA_SUSREADY->instancias_disponibles));
+
+    t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
+
+    controlar_grado_multiprogramacion();
+    transicion_susready_a_ready(pcb);
+
+    // TODO: contemplar cuando el proceso finaliza, por momento habrán memory leaks
+    // pcb_destroy(pcb);
+  }
+
+  pthread_exit(NULL);
 }
 
 int pcb_get_posicion(t_pcb *pcb, t_list *lista) {
@@ -162,6 +183,24 @@ void transicion_susblocked_a_susready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSBLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
+  if(list_size(COLA_SUSREADY->lista_pcbs) == 1) {
+    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
+  }
+}
+
+void transicion_susready_a_ready(t_pcb *pcb) {
+  remover_pcb_de_cola(pcb, COLA_SUSREADY);
+  cambiar_estado_pcb(pcb, READY);
+  agregar_pcb_a_cola(pcb, COLA_READY);
+
+  log_info(logger,
+           "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
+           pcb->pid,
+           list_size(COLA_READY->lista_pcbs));
+  sem_post(&(COLA_READY->instancias_disponibles));
+  if(list_size(COLA_SUSREADY->lista_pcbs) == 0) {
+    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+  }
 }
 
 t_cola_planificacion *cola_planificacion_create() {

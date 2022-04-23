@@ -19,6 +19,7 @@
 int ULTIMO_PID;
 t_queue* PCBS_PROCESOS_ENTRANTES;
 sem_t HAY_PROCESOS_ENTRANTES;
+sem_t NO_HAY_PROCESOS_EN_SUSREADY;
 
 typedef struct {
   t_list *lista_pcbs;

@@ -14,6 +14,7 @@ int main() {
   config = iniciar_config(DIR_SERVIDOR_CFG);
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);
+  sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
 
   iniciar_planificacion();
 
