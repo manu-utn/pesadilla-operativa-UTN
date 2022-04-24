@@ -12,7 +12,7 @@ int configValida(t_config* fd_configuracion) {
 
 
 int cargarConfiguracion() {
-  logger = log_create("LogCPU", "CPU", false, LOG_LEVEL_INFO);
+  logger = log_create("LogMEMORIA", "CPU", false, LOG_LEVEL_INFO);
   configuracion = malloc(sizeof(t_configuracion));
 
   // en eclipse cambia el path desde donde se corre, asi que probamos desde

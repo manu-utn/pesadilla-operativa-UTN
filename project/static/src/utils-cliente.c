@@ -83,6 +83,19 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_pcb_actualizado(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = PCB_ACTUALIZADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
 void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = MENSAJE_HANDSHAKE;
 

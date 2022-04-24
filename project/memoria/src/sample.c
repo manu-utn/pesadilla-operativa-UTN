@@ -27,7 +27,7 @@ int main() {
         case PCB: {
           t_paquete* paquete_con_mensaje = recibir_paquete(cliente_fd);
 
-          // t_mensaje_handshake_create* mensaje_handhsake = paquete_obtener_pcb(paquete_con_mensaje);
+          t_mensaje_handshake_cpu_memoria* mensaje_handhsake = paquete_obtener_mensaje_handshake(paquete_con_mensaje);
 
           /*
           imprimir_pcb(pcb_deserializado);

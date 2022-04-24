@@ -18,7 +18,8 @@ typedef enum {
   CONSOLA = 3,
   PCB = 4,
   INTERRUPT = 5,
-  MENSAJE_HANDSHAKE= 6
+  MENSAJE_HANDSHAKE= 6,
+  PCB_ACTUALIZADO=7
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;

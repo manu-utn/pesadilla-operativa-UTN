@@ -182,6 +182,19 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
   return pcb;
 }
 
+t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_mensaje_handshake_cpu_memoria* mensaje = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
+
+  memcpy(&(mensaje->size_mensaje), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(mensaje->mensaje_handshake), paquete_serializado->buffer->stream + offset, mensaje->size_mensaje);
+
+  return mensaje;
+}
+
 void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_handshake_cpu_memoria* mensahe_handshake) {
   int offset = 0;
 
