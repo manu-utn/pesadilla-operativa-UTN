@@ -13,7 +13,7 @@
 #include <string.h>
 
 void iniciar_planificacion() {
-  pthread_t th1, th2;
+  pthread_t th1, th2, th3;
   ULTIMO_PID = 0;
 
   inicializar_grado_multiprogramacion();
@@ -28,6 +28,7 @@ void iniciar_planificacion() {
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
+  pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
   // cola_destroy(COLA_NEW);
@@ -80,13 +81,17 @@ void *iniciar_largo_plazo() {
     t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
 
     transicion_a_new(pcb);
-    // Revisar si es necesario el if
-    if(list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+    
+    controlar_grado_multiprogramacion();
+
+    while(list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+      subir_grado_multiprogramacion();
       sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
       sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+      controlar_grado_multiprogramacion();
     }
 
-    controlar_grado_multiprogramacion();
+    
     transicion_new_a_ready(pcb);
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
 
