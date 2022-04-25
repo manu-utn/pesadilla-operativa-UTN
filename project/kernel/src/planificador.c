@@ -23,13 +23,14 @@ void iniciar_planificacion() {
 
   // TODO: descomentar a medida que se vayan implementando los planificadores
   /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
-  /* COLA_SUSREADY = inicializar_cola(COLA_SUSREADY); */
-  /* COLA_SUSBLOCKED = inicializar_cola(COLA_SUSBLOCKED); */
+  COLA_SUSREADY = cola_planificacion_create();
+  COLA_SUSBLOCKED = cola_planificacion_create();
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
-  pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
-
+  // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
+  //sleep(1);
+  
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
   // cola_destroy(COLA_NEW);
   // cola_destroy(COLA_READY);
@@ -81,17 +82,17 @@ void *iniciar_largo_plazo() {
     t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
 
     transicion_a_new(pcb);
-    
+
     controlar_grado_multiprogramacion();
 
-    while(list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+    while (list_size(COLA_SUSREADY->lista_pcbs) != 0) {
       subir_grado_multiprogramacion();
-      sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
-      sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+      pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
+      pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
       controlar_grado_multiprogramacion();
     }
 
-    
+
     transicion_new_a_ready(pcb);
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
 
@@ -106,7 +107,7 @@ void *iniciar_largo_plazo() {
 void *iniciar_mediano_plazo() {
   log_info(logger, "Planificador de Mediano Plazo: Ejecutando...");
 
-  // TODO: Agregar logica transicion de blocked a susblocked 
+  // TODO: Agregar logica transicion de blocked a susblocked
 
   while (1) {
     sem_wait(&(COLA_SUSREADY->instancias_disponibles));
@@ -185,12 +186,18 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
 
 // TODO: Añadir un signal
 void transicion_susblocked_a_susready(t_pcb *pcb) {
+  log_info(logger, "Entro a transicion susblocked a susready");
   remover_pcb_de_cola(pcb, COLA_SUSBLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
-  if(list_size(COLA_SUSREADY->lista_pcbs) == 1) {
-    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
+  log_info(logger,
+           "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
+           pcb->pid,
+           list_size(COLA_SUSREADY->lista_pcbs));
+  if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
+    pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
+  sem_post(&(COLA_SUSREADY->instancias_disponibles));
 }
 
 void transicion_susready_a_ready(t_pcb *pcb) {
@@ -203,8 +210,8 @@ void transicion_susready_a_ready(t_pcb *pcb) {
            pcb->pid,
            list_size(COLA_READY->lista_pcbs));
   sem_post(&(COLA_READY->instancias_disponibles));
-  if(list_size(COLA_SUSREADY->lista_pcbs) == 0) {
-    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+  if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
+    pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
 }
 
