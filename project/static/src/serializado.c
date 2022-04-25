@@ -212,3 +212,27 @@ void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_han
 
   offset += strlen(mensahe_handshake->mensaje_handshake);
 }
+
+
+void paquete_add_operacion_read(t_paquete* paquete_serializado, t_operacion_read* read) {
+  int offset = 0;
+
+  int size_paquete = sizeof(uint32_t) + 1;
+  paquete_serializado->buffer->stream = malloc(size_paquete);
+
+  memcpy(paquete_serializado->buffer->stream, &(read->direccion_logica), sizeof(uint32_t));
+
+  paquete_serializado->buffer->size = size_paquete;
+
+  offset += sizeof(read->direccion_logica);
+}
+
+t_operacion_read* paquete_obtener_operacion_read(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_operacion_read* read = malloc(sizeof(t_operacion_read));
+
+  memcpy(&(read->direccion_logica), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+
+  return read;
+}

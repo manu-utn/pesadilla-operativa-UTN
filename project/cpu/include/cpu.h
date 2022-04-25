@@ -34,6 +34,12 @@ struct arg_struct {
 	char* arg2;
 };
 
+typedef struct{	
+	int proceso;
+	int pagina;
+	int marco;
+}t_entrada_tlb;
+
 
 /*
 typedef struct{
@@ -49,6 +55,8 @@ t_configuracion * configuracion;
 t_config * fd_configuracion;
 t_config* config;
 t_log * logger;
+t_list* tlb;
+int socket_memoria;
 
 
 int cargarConfiguracion();
@@ -57,7 +65,8 @@ void limpiarConfiguracion();
 void iniciar_ciclo_instruccion();
 //void* escuchar_dispatch(void* arguments);
 //void* escuchar_interrupt(void* arguments);
-void escuchar_dispatch();
+void* escuchar_dispatch();
+void* escuchar_interrupt();
 int conectarse_a_memoria();
 
 #endif /* CPU_H_ */

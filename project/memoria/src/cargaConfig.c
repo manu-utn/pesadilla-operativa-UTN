@@ -1,4 +1,4 @@
-#include "memoria.h"
+/*#include "memoria.h"
 
 int configValida(t_config* fd_configuracion) {
   return (config_has_property(fd_configuracion, "PUERTO_ESCUCHA") &&
@@ -64,4 +64,4 @@ void limpiarConfiguracion() {
   free(configuracion);
   config_destroy(fd_configuracion);
   log_destroy(logger);
-}
+}*/

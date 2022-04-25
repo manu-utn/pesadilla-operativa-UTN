@@ -109,6 +109,19 @@ void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_operacion_read(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = READ;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
 // TODO: log_error si no asignó un codigo de operación
 void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);

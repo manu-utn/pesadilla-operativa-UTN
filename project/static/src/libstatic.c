@@ -111,6 +111,10 @@ void pcb_destroy(t_pcb* pcb) {
   free(pcb);
 }
 
+void operacion_read_destroy(t_operacion_read* read) {
+  free(read);
+}
+
 
 void mensaje_destroy(t_buffer* mensaje) {
   free(mensaje->stream);

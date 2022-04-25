@@ -19,7 +19,8 @@ typedef enum {
   PCB = 4,
   INTERRUPT = 5,
   MENSAJE_HANDSHAKE= 6,
-  PCB_ACTUALIZADO=7
+  PCB_ACTUALIZADO=7,
+  READ=8
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
@@ -67,6 +68,10 @@ typedef struct{
   char* mensaje_handshake;
 }t_mensaje_handshake_cpu_memoria;
 
+
+typedef struct{
+  uint32_t direccion_logica;
+}t_operacion_read;
 
 t_config* iniciar_config(char*);
 t_log* iniciar_logger(char* archivo, char* nombre);
