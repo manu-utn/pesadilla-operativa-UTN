@@ -30,8 +30,21 @@ void* escuchar_conexiones() {
         } break;
         case READ: {
           log_info(logger, "Comenzando operacion READ...");
+          log_info(logger, "HOLLAAAAAA");
           t_paquete* paquete = recibir_paquete(cliente_fd);
           t_operacion_read* read = paquete_obtener_operacion_read(paquete);
+
+          // PROCESO EL VALOR ENVIADO POR CPU, POR AHORA HARDCODEO UN VALOR PARA PROBAR LA CONEXION
+
+          t_respuesta_operacion_read* respuesta_read = malloc(sizeof(t_respuesta_operacion_read));
+          respuesta_read->valor_buscado = 20314;
+          t_paquete* paquete_con_respuesta = paquete_create();
+          paquete_add_respuesta_operacion_read(paquete_con_respuesta, respuesta_read);
+          enviar_operacion_read(read->socket, paquete_con_respuesta);
+          // pcb_destroy(pcb); DESCOMENTAR PARA RESOLVER SEG FAULT
+          paquete_destroy(paquete_con_respuesta);
+
+          free(respuesta_read);
         }
         case -1: {
           log_info(logger, "el cliente se desconecto");

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <pthread.h>
+#include <libstatic.h>
 #define DIR_BASE "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/"
 #define MODULO "cpu"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -68,5 +69,6 @@ void iniciar_ciclo_instruccion();
 void* escuchar_dispatch();
 void* escuchar_interrupt();
 int conectarse_a_memoria();
+t_instruccion* fetch(t_pcb* pcb);
 
 #endif /* CPU_H_ */

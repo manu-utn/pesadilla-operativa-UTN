@@ -26,7 +26,7 @@ void* escuchar_dispatch() {
 
           t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
           pcb_deserializado->socket = cliente_fd;
-          procesar_intrucciones(pcb_deserializado);
+          ciclo_instruccion(pcb_deserializado);
           imprimir_pcb(pcb_deserializado);
           // pcb_destroy(pcb_deserializado); DESCOMENTAR PARA SACAR EL SEG FAULT
           paquete_destroy(paquete_con_pcb);
@@ -72,51 +72,89 @@ void* escuchar_interrupt() {
 }
 
 
-void procesar_intrucciones(t_pcb* pcb) {
+void ciclo_instruccion(t_pcb* pcb) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
   int i = 0;
 
-  while (i < list_size(pcb->instrucciones)) {
+  while (pcb->program_counter < list_size(pcb->instrucciones)) {
     // int size_instruccion = strlen(((t_instruccion*)list_get(pcb->instrucciones, i))->identificador);
     t_instruccion* instruccion = malloc(sizeof(t_instruccion) + 1);
+    instruccion = fetch(pcb);
     //    memcpy(instruccion, (((t_instruccion*)list_get(pcb->instrucciones, i))->identificador), size_instruccion);
     //   instruccion[size_instruccion] = '\0';
-    instruccion = list_get(pcb->instrucciones, i);
-    if (strcmp(instruccion->identificador, "NO_OP") == 0) {
-      log_info(logger, "Ejecutando NO_OP...");
-      pcb->program_counter++;
-      // int retardo = (float)config_get_int_value(config, "RETARDO_NOOP") / (float)1000;
-      int retardo = 1;
-      sleep(retardo);
-    }
-
-    else if (strcmp(instruccion->identificador, "I/O") == 0) {
-      log_info(logger, "Ejecutando IO...");
-      t_paquete* paquete_con_pcb = paquete_create();
-      paquete_add_pcb(paquete_con_pcb, pcb);
-      enviar_pcb(pcb->socket, paquete_con_pcb);
-      // pcb_destroy(pcb); DESCOMENTAR PARA RESOLVER SEG FAULT
-      paquete_destroy(paquete_con_pcb);
-    }
-
-    else if (strcmp(instruccion->identificador, "READ") == 0) {
-      log_info(logger, "Ejecutando READ...");
-
-      t_operacion_read* read = malloc(sizeof(t_operacion_read));
-
-      armar_operacion_read(read, instruccion);
-
-      t_paquete* paquete_con_direccion_a_leer = paquete_create();
-      paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
-      enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-      operacion_read_destroy(pcb);
-      free(read);
-      paquete_destroy(paquete_con_direccion_a_leer);
-    }
+    decode(instruccion, pcb);
 
     free(instruccion);
-    i++;
+    pcb->program_counter++;
+  }
+  pcb_destroy(pcb);
+}
+
+t_instruccion* fetch(t_pcb* pcb) {
+  return list_get(pcb->instrucciones, pcb->program_counter - 1);
+}
+
+void decode(t_instruccion* instruccion, t_pcb* pcb) {
+  if (strcmp(instruccion->identificador, "NO_OP") == 0) {
+    log_info(logger, "Ejecutando NO_OP...");
+    // int retardo = (float)config_get_int_value(config, "RETARDO_NOOP") / (float)1000;
+    int retardo = 1;
+    sleep(retardo);
+  }
+
+  else if (strcmp(instruccion->identificador, "I/O") == 0) {
+    log_info(logger, "Ejecutando IO...");
+    t_paquete* paquete_con_pcb = paquete_create();
+    uint32_t tiempo_bloqueo = atoi(instruccion->params);
+    paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);
+    enviar_pcb(pcb->socket, paquete_con_pcb);
+    pcb_destroy(pcb);
+    paquete_destroy(paquete_con_pcb);
+  }
+
+  else if (strcmp(instruccion->identificador, "READ") == 0) {
+    log_info(logger, "Ejecutando READ...");
+
+    t_operacion_read* read = malloc(sizeof(t_operacion_read));
+
+    armar_operacion_read(read, instruccion);
+
+    t_paquete* paquete_con_direccion_a_leer = paquete_create();
+    read->socket = socket_memoria;
+    paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
+    enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+    operacion_read_destroy(pcb);
+    free(read);
+    paquete_destroy(paquete_con_direccion_a_leer);
+
+    // RECIBO RESPUESTA DE MEMORIA
+
+    t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+
+    t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
+
+    log_info(logger, "RESPUESTA VALOR MEMORIA: ");
+    log_info(logger, respuesta_operacion->valor_buscado);
+
+    paquete_destroy(paquete_con_direccion_a_leer);
+    free(respuesta_operacion);
+  }
+
+  else if (strcmp(instruccion->identificador, "WRITE") == 0) {
+  }
+
+  else if (strcmp(instruccion->identificador, "COPY") == 0) {
+  } else if (strcmp(instruccion->identificador, "EXIT") == 0) {
+    t_paquete* paquete_con_respuesta_exit = paquete_create();
+    pcb->program_counter++;
+    paquete_add_pcb(paquete_con_respuesta_exit, pcb);
+    enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
+    pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
+    paquete_destroy(paquete_con_respuesta_exit);
+  }
+
+  else if (strcmp(instruccion->identificador, "EXIT") == 0) {
   }
 }
 

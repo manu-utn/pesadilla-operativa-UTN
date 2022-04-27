@@ -20,7 +20,8 @@ typedef enum {
   INTERRUPT = 5,
   MENSAJE_HANDSHAKE= 6,
   PCB_ACTUALIZADO=7,
-  READ=8
+  READ=8,
+  FETCH=9
   } op_code;
 
 typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
@@ -64,12 +65,18 @@ typedef struct {
 } t_pcb;
 
 typedef struct{
+  int socket;
   int size_mensaje;
   char* mensaje_handshake;
 }t_mensaje_handshake_cpu_memoria;
 
 
 typedef struct{
+  uint32_t valor_buscado;
+}t_respuesta_operacion_read;
+
+typedef struct{
+  int socket;
   uint32_t direccion_logica;
 }t_operacion_read;
 
