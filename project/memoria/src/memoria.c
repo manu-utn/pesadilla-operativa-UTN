@@ -1,4 +1,8 @@
 #include "memoria.h"
+#include "libstatic.h"
+#include "serializado.h"
+#include "utils-cliente.h"
+#include "utils-servidor.h"
 
 void* reservar_memoria_inicial(int size_memoria_total) {
   void* memoria_total = malloc(size_memoria_total);

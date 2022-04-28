@@ -13,10 +13,6 @@
 #include <stdarg.h>
 #include <pthread.h>
 #include <libstatic.h>
-#define DIR_BASE "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/"
-#define MODULO "cpu"
-#define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
-#define DIR_CPU_CFG DIR_BASE MODULO "/config/configCpu.cfg"
 
 typedef struct {
 	char* ip_escucha;
@@ -71,4 +67,8 @@ void* escuchar_interrupt();
 int conectarse_a_memoria();
 t_instruccion* fetch(t_pcb* pcb);
 
+void iniciar_tlb();
+void ciclo_instruccion(t_pcb* pcb);
+void decode(t_instruccion* instruccion, t_pcb* pcb);
+void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion);
 #endif /* CPU_H_ */

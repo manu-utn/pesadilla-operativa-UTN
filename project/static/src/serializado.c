@@ -275,7 +275,7 @@ void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo
   paquete->buffer->size = offset;
 }
 
-void paquete_add_respuesta_operacion_read(t_respuesta_operacion_read* respuesta_read, t_paquete* paquete) {
+void paquete_add_respuesta_operacion_read(t_paquete* paquete, t_respuesta_operacion_read* respuesta_read) {
   int offset;
   int paquete_size = sizeof(int);
   paquete->buffer->stream = malloc(paquete_size);

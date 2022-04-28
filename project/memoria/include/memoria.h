@@ -13,8 +13,8 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
+#include "dir.h"
 
-#define DIR_BASE "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/"
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_MEMORIA_CFG DIR_BASE MODULO "/config/configMemoria.cfg"
@@ -44,4 +44,5 @@ void limpiarConfiguracion();
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);
 void* escuchar_conexiones();
+void* reservar_memoria_inicial(int size_memoria_total);
 #endif /* MEMORIA_H */

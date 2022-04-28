@@ -1,6 +1,8 @@
 #include "cpu.h"
+#include "serializado.h"
+#include "utils-cliente.h"
+#include "utils-servidor.h"
 #include <libstatic.h> // <-- STATIC LIB
-
 
 // void* escuchar_dispatch(void* arguments) {
 void* escuchar_dispatch() {
@@ -71,7 +73,6 @@ void* escuchar_interrupt() {
   free(puerto);
 }
 
-
 void ciclo_instruccion(t_pcb* pcb) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
@@ -124,7 +125,8 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     read->socket = socket_memoria;
     paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
     enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-    operacion_read_destroy(pcb);
+    // operacion_read_destroy(pcb);
+    pcb_destroy(pcb);
     free(read);
     paquete_destroy(paquete_con_direccion_a_leer);
 
@@ -134,8 +136,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
 
     t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
 
-    log_info(logger, "RESPUESTA VALOR MEMORIA: ");
-    log_info(logger, respuesta_operacion->valor_buscado);
+    log_info(logger, "RESPUESTA VALOR MEMORIA: %d ", respuesta_operacion->valor_buscado);
 
     paquete_destroy(paquete_con_direccion_a_leer);
     free(respuesta_operacion);

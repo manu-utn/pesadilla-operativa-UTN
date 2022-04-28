@@ -1,8 +1,9 @@
 #include "sample.h"
 #include "cpu.h"
+#include "dir.h"
 #include "serializado.h"
+#include "utils-cliente.h"
 #include <commons/collections/list.h>
-#include <commons/config.h>
 #include <commons/config.h>
 #include <commons/log.h>
 #include <libstatic.h> // <-- STATIC LIB
