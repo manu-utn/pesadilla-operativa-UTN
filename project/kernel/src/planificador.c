@@ -3,6 +3,7 @@
 #include "serializado.h"
 #include "utils-cliente.h"
 #include "utils-servidor.h"
+#include "xlog.h"
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
 #include <commons/log.h>
@@ -29,8 +30,8 @@ void iniciar_planificacion() {
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
   // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
-  //sleep(1);
-  
+  // sleep(1);
+
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
   // cola_destroy(COLA_NEW);
   // cola_destroy(COLA_READY);
@@ -44,7 +45,7 @@ void cola_destroy(t_cola_planificacion *cola) {
 
 // TODO: añadir un logger sólo para este planificador
 void *iniciar_corto_plazo() {
-  log_info(logger, "Planificador de Corto Plazo: Ejecutando...");
+  xlog(COLOR_BLANCO, "Planificador de Corto Plazo: Ejecutando...");
 
   while (1) {
     sem_wait(&(COLA_READY->instancias_disponibles));
@@ -71,7 +72,7 @@ void *iniciar_corto_plazo() {
 
 // TODO: añadir un logger sólo para este planificador
 void *iniciar_largo_plazo() {
-  log_info(logger, "Planificador de Largo Plazo: Ejecutando...");
+  xlog(COLOR_BLANCO, "Planificador de Largo Plazo: Ejecutando...");
 
   while (1) {
     sem_wait(&(COLA_NEW->instancias_disponibles));
@@ -83,17 +84,9 @@ void *iniciar_largo_plazo() {
 
     transicion_a_new(pcb);
 
-    controlar_grado_multiprogramacion();
-
-    while (list_size(COLA_SUSREADY->lista_pcbs) != 0) {
-      subir_grado_multiprogramacion();
-      pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
-      pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
-      controlar_grado_multiprogramacion();
-    }
-
-
+    controlar_grado_multiprogramacion(); // se bloquea acá si se intenta superar el grado por config
     transicion_new_a_ready(pcb);
+
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
 
     // TODO: contemplar cuando el proceso finaliza, por momento habrán memory leaks
@@ -105,7 +98,7 @@ void *iniciar_largo_plazo() {
 
 // TODO: definir
 void *iniciar_mediano_plazo() {
-  log_info(logger, "Planificador de Mediano Plazo: Ejecutando...");
+  xlog(COLOR_BLANCO, "Planificador de Mediano Plazo: Ejecutando...");
 
   // TODO: Agregar logica transicion de blocked a susblocked
 
@@ -161,8 +154,10 @@ void transicion_a_new(t_pcb *pcb) {
 
   sem_post(&(COLA_NEW->instancias_disponibles));
 
-  log_info(
-    logger, "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)", pcb->pid, list_size(COLA_NEW->lista_pcbs));
+  xlog(COLOR_AMARILLO,
+       "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_NEW->lista_pcbs));
 }
 
 void transicion_new_a_ready(t_pcb *pcb) {
@@ -170,10 +165,10 @@ void transicion_new_a_ready(t_pcb *pcb) {
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
 
-  log_info(logger,
-           "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
-           pcb->pid,
-           list_size(COLA_READY->lista_pcbs));
+  xlog(COLOR_AMARILLO,
+       "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_READY->lista_pcbs));
   sem_post(&(COLA_READY->instancias_disponibles));
 }
 
@@ -186,18 +181,22 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
 
 // TODO: Añadir un signal
 void transicion_susblocked_a_susready(t_pcb *pcb) {
-  log_info(logger, "Entro a transicion susblocked a susready");
   remover_pcb_de_cola(pcb, COLA_SUSBLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
+
   log_info(logger,
            "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
            pcb->pid,
            list_size(COLA_SUSREADY->lista_pcbs));
+
+  /*
   if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
     pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
+
   sem_post(&(COLA_SUSREADY->instancias_disponibles));
+   */
 }
 
 void transicion_susready_a_ready(t_pcb *pcb) {
@@ -209,10 +208,14 @@ void transicion_susready_a_ready(t_pcb *pcb) {
            "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
            pcb->pid,
            list_size(COLA_READY->lista_pcbs));
+
+  /*
   sem_post(&(COLA_READY->instancias_disponibles));
+
   if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
     pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
+   */
 }
 
 t_cola_planificacion *cola_planificacion_create() {
@@ -225,7 +228,7 @@ t_cola_planificacion *cola_planificacion_create() {
   // TODO: evaluar si recibirlo por parámetro o definir una nueva función cola_asignar_instancias(cola, cantidad)
   sem_init(&(cola->instancias_disponibles), 0, sem_init_valor);
 
-  log_info(logger, "Se creó una cola de planificación");
+  xlog(COLOR_BLANCO, "Se creó una cola de planificación");
 
   return cola;
 }
@@ -246,13 +249,13 @@ int obtener_grado_multiprogramacion() {
 void subir_grado_multiprogramacion() {
   sem_post(&GRADO_MULTIPROGRAMACION);
 
-  log_info(logger, "Subió el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+  xlog(COLOR_AMARILLO, "Subió el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
 }
 
 void controlar_grado_multiprogramacion() {
   sem_wait(&GRADO_MULTIPROGRAMACION);
 
-  log_info(logger, "Bajó el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+  xlog(COLOR_AMARILLO, "Bajó el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
 }
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
@@ -310,7 +313,7 @@ void enviar_interrupcion() {
     int status = enviar(socket_destino, paquete);
 
     if (status != -1) {
-      log_info(logger, "La interrupcion fue enviada con éxito (socket_destino=%d)", socket_destino);
+      xlog(COLOR_AZUL, "La interrupción fue enviada con éxito (socket_destino=%d)", socket_destino);
 
       close(socket_destino);
     }

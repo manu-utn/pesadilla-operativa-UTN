@@ -2,7 +2,7 @@
 #include "libstatic.h"
 
 int conectar_a_servidor(char* ip, char* puerto) {
-  log_info(logger, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
+  xlog(COLOR_AZUL, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
 
   int status;
   struct addrinfo hints;
@@ -23,7 +23,7 @@ int conectar_a_servidor(char* ip, char* puerto) {
     log_error(logger, "Ocurrió un error al intentar conectarse a un proceso servidor");
     return -1;
   } else {
-    log_info(logger, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
+    xlog(COLOR_AZUL, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
   }
 
   freeaddrinfo(server_info);
@@ -48,12 +48,12 @@ void enviar_mensaje(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Mensaje enviado con éxito (socket_destino=%d, stream_bytes=%d, "
-             "stream=%s)",
-             socket_destino,
-             paquete->buffer->size,
-             (char*)(paquete->buffer->stream));
+    xlog(COLOR_VERDE,
+         "Mensaje enviado con éxito (socket_destino=%d, stream_bytes=%d, "
+         "stream=%s)",
+         socket_destino,
+         paquete->buffer->size,
+         (char*)(paquete->buffer->stream));
   }
 }
 
@@ -63,10 +63,10 @@ void enviar_instrucciones(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_VERDE,
+         "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
@@ -76,10 +76,10 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_VERDE,
+         "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
@@ -88,8 +88,10 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(
-      logger, "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)", socket_destino, paquete->buffer->size);
+    xlog(COLOR_VERDE,
+         "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
