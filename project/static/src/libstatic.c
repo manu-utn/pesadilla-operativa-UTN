@@ -95,9 +95,7 @@ void paquete_destroy(t_paquete* paquete) {
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  log_info(logger,
-           "Se liberaron con éxito los recursos asignados durante de la "
-           "creación del paquete");
+  xlog(COLOR_MAGENTA, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {

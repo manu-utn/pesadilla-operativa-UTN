@@ -4,17 +4,24 @@
 #include "serializado.h"
 #include "utils-cliente.h"
 #include "utils-servidor.h"
+#include "xlog.h"
 #include <commons/string.h>
 #include <libstatic.h>
 #include <stdio.h>
 #include <string.h>
+
+int SERVIDOR_KERNEL;
 
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
   config = iniciar_config(DIR_SERVIDOR_CFG);
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);
-  pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
+  // pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
+
+  char* ip = config_get_string_value(config, "IP_KERNEL");
+  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+  SERVIDOR_KERNEL = iniciar_servidor(ip, puerto);
 
   iniciar_planificacion();
 
@@ -39,9 +46,9 @@ int conectarse_a_cpu(char* conexion_puerto) {
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
-    log_error(logger,
-              "No se pudo establecer la conexión con CPU, inicie el servidor con %s e intente nuevamente",
-              conexion_puerto);
+    xlog(COLOR_ROJO,
+         "No se pudo establecer la conexión con CPU, inicie el servidor con %s e intente nuevamente",
+         conexion_puerto);
 
     return -1;
   }
@@ -50,48 +57,53 @@ int conectarse_a_cpu(char* conexion_puerto) {
 }
 
 void* escuchar_conexiones_entrantes() {
-  char* ip = config_get_string_value(config, "IP_KERNEL");
-  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
-
-  int socket_kernel = iniciar_servidor(ip, puerto);
-
   while (1) {
-    int cliente_fd = esperar_cliente(socket_kernel);
-    cliente_status cliente_estado = CLIENTE_RUNNING;
+    int cliente_fd = esperar_cliente(SERVIDOR_KERNEL);
 
-    while (cliente_estado) {
-      int codigo_operacion = recibir_operacion(cliente_fd);
+    pthread_t th;
+    pthread_create(&th, NULL, escuchar_nueva_conexion, &cliente_fd), pthread_detach(th);
+  }
 
-      switch (codigo_operacion) {
-        case PCB: {
-          t_paquete* paquete = recibir_paquete(cliente_fd);
-          t_pcb* pcb = paquete_obtener_pcb(paquete);
+  pthread_exit(NULL);
+}
 
-          // TODO: validar si necesitamos contemplar algo más
-          queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
-          sem_post(&HAY_PROCESOS_ENTRANTES);
+void* escuchar_nueva_conexion(void* args) {
+  int cliente_fd = *(int*)args;
+  CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
 
-          log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));
+  while (estado_conexion) {
+    int codigo_operacion = recibir_operacion(cliente_fd);
+    xlog(COLOR_VERDE, "Operación recibida (codigo=%d)", codigo_operacion);
 
-          sem_post(&(COLA_NEW->instancias_disponibles));
+    switch (codigo_operacion) {
+      case PCB: {
+        t_paquete* paquete = recibir_paquete(cliente_fd);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
 
-          // paquete_destroy(paquete);
+        // TODO: validar si necesitamos contemplar algo más
+        queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
+        sem_post(&HAY_PROCESOS_ENTRANTES);
 
-          // descomentar para validar el memcheck
-          // terminar_servidor(socket, logger, config);
-          // return 0;
-        } break;
-        case -1: {
-          log_info(logger, "el cliente se desconecto");
-          cliente_estado = CLIENTE_EXIT;
+        // log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));
+        sem_post(&(COLA_NEW->instancias_disponibles));
 
-          subir_grado_multiprogramacion();
-          break;
-        }
-        default:
-          log_warning(logger, "Operacion desconocida. No quieras meter la pata");
-          break;
+        paquete_destroy(paquete);
+        // pcb_destroy(pcb); // TODO: definir cuando liberar el recurso de pcb, supongo que al finalizar kernel (?)
+
+        // descomentar para validar el memcheck
+        // terminar_servidor(socket, logger, config);
+        // return 0;
+      } break;
+      case -1: {
+        xlog(COLOR_ROJO, "Un proceso cliente se desconectó (socket=%d)", cliente_fd);
+        subir_grado_multiprogramacion();
+
+        estado_conexion = CONEXION_FINALIZADA;
+        break;
       }
+      default:
+        xlog(COLOR_ROJO, "Operacion desconocida");
+        break;
     }
   }
 

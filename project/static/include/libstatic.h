@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "xlog.h"
 
 typedef enum {
   INICIO = 0,
@@ -20,7 +21,10 @@ typedef enum {
   INTERRUPT = 5
   } op_code;
 
-typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
+typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
+
+// TODO: pendiente de remover, hasta que cpu implemente CONEXION_ESTADO
+typedef enum { CLIENTE_EXIT = 0, CLIENTE_RUNNING = 1 } cliente_status;
 
 typedef struct {
   int size;
