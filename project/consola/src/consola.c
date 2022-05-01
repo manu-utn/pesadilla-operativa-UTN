@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
   pcb_destroy(pcb);
   paquete_destroy(paquete_con_pcb);
 
-  sleep(30), terminar_cliente(fd_kernel, logger, config);
+  printf("Esperando 15 segundos.."), sleep(15), terminar_cliente(fd_kernel, logger, config);
 
   return 0;
 }

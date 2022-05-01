@@ -4,13 +4,13 @@
 #include "serializado.h"
 #include "utils-cliente.h"
 #include "utils-servidor.h"
-#include "xlog.h"
 #include <commons/string.h>
 #include <libstatic.h>
 #include <stdio.h>
 #include <string.h>
 
 int SERVIDOR_KERNEL;
+int ULTIMO_PID = 0;
 
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
@@ -67,6 +67,10 @@ void* escuchar_conexiones_entrantes() {
   pthread_exit(NULL);
 }
 
+void asignar_pid(t_pcb* pcb) {
+  pcb->pid = ULTIMO_PID++;
+}
+
 void* escuchar_nueva_conexion(void* args) {
   int cliente_fd = *(int*)args;
   CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
@@ -79,13 +83,14 @@ void* escuchar_nueva_conexion(void* args) {
       case PCB: {
         t_paquete* paquete = recibir_paquete(cliente_fd);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
+        asignar_pid(pcb); // TODO: evaluar posibilidad de condición de carrera contra el recurso ULTIMO_PID
 
         // TODO: validar si necesitamos contemplar algo más
         queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
         sem_post(&HAY_PROCESOS_ENTRANTES);
 
         // log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));
-        sem_post(&(COLA_NEW->instancias_disponibles));
+        sem_post(&(COLA_NEW->cantidad_procesos));
 
         paquete_destroy(paquete);
         // pcb_destroy(pcb); // TODO: definir cuando liberar el recurso de pcb, supongo que al finalizar kernel (?)
@@ -96,7 +101,10 @@ void* escuchar_nueva_conexion(void* args) {
       } break;
       case -1: {
         xlog(COLOR_ROJO, "Un proceso cliente se desconectó (socket=%d)", cliente_fd);
-        subir_grado_multiprogramacion();
+
+        // TODO: se debería actualizar el NEW
+        // bajar_grado_multiprogramacion();
+        actualizar_grado_multiprogramacion();
 
         estado_conexion = CONEXION_FINALIZADA;
         break;

@@ -23,7 +23,9 @@ pthread_mutex_t NO_HAY_PROCESOS_EN_SUSREADY;
 
 typedef struct {
   t_list *lista_pcbs;
-  sem_t instancias_disponibles;
+  sem_t cantidad_procesos;
+  // TODO: evaluar si corresponde remover, se cambió por cantidad_procesos
+  // sem_t instancias_disponibles;
   pthread_mutex_t mutex;
 } t_cola_planificacion;
 
@@ -63,9 +65,13 @@ t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
 
 void inicializar_grado_multiprogramacion();
-int obtener_grado_multiprogramacion();
-void controlar_grado_multiprogramacion();
+int obtener_grado_multiprogramacion_actual();
+//int obtener_grado_multiprogramacion_por_config();
+void bajar_grado_multiprogramacion();
 void subir_grado_multiprogramacion();
+void controlar_grado_multiprogramacion();
+void actualizar_grado_multiprogramacion();
+void imprimir_grado_multiprogramacion_actual();
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
 t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);
