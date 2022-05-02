@@ -47,7 +47,7 @@ int esperar_cliente(int socket_servidor) {
 
   int socket_cliente = accept(socket_servidor, &dir_cliente, &tam_direccion);
 
-  xlog(COLOR_AZUL, "Se conectó un cliente (socket=%d)", socket_cliente);
+  xlog(COLOR_CONEXION, "Se conectó un cliente (socket=%d)", socket_cliente);
 
   return socket_cliente;
 }
@@ -55,10 +55,10 @@ int esperar_cliente(int socket_servidor) {
 int recibir_operacion(int socket_cliente) {
   int cod_op = -1;
   if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0) {
-    xlog(COLOR_VERDE, "Recibi una operacion (socket=%d, operacion=%d)", socket_cliente, cod_op);
+    xlog(COLOR_PAQUETE, "Recibi una operacion (socket=%d, operacion=%d)", socket_cliente, cod_op);
     return cod_op;
   } else {
-    xlog(COLOR_ROJO, "Se cerró una de las conexiones entrantes (socket=%d)", socket_cliente);
+    xlog(COLOR_CONEXION, "Se cerró una de las conexiones entrantes (socket=%d)", socket_cliente);
 
     close(socket_cliente);
     return -1;
@@ -86,7 +86,7 @@ t_buffer* recibir_mensaje(int socket_cliente) {
   int status = recibir(socket_cliente, buffer);
 
   if (status != -1) {
-    xlog(COLOR_VERDE,
+    xlog(COLOR_PAQUETE,
          "Se recibió un mensaje (socket=%d, size=%d, stream=%s)",
          socket_cliente,
          buffer->size,
@@ -104,7 +104,7 @@ t_paquete* recibir_paquete(int socket_cliente) {
 
   // 3. recibimos los datos serializados y lo guardamos en `buffer`
   if (status != -1) {
-    xlog(COLOR_VERDE, "Se recibió un paquete (socket=%d, buffer_bytes=%d)", socket_cliente, paquete->buffer->size);
+    xlog(COLOR_PAQUETE, "Se recibió un paquete (socket=%d, buffer_bytes=%d)", socket_cliente, paquete->buffer->size);
   }
 
   return paquete;
