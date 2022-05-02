@@ -21,13 +21,11 @@ int main() {
   struct arg_struct args_dispatch;
   struct arg_struct args_interrupt;*/
 
-  pthread_t th;
-  pthread_create(&th, NULL, escuchar_dispatch, NULL), pthread_detach(th);
 
   // t_config* config = iniciar_config(DIR_SERVIDOR_CFG);
 
   // pthread_create(&th1, NULL, (void*)escuchar_interrupt, NULL);
-
+  estado_conexion_con_cliente = false;
   socket_memoria = conectarse_a_memoria();
 
   // HANDSHAKE CON MEMORIA
@@ -44,10 +42,15 @@ int main() {
   paquete_destroy(paquete_con_mensaje);
 
 
+  pthread_t th;
+  pthread_create(&th, NULL, escuchar_dispatch, NULL), pthread_detach(th);
+
   log_info(logger, "Servidor listo para recibir al cliente Kernel");
 
-  free(config);
+  // free(config);
   pthread_exit(0);
+
+  return 0;
 
   // TODO: esto debería estar en un hilo, para poder emular e iniciar la
   // también la conexion interrupt

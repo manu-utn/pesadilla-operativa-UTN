@@ -7,6 +7,7 @@
 // void* escuchar_dispatch(void* arguments) {
 void* escuchar_dispatch() {
   // struct arg_struct* args = (struct arg_struct*)arguments;
+  estado_conexion_kernel = true;
 
   // memcpy(ip, args->arg1, strlen(args->arg1));
   // memcpy(puerto, args->arg2, strlen(args->arg2));
@@ -14,42 +15,63 @@ void* escuchar_dispatch() {
   char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
   int socket_cpu_dispatch = iniciar_servidor(ip, puerto);
 
-  while (1) {
+  while (estado_conexion_kernel) {
     int cliente_fd = esperar_cliente(socket_cpu_dispatch);
-    cliente_status cliente_estado = CLIENTE_RUNNING;
 
-    while (cliente_estado) {
-      int cod_op = recibir_operacion(cliente_fd);
+    if (cliente_fd != -1) {
+      t_paquete* paquete = paquete_create();
+      t_buffer* mensaje = crear_mensaje("Conexión aceptada por CPU");
 
-      // MENSAJE=0, PAQUETE=1
-      switch (cod_op) {
-        case PCB: {
-          t_paquete* paquete_con_pcb = recibir_paquete(cliente_fd);
-
-          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-          pcb_deserializado->socket = cliente_fd;
-          ciclo_instruccion(pcb_deserializado);
-          imprimir_pcb(pcb_deserializado);
-          // pcb_destroy(pcb_deserializado); DESCOMENTAR PARA SACAR EL SEG FAULT
-          paquete_destroy(paquete_con_pcb);
-
-          // descomentar para validar el memcheck
-          // terminar_servidor(socket_cpu_dispatch, logger, config);
-          // return 0;
-        } break;
-        case -1: {
-          log_info(logger, "el cliente se desconecto");
-          cliente_estado = CLIENTE_EXIT;
-          break;
-        }
-        default:
-          log_warning(logger, "Operacion desconocida. No quieras meter la pata");
-          break;
-      }
+      paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
+      // paquete_add_mensaje(paquete, mensaje);
     }
+
+    pthread_t th;
+    pthread_create(&th, NULL, manejar_nueva_conexion, &cliente_fd), pthread_detach(th);
   }
   free(ip);
   free(puerto);
+  pthread_exit(NULL);
+}
+
+void* manejar_nueva_conexion(void* args) {
+  int socket_cliente = *(int*)args;
+
+  estado_conexion_con_cliente = true;
+
+  while (estado_conexion_con_cliente) {
+    int cod_op = recibir_operacion(socket_cliente);
+
+    // MENSAJE=0, PAQUETE=1
+    switch (cod_op) {
+      case PCB: {
+        t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
+        paquete_con_pcb = recibir_paquete(socket_cliente);
+
+        t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
+        pcb_deserializado->socket = socket_cliente;
+        ciclo_instruccion(pcb_deserializado);
+        imprimir_pcb(pcb_deserializado);
+        // pcb_destroy(pcb_deserializado); DESCOMENTAR PARA SACAR EL SEG FAULT
+        paquete_destroy(paquete_con_pcb);
+        free(pcb_deserializado);
+
+        // descomentar para validar el memcheck
+        // terminar_servidor(socket_cpu_dispatch, logger, config);
+        // return 0;
+      } break;
+      case -1: {
+        log_info(logger, "el cliente se desconecto");
+        // cliente_estado = CLIENTE_EXIT;
+        estado_conexion_kernel = false;
+        estado_conexion_con_cliente = false;
+        break;
+      }
+      default:
+        log_warning(logger, "Operacion desconocida. No quieras meter la pata");
+        break;
+    }
+  }
   pthread_exit(NULL);
 }
 
@@ -79,14 +101,10 @@ void ciclo_instruccion(t_pcb* pcb) {
   int i = 0;
 
   while (pcb->program_counter < list_size(pcb->instrucciones)) {
-    // int size_instruccion = strlen(((t_instruccion*)list_get(pcb->instrucciones, i))->identificador);
     t_instruccion* instruccion = malloc(sizeof(t_instruccion) + 1);
     instruccion = fetch(pcb);
-    //    memcpy(instruccion, (((t_instruccion*)list_get(pcb->instrucciones, i))->identificador), size_instruccion);
-    //   instruccion[size_instruccion] = '\0';
     decode(instruccion, pcb);
-
-    free(instruccion);
+    // free(instruccion);
     pcb->program_counter++;
   }
   pcb_destroy(pcb);
@@ -107,10 +125,10 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
     log_info(logger, "Ejecutando IO...");
     t_paquete* paquete_con_pcb = paquete_create();
-    uint32_t tiempo_bloqueo = atoi(instruccion->params);
-    paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);
-    enviar_pcb(pcb->socket, paquete_con_pcb);
-    pcb_destroy(pcb);
+    uint32_t tiempo_bloqueo = 0;
+    tiempo_bloqueo = atoi(instruccion->params);
+    // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
+    // enviar_pcb(pcb->socket, paquete_con_pcb);
     paquete_destroy(paquete_con_pcb);
   }
 
@@ -126,7 +144,6 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
     enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
     // operacion_read_destroy(pcb);
-    pcb_destroy(pcb);
     free(read);
     paquete_destroy(paquete_con_direccion_a_leer);
 
@@ -151,7 +168,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     pcb->program_counter++;
     paquete_add_pcb(paquete_con_respuesta_exit, pcb);
     enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
-    pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
+    // pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
     paquete_destroy(paquete_con_respuesta_exit);
   }
 

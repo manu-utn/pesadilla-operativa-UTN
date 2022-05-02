@@ -54,7 +54,8 @@ t_config* config;
 t_log * logger;
 t_list* tlb;
 int socket_memoria;
-
+bool estado_conexion_kernel;
+bool estado_conexion_con_cliente;
 
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);
@@ -71,4 +72,6 @@ void iniciar_tlb();
 void ciclo_instruccion(t_pcb* pcb);
 void decode(t_instruccion* instruccion, t_pcb* pcb);
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion);
+
+void* manejar_nueva_conexion(void* args);
 #endif /* CPU_H_ */

@@ -217,7 +217,7 @@ void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_han
 void paquete_add_operacion_read(t_paquete* paquete_serializado, t_operacion_read* read) {
   int offset = 0;
 
-  int size_paquete = sizeof(uint32_t) + 1;
+  int size_paquete = sizeof(uint32_t) * 2;
   paquete_serializado->buffer->stream = malloc(size_paquete);
 
   memcpy(paquete_serializado->buffer->stream, &(read->socket), sizeof(uint32_t));
@@ -243,7 +243,7 @@ t_operacion_read* paquete_obtener_operacion_read(t_paquete* paquete_serializado)
 void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo) { // es un add_pcb + el campo bloqueo
 
   int offset;
-  int paquete_size = sizeof(int) * 6 + sizeof(t_pcb_estado);
+  int paquete_size = sizeof(int) * 6 + sizeof(t_pcb_estado) + 1;
   paquete->buffer->stream = malloc(paquete_size);
 
   offset = 0, memcpy(paquete->buffer->stream + offset, &(pcb->socket), sizeof(int));
@@ -257,7 +257,9 @@ void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo
 
   paquete->buffer->size = offset;
   for (int i = 0; i < list_size(pcb->instrucciones); i++) {
-    t_instruccion* instruccion = list_get(pcb->instrucciones, i);
+    t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+
+    instruccion = list_get(pcb->instrucciones, i);
 
     int identificador_longitud = strlen(instruccion->identificador) + 1;
     int identificador_size = identificador_longitud * sizeof(char);
@@ -271,6 +273,7 @@ void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo
     paquete_add_instruccion(paquete, instruccion);
 
     offset += instruccion_size;
+    free(instruccion);
   }
   paquete->buffer->size = offset;
 }
