@@ -74,4 +74,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb);
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion);
 
 void* manejar_nueva_conexion(void* args);
+
+bool esta_en_tlb(int num_pagina);
+
 #endif /* CPU_H_ */

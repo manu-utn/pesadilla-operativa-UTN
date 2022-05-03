@@ -63,7 +63,6 @@ void* manejar_nueva_conexion(void* args) {
       case -1: {
         log_info(logger, "el cliente se desconecto");
         // cliente_estado = CLIENTE_EXIT;
-        estado_conexion_kernel = false;
         estado_conexion_con_cliente = false;
         break;
       }
@@ -132,31 +131,42 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     paquete_destroy(paquete_con_pcb);
   }
 
-  else if (strcmp(instruccion->identificador, "READ") == 0) {
+  else if (strcmp(instruccion->identificador, "READ") ==
+           0) { /// DE MEMORIA ANTICIPADAMENTE SE TIENE QUE TRAER EL TAM DE PAGINA PARA HACER LA TRADUCCION DESDE LA TLB
     log_info(logger, "Ejecutando READ...");
+    int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+    int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
+    log_info(logger, "Leyendo de TLB");
+    bool acierto_tlb = esta_en_tlb(num_pagina);
+    if (acierto_tlb == false) {
+      log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+      t_operacion_read* read = malloc(sizeof(t_operacion_read));
 
-    t_operacion_read* read = malloc(sizeof(t_operacion_read));
+      armar_operacion_read(read, instruccion);
 
-    armar_operacion_read(read, instruccion);
+      t_paquete* paquete_con_direccion_a_leer = paquete_create();
+      read->socket = socket_memoria;
+      paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
+      enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+      // operacion_read_destroy(pcb);
+      free(read);
+      paquete_destroy(paquete_con_direccion_a_leer);
 
-    t_paquete* paquete_con_direccion_a_leer = paquete_create();
-    read->socket = socket_memoria;
-    paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
-    enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-    // operacion_read_destroy(pcb);
-    free(read);
-    paquete_destroy(paquete_con_direccion_a_leer);
+      // RECIBO RESPUESTA DE MEMORIA
 
-    // RECIBO RESPUESTA DE MEMORIA
+      t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
 
-    t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+      t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
 
-    t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
+      log_info(logger, "RESPUESTA VALOR MEMORIA: %d ", respuesta_operacion->valor_buscado);
 
-    log_info(logger, "RESPUESTA VALOR MEMORIA: %d ", respuesta_operacion->valor_buscado);
+      paquete_destroy(paquete_con_direccion_a_leer);
+      free(respuesta_operacion);
+    } else {
+      log_info(logger, "Accediendo a buscar el valor en memoria");
+    }
 
-    paquete_destroy(paquete_con_direccion_a_leer);
-    free(respuesta_operacion);
+
   }
 
   else if (strcmp(instruccion->identificador, "WRITE") == 0) {
@@ -170,9 +180,9 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
     // pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
     paquete_destroy(paquete_con_respuesta_exit);
-  }
 
-  else if (strcmp(instruccion->identificador, "EXIT") == 0) {
+    estado_conexion_kernel = false;
+    estado_conexion_con_cliente = false;
   }
 }
 
@@ -198,4 +208,11 @@ int conectarse_a_memoria() {
 
 void iniciar_tlb() {
   tlb = list_create();
+}
+
+bool esta_en_tlb(int num_pagina) {
+  bool es_la_pagina(t_entrada_tlb * contenido_tlb) {
+    return contenido_tlb->pagina == num_pagina;
+  }
+  return list_any_satisfy(tlb, es_la_pagina);
 }
