@@ -138,7 +138,9 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
     log_info(logger, "Leyendo de TLB");
     bool acierto_tlb = esta_en_tlb(num_pagina);
-    if (acierto_tlb == false) {
+    if (acierto_tlb == false) { // SE BUSCA EN MEMORIA LA PAGINA, SI ESTA SE DEVUELVE EL MARCO. SI NO ESTA, SE HACE EL
+                                // CIRCUITO DE REEMPLAZO EN MEMROIA Y DEPENDIENDO DE ESO, SE DEVUELVE EL MARCO
+                                // REEMPLZADO O UN ERROR
       log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
       t_operacion_read* read = malloc(sizeof(t_operacion_read));
 
@@ -154,13 +156,13 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
 
       // RECIBO RESPUESTA DE MEMORIA
 
+      int codigo_operacion = recibir_operacion(socket_memoria);
+
       t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
 
       t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
 
       log_info(logger, "RESPUESTA VALOR MEMORIA: %d ", respuesta_operacion->valor_buscado);
-
-      paquete_destroy(paquete_con_direccion_a_leer);
       free(respuesta_operacion);
     } else {
       log_info(logger, "Accediendo a buscar el valor en memoria");
@@ -173,17 +175,17 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
   }
 
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
-  } else if (strcmp(instruccion->identificador, "EXIT") == 0) {
-    t_paquete* paquete_con_respuesta_exit = paquete_create();
-    pcb->program_counter++;
-    paquete_add_pcb(paquete_con_respuesta_exit, pcb);
-    enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
-    // pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
-    paquete_destroy(paquete_con_respuesta_exit);
+  } /* else if (strcmp(instruccion->identificador, "EXIT") == 0) {
+     t_paquete* paquete_con_respuesta_exit = paquete_create();
+     pcb->program_counter++;
+     paquete_add_pcb(paquete_con_respuesta_exit, pcb);
+     enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
+     // pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
+     paquete_destroy(paquete_con_respuesta_exit);
 
-    estado_conexion_kernel = false;
-    estado_conexion_con_cliente = false;
-  }
+     estado_conexion_kernel = false;
+     estado_conexion_con_cliente = false;
+   }*/
 }
 
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion) {

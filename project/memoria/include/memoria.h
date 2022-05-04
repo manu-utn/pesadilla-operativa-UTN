@@ -36,13 +36,14 @@ typedef struct{
 t_config * config;
 t_log * logger;
 uint32_t size_memoria_principal;
-
 void* memoria_principal;
-
+bool estado_conexion_memoria;
+bool estado_conexion_con_cliente;
 
 void limpiarConfiguracion();
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);
 void* escuchar_conexiones();
 void* reservar_memoria_inicial(int size_memoria_total);
+void* manejar_nueva_conexion(void* args);
 #endif /* MEMORIA_H */

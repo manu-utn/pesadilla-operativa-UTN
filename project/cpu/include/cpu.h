@@ -77,4 +77,7 @@ void* manejar_nueva_conexion(void* args);
 
 bool esta_en_tlb(int num_pagina);
 
+t_list* marcos;
+t_list* paginas_en_memoria;
+
 #endif /* CPU_H_ */

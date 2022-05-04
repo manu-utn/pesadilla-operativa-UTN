@@ -5,6 +5,7 @@
 
 int main() {
   // función de la biblioteca static
+  estado_conexion_memoria = true;
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
   char* ip = config_get_string_value(config, "IP_ESCUCHA");

@@ -111,7 +111,6 @@ void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
 
 void enviar_operacion_read(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = READ;
-  printf("Operacions: %d: ", paquete->codigo_operacion);
 
   int status = enviar(socket_destino, paquete);
 

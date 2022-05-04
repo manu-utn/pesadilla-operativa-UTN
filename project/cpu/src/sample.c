@@ -48,9 +48,9 @@ int main() {
   log_info(logger, "Servidor listo para recibir al cliente Kernel");
 
   // free(config);
-  pthread_exit(0);
+  // pthread_exit(0);
 
-  return 0;
+  pthread_exit(0);
 
   // TODO: esto debería estar en un hilo, para poder emular e iniciar la
   // también la conexion interrupt
