@@ -82,4 +82,6 @@ t_pcb *elegir_pcb_segun_algoritmo();
 bool algoritmo_cargado_es(char *algoritmo);
 
 void enviar_interrupcion();
+bool hay_un_proceso_en_running();
+void transicion_ready_a_running(t_pcb *pcb);
 #endif

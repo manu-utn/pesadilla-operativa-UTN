@@ -22,5 +22,6 @@ void enviar_mensaje(int socket_destino, t_paquete *paquete);
 void enviar_paquete(int socket_destino, t_paquete *paquete);
 void enviar_instrucciones(int socket_destino, t_paquete *paquete);
 void enviar_pcb(int socket_destino, t_paquete *paquete);
+void enviar_pcb_desalojado(int socket_destino, t_paquete *paquete);
 void terminar_cliente(int fd_servidor, t_log *logger, t_config *config);
 #endif

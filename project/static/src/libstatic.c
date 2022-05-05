@@ -62,31 +62,6 @@ t_buffer* crear_mensaje(char* texto) {
   return mensaje;
 }
 
-void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
-  if (paquete->buffer == NULL) {
-    paquete->buffer = nuevo_mensaje;
-  } else {
-    int mensaje_size = nuevo_mensaje->size + sizeof(int);
-    int size = paquete->buffer->size + mensaje_size;
-
-    paquete->buffer->stream = realloc(paquete->buffer->stream, size);
-
-    int offset = 0;
-
-    offset += paquete->buffer->size;
-    memcpy(paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
-
-    offset += sizeof(int);
-    memcpy(paquete->buffer->stream + offset, nuevo_mensaje->stream, nuevo_mensaje->size);
-    log_info(logger,
-             "Se agregó con éxito mensaje al paquete (stream_bytes=%d, stream=%s)",
-             nuevo_mensaje->size,
-             (char*)(paquete->buffer->stream + offset));
-
-    paquete->buffer->size += mensaje_size;
-  }
-}
-
 void iterator_paquete(void* valor) {
   log_info(logger, "[PAQUETE] %s\n", (char*)valor);
 }
@@ -95,7 +70,7 @@ void paquete_destroy(t_paquete* paquete) {
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  xlog(COLOR_MAGENTA, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
+  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {

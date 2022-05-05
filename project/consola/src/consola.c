@@ -47,9 +47,37 @@ int main(int argc, char* argv[]) {
   pcb_destroy(pcb);
   paquete_destroy(paquete_con_pcb);
 
-  printf("Esperando 15 segundos.."), sleep(15), terminar_cliente(fd_kernel, logger, config);
+  escuchar_a_kernel(fd_kernel);
 
   return 0;
+}
+
+void escuchar_a_kernel(int socket_servidor) {
+  CONEXION_ESTADO estado_conexion_con_servidor = CONEXION_ESCUCHANDO;
+
+  while (estado_conexion_con_servidor) {
+    xlog(COLOR_PAQUETE, "Esperando código de operación...");
+    int codigo_operacion = recibir_operacion(socket_servidor);
+
+    switch (codigo_operacion) {
+      case OPERACION_MENSAJE: {
+        recibir_mensaje(socket_servidor);
+      } break;
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Finalizando ejecución...");
+
+        // matar_proceso(socket_servidor);
+
+        log_destroy(logger), liberar_conexion(socket_servidor);
+      } break;
+      case -1: {
+        xlog(COLOR_CONEXION, "el servidor se desconecto (socket=%d)", socket_servidor);
+
+        liberar_conexion(socket_servidor);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
+      } break;
+    }
+  }
 }
 
 int conectarse_a_kernel() {
