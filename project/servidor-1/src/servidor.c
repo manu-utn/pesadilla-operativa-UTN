@@ -14,6 +14,7 @@
 t_pcb* PROCESO_EJECUTANDO;
 int CONEXION_CPU_DISPATCH;
 int CONEXION_CPU_INTERRUPT;
+int SOCKET_CLIENTE_DISPATCH;
 
 int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "Servidor-1");
@@ -84,9 +85,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: {
-          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-        } break;
+        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
       }
     }
   }
@@ -99,8 +98,7 @@ void desalojar_y_enviar_proceso_en_ejecucion() {
   paquete_add_pcb(paquete, PROCESO_EJECUTANDO);
   imprimir_pcb(PROCESO_EJECUTANDO);
 
-  // TODO: error, validar valgrind+debugger
-  // enviar_pcb_desalojado(CONEXION_CPU_DISPATCH, paquete);
+  enviar_pcb_desalojado(SOCKET_CLIENTE_DISPATCH, paquete);
   xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU");
   // pcb_destroy(PROCESO_EJECUTANDO);
 }
@@ -127,7 +125,8 @@ void* escuchar_conexiones_entrantes(void* args) {
 
   while (ESTADO_CONEXION_DISPATCH) {
     int socket_cliente = esperar_cliente(CONEXION_CPU_DISPATCH);
-
+    SOCKET_CLIENTE_DISPATCH = socket_cliente;
+    xlog(COLOR_CONEXION, "Valor del socket Dispatch: %d", CONEXION_CPU_DISPATCH);
     // pthread_t th;
     // pthread_create(&th, NULL, escuchar_nueva_conexion, &socket_cliente), pthread_detach(th);
 
@@ -168,9 +167,7 @@ void* escuchar_conexiones_entrantes(void* args) {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: {
-          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-        } break;
+        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
       }
     }
   }

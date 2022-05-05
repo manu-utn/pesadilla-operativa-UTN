@@ -17,55 +17,54 @@
 t_pcb *PROCESO_EJECUTANDO = NULL;
 
 int CONEXION_DISPATCH;
-CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
+// TODO: Evaluar si esta variable global es necesaria
+// CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
+sem_t CONEXION_CON_CPU_HECHA;
 
 void *escuchar_conexion_cpu_dispatch() {
-  ESTADO_CONEXION_DISPATCH = CONEXION_ESCUCHANDO;
+  // ESTADO_CONEXION_DISPATCH = CONEXION_ESCUCHANDO;
 
+  sem_wait(&CONEXION_CON_CPU_HECHA);
   CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
 
-  while (ESTADO_CONEXION_DISPATCH) {
-    int socket_cliente = esperar_cliente(CONEXION_DISPATCH);
+  while (estado_conexion) {
+    int codigo_operacion = recibir_operacion(CONEXION_DISPATCH);
+    xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
 
-    while (estado_conexion) {
-      int codigo_operacion = recibir_operacion(socket_cliente);
-      xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
+    switch (codigo_operacion) {
+      case OPERACION_PCB_DESALOJADO: {
+        xlog(COLOR_INFO, "Recibi un pcb desalojado..!");
+        t_paquete *paquete = recibir_paquete(CONEXION_DISPATCH);
+        t_pcb *pcb = paquete_obtener_pcb(paquete); // 1) log de liberar recursos por la lista de instrucciones
 
-      switch (codigo_operacion) {
-        case OPERACION_PCB_DESALOJADO: {
-          xlog(COLOR_INFO, "Recibi un pcb desalojado..!");
-          t_paquete *paquete = recibir_paquete(socket_cliente);
-          t_pcb *pcb = paquete_obtener_pcb(paquete);
+        imprimir_pcb(pcb);
 
-          imprimir_pcb(pcb);
+        paquete_destroy(paquete); // 2) log de liberar recursos por el paquete con pcb
+        // 3) log de liberar recursos por el paquete enviado con la interrupcion
+      } break;
+      case -1: {
+        xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", CONEXION_DISPATCH);
 
-          paquete_destroy(paquete);
-        } break;
-        case -1: {
-          xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", socket_cliente);
+        // TODO: se debería actualizar el NEW
+        // bajar_grado_multiprogramacion();
+        actualizar_grado_multiprogramacion();
 
-          // TODO: se debería actualizar el NEW
-          // bajar_grado_multiprogramacion();
-          actualizar_grado_multiprogramacion();
-
-          // centinela para detener el loop del hilo asociado a la conexión entrante
-          estado_conexion = CONEXION_FINALIZADA;
-          break;
-        }
-        case OPERACION_EXIT: {
-          xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
-
-          log_destroy(logger), close(CONEXION_DISPATCH);
-          // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
-          ESTADO_CONEXION_DISPATCH = CONEXION_FINALIZADA;
-          estado_conexion = CONEXION_FINALIZADA;
-
-          // sem_post(&CERRAR_PROCESO);
-        } break;
-        default: {
-          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-        } break;
+        // centinela para detener el loop del hilo asociado a la conexión entrante
+        estado_conexion = CONEXION_FINALIZADA;
+        break;
       }
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
+
+        log_destroy(logger), close(CONEXION_DISPATCH);
+        // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
+        // Antes se esperaba un cliente pero ya no xq ya esxiste la conexion dispatch con kernel como cliente
+        // ESTADO_CONEXION_DISPATCH = CONEXION_FINALIZADA;
+        estado_conexion = CONEXION_FINALIZADA;
+
+        // sem_post(&CERRAR_PROCESO);
+      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 
@@ -74,7 +73,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
 void *iniciar_conexion_cpu_dispatch() {
   CONEXION_DISPATCH = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-
+  sem_post(&CONEXION_CON_CPU_HECHA);
   pthread_exit(NULL);
 }
 
@@ -82,7 +81,7 @@ void iniciar_planificacion() {
   pthread_t th1, th2, th3;
 
   inicializar_grado_multiprogramacion();
-
+  sem_init(&CONEXION_CON_CPU_HECHA, 0, 0);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
 
@@ -93,7 +92,7 @@ void iniciar_planificacion() {
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
-  // pthread_create(&th3, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th3);
+  pthread_create(&th3, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th3);
   // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
   // sleep(1);
 
@@ -114,8 +113,9 @@ void *iniciar_corto_plazo() {
 
 
   // TODO: evaluar si corresponde conectar/desconectar a cada rato, ó si solo mantenemos la conexión
-  // pthread_t th;
-  // pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
+  // Decidi mantener la conexion, especialmente porque se deben escuchar por mensajes de esta conexion ademas de enviar
+  pthread_t th;
+  pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 
   while (1) {
     // TODO: falta hacer un sem_signal() para que ande ok lo de hay_procesos en running
@@ -138,7 +138,9 @@ void *iniciar_corto_plazo() {
       xlog(COLOR_TAREA, "Se seleccionó un Proceso para ejecutar en CPU (pid=%d)", pcb->pid);
       transicion_ready_a_running(pcb);
 
-      int conexion_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+      // int conexion_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+      // CONEXION_DISPATCH = conexion_cpu_dispatch;
+      int conexion_cpu_dispatch = CONEXION_DISPATCH;
 
       t_paquete *paquete = paquete_create();
       paquete_add_pcb(paquete, pcb);

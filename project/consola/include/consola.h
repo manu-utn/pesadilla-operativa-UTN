@@ -20,5 +20,5 @@ t_log* logger;
 
 int conectarse_a_kernel();
 t_list* obtener_instrucciones_de_archivo(char* ruta_archivo);
-int escuchar_a_kernel(int socket_servidor);
+void escuchar_a_kernel(int socket_servidor);
 #endif

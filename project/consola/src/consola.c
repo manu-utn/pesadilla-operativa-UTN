@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-int escuchar_a_kernel(int socket_servidor) {
+void escuchar_a_kernel(int socket_servidor) {
   CONEXION_ESTADO estado_conexion_con_servidor = CONEXION_ESCUCHANDO;
 
   while (estado_conexion_con_servidor) {
