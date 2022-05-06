@@ -54,6 +54,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 
   while (ESTADO_CONEXION_INTERRUPT) {
     int socket_cliente = esperar_cliente(CONEXION_CPU_INTERRUPT);
+    estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
 
     while (estado_conexion_con_cliente) {
       int codigo_operacion = recibir_operacion(socket_cliente);
@@ -126,7 +127,7 @@ void* escuchar_conexiones_entrantes(void* args) {
   while (ESTADO_CONEXION_DISPATCH) {
     int socket_cliente = esperar_cliente(CONEXION_CPU_DISPATCH);
     SOCKET_CLIENTE_DISPATCH = socket_cliente;
-    xlog(COLOR_CONEXION, "Valor del socket Dispatch: %d", CONEXION_CPU_DISPATCH);
+    // xlog(COLOR_CONEXION, "Valor del socket Dispatch: %d", CONEXION_CPU_DISPATCH);
     // pthread_t th;
     // pthread_create(&th, NULL, escuchar_nueva_conexion, &socket_cliente), pthread_detach(th);
 

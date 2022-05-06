@@ -55,6 +55,8 @@ void agregar_pcb_a_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola);
 void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado);
 
+void enviar_pcb_de_cola_ready_a_cpu();
+
 void transicion_a_new(t_pcb* pcb);
 void transicion_new_a_ready(t_pcb *pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
@@ -76,7 +78,8 @@ void imprimir_grado_multiprogramacion_actual();
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
 t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);
 
-t_pcb *pcb_menor_rafaga_cpu_entre(t_pcb *pcb1, t_pcb *pcb2);
+t_pcb *pcb_menor_tiempo_restante_de_ejecucion_entre(t_pcb *pcb1, t_pcb *pcb2);
+int pcb_tiempo_restante_de_ejecucion(t_pcb *pcb);
 
 t_pcb *elegir_pcb_segun_algoritmo();
 bool algoritmo_cargado_es(char *algoritmo);

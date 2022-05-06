@@ -20,6 +20,7 @@ int CONEXION_DISPATCH;
 // TODO: Evaluar si esta variable global es necesaria
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
 sem_t CONEXION_CON_CPU_HECHA;
+sem_t PCB_ACTUALIZADO;
 
 void *escuchar_conexion_cpu_dispatch() {
   // ESTADO_CONEXION_DISPATCH = CONEXION_ESCUCHANDO;
@@ -37,10 +38,27 @@ void *escuchar_conexion_cpu_dispatch() {
         t_paquete *paquete = recibir_paquete(CONEXION_DISPATCH);
         t_pcb *pcb = paquete_obtener_pcb(paquete); // 1) log de liberar recursos por la lista de instrucciones
 
+        // TODO: Actualizar tiempo en ejecucion usando timestamps
+        pcb->tiempo_en_ejecucion--;
+
         imprimir_pcb(pcb);
 
         paquete_destroy(paquete); // 2) log de liberar recursos por el paquete con pcb
         // 3) log de liberar recursos por el paquete enviado con la interrupcion
+
+        PROCESO_EJECUTANDO = NULL;
+        cambiar_estado_pcb(pcb, READY);
+
+        // imprimir_grado_multiprogramacion_actual();
+
+        // TODO: Revisar esto
+        // NO usar agregar_pcb_a_cola xq el signal de ahi adentro genera un loop infinito
+        pthread_mutex_lock(&(COLA_READY->mutex));
+        list_add(COLA_READY->lista_pcbs, pcb);
+        pthread_mutex_unlock(&(COLA_READY->mutex));
+        // agregar_pcb_a_cola(pcb, COLA_READY);
+
+        sem_post(&PCB_ACTUALIZADO);
       } break;
       case -1: {
         xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", CONEXION_DISPATCH);
@@ -82,6 +100,7 @@ void iniciar_planificacion() {
 
   inicializar_grado_multiprogramacion();
   sem_init(&CONEXION_CON_CPU_HECHA, 0, 0);
+  sem_init(&PCB_ACTUALIZADO, 0, 0);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
 
@@ -118,6 +137,7 @@ void *iniciar_corto_plazo() {
   pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 
   while (1) {
+    // xlog(COLOR_INFO, "Entro a while de pcp");
     // TODO: falta hacer un sem_signal() para que ande ok lo de hay_procesos en running
     sem_wait(&(COLA_READY->cantidad_procesos));
 
@@ -128,26 +148,14 @@ void *iniciar_corto_plazo() {
     if (hay_un_proceso_en_running()) {
       if (algoritmo_cargado_es("SJF")) {
         enviar_interrupcion(); // para desalojar al que esté ejecutando
-        // sem_wait(&PCB_ACTUALIZADO);
-
+        sem_wait(&PCB_ACTUALIZADO);
+        enviar_pcb_de_cola_ready_a_cpu();
         // int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
       }
     } else {
-      // int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-      t_pcb *pcb = elegir_pcb_segun_algoritmo(COLA_READY);
-      xlog(COLOR_TAREA, "Se seleccionó un Proceso para ejecutar en CPU (pid=%d)", pcb->pid);
-      transicion_ready_a_running(pcb);
-
-      // int conexion_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-      // CONEXION_DISPATCH = conexion_cpu_dispatch;
-      int conexion_cpu_dispatch = CONEXION_DISPATCH;
-
-      t_paquete *paquete = paquete_create();
-      paquete_add_pcb(paquete, pcb);
-      enviar_pcb(conexion_cpu_dispatch, paquete);
-
-      // close(socket_cpu_dispatch);
+      enviar_pcb_de_cola_ready_a_cpu();
     }
+
 
     // TODO: al enviar la interrupción a CPU, éste nos debe devolver el PCB del proceso que estaba
     // ejecutando, para elegir el siguiente proceso
@@ -157,6 +165,24 @@ void *iniciar_corto_plazo() {
   }
 
   pthread_exit(NULL);
+}
+
+void enviar_pcb_de_cola_ready_a_cpu() {
+  xlog(COLOR_TAREA, "Cantidad de procesos en cola READY: %d", list_size(COLA_READY->lista_pcbs));
+  // int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+  t_pcb *pcb = elegir_pcb_segun_algoritmo(COLA_READY);
+  xlog(COLOR_TAREA, "Se seleccionó un Proceso para ejecutar en CPU (pid=%d)", pcb->pid);
+  transicion_ready_a_running(pcb);
+
+  // int conexion_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+  // CONEXION_DISPATCH = conexion_cpu_dispatch;
+  int conexion_cpu_dispatch = CONEXION_DISPATCH;
+
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  enviar_pcb(conexion_cpu_dispatch, paquete);
+
+  // close(socket_cpu_dispatch);
 }
 
 // TODO: se deben cambiar de estado a EXIT y remover de la cola de READY... cuando se desconecten ó cuando terminen sus
@@ -416,15 +442,19 @@ t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola) {
   t_pcb *pcb = NULL;
 
   pthread_mutex_lock(&(cola->mutex));
-  pcb =
-    (t_pcb *)list_get_minimum(cola->lista_pcbs, (void *)pcb_menor_rafaga_cpu_entre); // si hay empate devuelve por FIFO
+  pcb = (t_pcb *)list_get_minimum(
+    cola->lista_pcbs, (void *)pcb_menor_tiempo_restante_de_ejecucion_entre); // si hay empate devuelve por FIFO
   pthread_mutex_unlock(&(cola->mutex));
 
   return pcb;
 }
 
-t_pcb *pcb_menor_rafaga_cpu_entre(t_pcb *pcb1, t_pcb *pcb2) {
-  return pcb1->estimacion_rafaga <= pcb2->estimacion_rafaga ? pcb1 : pcb2;
+t_pcb *pcb_menor_tiempo_restante_de_ejecucion_entre(t_pcb *pcb1, t_pcb *pcb2) {
+  return pcb_tiempo_restante_de_ejecucion(pcb1) <= pcb_tiempo_restante_de_ejecucion(pcb2) ? pcb1 : pcb2;
+}
+
+int pcb_tiempo_restante_de_ejecucion(t_pcb *pcb) {
+  return pcb->estimacion_rafaga - pcb->tiempo_en_ejecucion;
 }
 
 t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
