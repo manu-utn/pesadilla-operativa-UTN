@@ -62,6 +62,7 @@ typedef struct {
   int pid;
   int tamanio;
   int estimacion_rafaga;
+  int tiempo_en_ejecucion;
   int program_counter;
   t_pcb_estado estado;
   t_list* instrucciones;

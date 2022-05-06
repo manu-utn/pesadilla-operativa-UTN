@@ -50,6 +50,7 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(int));
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
   offset += sizeof(t_pcb_estado);
@@ -152,6 +153,9 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
 
   offset += sizeof(int);
   memcpy(&(pcb->estimacion_rafaga), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(pcb->tiempo_en_ejecucion), paquete_serializado->buffer->stream + offset, sizeof(int));
 
   offset += sizeof(int);
   memcpy(&(pcb->program_counter), paquete_serializado->buffer->stream + offset, sizeof(int));

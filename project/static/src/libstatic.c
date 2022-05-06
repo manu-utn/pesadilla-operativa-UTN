@@ -110,9 +110,10 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   pcb = malloc(sizeof(t_pcb));
 
   pcb->pid = pid;
-  pcb->tamanio = tamanio;     // TODO: definir
-  pcb->estimacion_rafaga = 0; // TODO: definir
-  pcb->program_counter = 0;   // TODO: definir
+  pcb->tamanio = tamanio;       // TODO: definir
+  pcb->estimacion_rafaga = 0;   // TODO: definir
+  pcb->tiempo_en_ejecucion = 0; // TODO: definir
+  pcb->program_counter = 0;     // TODO: definir
   pcb->estado = NEW;
 
   return pcb;
@@ -141,11 +142,12 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, pc=%d, estado=%d\n",
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, t_en_exec=%d, pc=%d, estado=%d\n",
          pcb->socket,
          pcb->pid,
          pcb->tamanio,
          pcb->estimacion_rafaga,
+         pcb->tiempo_en_ejecucion,
          pcb->program_counter,
          pcb->estado);
 
