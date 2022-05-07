@@ -3,6 +3,7 @@
 
 #include "dir.h"
 #include "utils-cliente.h"
+#include "utils-servidor.h"
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/string.h>
@@ -19,4 +20,5 @@ t_log* logger;
 
 int conectarse_a_kernel();
 t_list* obtener_instrucciones_de_archivo(char* ruta_archivo);
+void escuchar_a_kernel(int socket_servidor);
 #endif

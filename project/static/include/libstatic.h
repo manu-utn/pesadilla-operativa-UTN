@@ -10,9 +10,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "xlog.h"
 
 typedef enum {
-  INICIO = 0,
+  OPERACION_EXIT=0,
   MENSAJE = 1,
   PAQUETE = 2,
   CONSOLA = 3,
@@ -21,10 +22,17 @@ typedef enum {
   MENSAJE_HANDSHAKE= 6,
   PCB_ACTUALIZADO=7,
   READ=8,
-  FETCH=9
+  FETCH=9,
+
+  // TODO: el resto deben ser removidos
+  OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
+  OPERACION_INTERRUPT, OPERACION_CONSOLA
   } op_code;
 
-typedef enum { CLIENTE_EXIT= 0, CLIENTE_RUNNING = 1} cliente_status;
+typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
+
+// TODO: pendiente de remover, hasta que cpu implemente CONEXION_ESTADO
+typedef enum { CLIENTE_EXIT = 0, CLIENTE_RUNNING = 1 } cliente_status;
 
 typedef struct {
   int size;
@@ -59,6 +67,7 @@ typedef struct {
   int pid;
   int tamanio;
   int estimacion_rafaga;
+  int tiempo_en_ejecucion;
   int program_counter;
   t_pcb_estado estado;
   t_list* instrucciones;

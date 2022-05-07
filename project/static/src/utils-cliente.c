@@ -2,7 +2,7 @@
 #include "libstatic.h"
 
 int conectar_a_servidor(char* ip, char* puerto) {
-  log_info(logger, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
+  xlog(COLOR_CONEXION, "Conectando a servidor... (ip=%s, puerto=%s)", ip, puerto);
 
   int status;
   struct addrinfo hints;
@@ -23,7 +23,7 @@ int conectar_a_servidor(char* ip, char* puerto) {
     log_error(logger, "Ocurrió un error al intentar conectarse a un proceso servidor");
     return -1;
   } else {
-    log_info(logger, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
+    xlog(COLOR_CONEXION, "Conexión a servidor exitosa (ip=%s, puerto=%s)", ip, puerto);
   }
 
   freeaddrinfo(server_info);
@@ -43,43 +43,56 @@ int enviar(int socket_destino, t_paquete* paquete) {
 }
 
 void enviar_mensaje(int socket_destino, t_paquete* paquete) {
-  paquete->codigo_operacion = MENSAJE;
+  paquete->codigo_operacion = OPERACION_MENSAJE;
 
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Mensaje enviado con éxito (socket_destino=%d, stream_bytes=%d, "
-             "stream=%s)",
-             socket_destino,
-             paquete->buffer->size,
-             (char*)(paquete->buffer->stream));
+    xlog(COLOR_PAQUETE,
+         "Mensaje enviado con éxito (socket_destino=%d, stream_bytes=%d, "
+         "stream=%s)",
+         socket_destino,
+         paquete->buffer->size,
+         (char*)(paquete->buffer->stream));
   }
 }
 
 void enviar_instrucciones(int socket_destino, t_paquete* paquete) {
-  paquete->codigo_operacion = CONSOLA;
+  paquete->codigo_operacion = OPERACION_CONSOLA;
 
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_PAQUETE,
+         "Instrucciones enviadas con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
+  }
+}
+
+void enviar_pcb_desalojado(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PCB_DESALOJADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "PCB desalojado fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
 void enviar_pcb(int socket_destino, t_paquete* paquete) {
-  paquete->codigo_operacion = PCB;
+  paquete->codigo_operacion = OPERACION_PCB;
 
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_PAQUETE,
+         "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
@@ -127,8 +140,10 @@ void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(
-      logger, "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)", socket_destino, paquete->buffer->size);
+    xlog(COLOR_PAQUETE,
+         "Paquete enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 

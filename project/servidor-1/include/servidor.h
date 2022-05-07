@@ -19,4 +19,8 @@ t_config *config;
 
 void* iniciar_conexion_interrupt();
 void* iniciar_conexion_dispatch();
+void desalojar_y_enviar_proceso_en_ejecucion();
+void* escuchar_conexiones_entrantes(void* args);
+void* escuchar_nueva_conexion(void* args);
+void* escuchar_conexiones_entrantes_en_interrupt();
 #endif
