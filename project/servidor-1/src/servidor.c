@@ -86,7 +86,9 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
@@ -168,7 +170,9 @@ void* escuchar_conexiones_entrantes(void* args) {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
