@@ -17,15 +17,15 @@ void* escuchar_dispatch() {
 
   while (estado_conexion_kernel) {
     int cliente_fd = esperar_cliente(socket_cpu_dispatch);
+    /*
+        if (cliente_fd != -1) {
+          t_paquete* paquete = paquete_create();
+          t_buffer* mensaje = crear_mensaje("Conexión aceptada por CPU");
 
-    if (cliente_fd != -1) {
-      t_paquete* paquete = paquete_create();
-      t_buffer* mensaje = crear_mensaje("Conexión aceptada por CPU");
-
-      paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-      // paquete_add_mensaje(paquete, mensaje);
-    }
-
+          paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
+          // paquete_add_mensaje(paquete, mensaje);
+        }
+    */
     pthread_t th;
     pthread_create(&th, NULL, manejar_nueva_conexion, &cliente_fd), pthread_detach(th);
   }
@@ -52,10 +52,8 @@ void* manejar_nueva_conexion(void* args) {
         pcb_deserializado->socket = socket_cliente;
         ciclo_instruccion(pcb_deserializado);
         imprimir_pcb(pcb_deserializado);
-        // pcb_destroy(pcb_deserializado); DESCOMENTAR PARA SACAR EL SEG FAULT
         paquete_destroy(paquete_con_pcb);
         free(pcb_deserializado);
-
         // descomentar para validar el memcheck
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
@@ -106,7 +104,6 @@ void ciclo_instruccion(t_pcb* pcb) {
     // free(instruccion);
     pcb->program_counter++;
   }
-  pcb_destroy(pcb);
 }
 
 t_instruccion* fetch(t_pcb* pcb) {
@@ -135,35 +132,51 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
            0) { /// DE MEMORIA ANTICIPADAMENTE SE TIENE QUE TRAER EL TAM DE PAGINA PARA HACER LA TRADUCCION DESDE LA TLB
     log_info(logger, "Ejecutando READ...");
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+    int cant_entradas_por_tabla = 10;
     int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
     log_info(logger, "Leyendo de TLB");
     bool acierto_tlb = esta_en_tlb(num_pagina);
-    if (acierto_tlb == false) { // SE BUSCA EN MEMORIA LA PAGINA, SI ESTA SE DEVUELVE EL MARCO. SI NO ESTA, SE HACE EL
-                                // CIRCUITO DE REEMPLAZO EN MEMROIA Y DEPENDIENDO DE ESO, SE DEVUELVE EL MARCO
-                                // REEMPLZADO O UN ERROR
+    if (acierto_tlb == false) {
+      // SE BUSCA EN MEMORIA LA PAGINA, PARA ELLO SE REALIZAN 3 ACCESOS:
+      // ENVIO EL NUM DE TABLA DE 1er NIVEL JUNTO CON LA ENTRADA A DICHA TABLA
+      // MEMORIA ME DEVUELVE EL NUM DE TABLA DE 2DO NIVEL
+      // LUEGO ENVIO LA ENTRADA DE LA TABLA DE SEGUNDO NIVEL JUNTO CON EL NUM DE TABLA DE 2DO NIVEL
+      // MEMORIA ME DEVUELVE EL NUM DE MARCO
+      // CON ESTO ARMO LA DIRECCION FISICA Y ENVIO A MEMORIA PARA LEER EL DATO (DF= MARCO*TAM MARCO + DESPLAZAMIENTO)
+
       log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
-      t_operacion_read* read = malloc(sizeof(t_operacion_read));
 
-      armar_operacion_read(read, instruccion);
-
-      t_paquete* paquete_con_direccion_a_leer = paquete_create();
-      read->socket = socket_memoria;
-      paquete_add_operacion_read(paquete_con_direccion_a_leer, read);
-      enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-      // operacion_read_destroy(pcb);
+      // ACCESOS A MEMORIA PARA OBTENER EL MARCO
+      // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+      t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+      obtener_numero_tabla_segundo_nivel(read, pcb->tabla_primer_nivel, num_pagina, cant_entradas_por_tabla);
       free(read);
-      paquete_destroy(paquete_con_direccion_a_leer);
+      // RECIBO RESPUESTA DE MEMORIA
+      t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+      t_respuesta_solicitud_segunda_tabla* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
+
+      // Envio operacion para obtener el marco
+      t_solicitud_marco* solicitud_marco = malloc(sizeof(t_solicitud_marco));
+      obtener_numero_marco(
+        solicitud_marco, num_pagina, cant_entradas_por_tabla, respuesta_operacion->num_tabla_segundo_nivel);
+      free(solicitud_marco);
+      free(respuesta_operacion);
 
       // RECIBO RESPUESTA DE MEMORIA
+      t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
+      t_respuesta_solicitud_marco* respuesta_solicitud_marco = obtener_respuesta_solicitud_marco(paquete_respuesta);
+      free(respuesta_solicitud_marco);
 
-      int codigo_operacion = recibir_operacion(socket_memoria);
+      // ARMO SOLICITUD DATO
+      t_solicitud_dato_fisico* solicitud_dato_fisico = malloc(sizeof(t_solicitud_dato_fisico));
+      obtener_dato_fisico(solicitud_dato_fisico, respuesta_solicitud_marco->num_marco, num_pagina, tam_pagina);
+      free(solicitud_dato_fisico);
 
-      t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
-
-      t_respuesta_operacion_read* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
-
-      log_info(logger, "RESPUESTA VALOR MEMORIA: %d ", respuesta_operacion->valor_buscado);
-      free(respuesta_operacion);
+      // RECIBO RESPUESTA DE MEMORIA
+      t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+      t_respuesta_dato_fisico* respuesta_solicitud_dato_fisico =
+        obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+      free(respuesta_solicitud_dato_fisico);
     } else {
       log_info(logger, "Accediendo a buscar el valor en memoria");
     }
@@ -175,17 +188,63 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
   }
 
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
-  } /* else if (strcmp(instruccion->identificador, "EXIT") == 0) {
-     t_paquete* paquete_con_respuesta_exit = paquete_create();
-     pcb->program_counter++;
-     paquete_add_pcb(paquete_con_respuesta_exit, pcb);
-     enviar_pcb(pcb->socket, paquete_con_respuesta_exit);
-     // pcb_destroy(pcb); // DESCOMENTAR PARA RESOLVER SEG FAULT
-     paquete_destroy(paquete_con_respuesta_exit);
+  }
+}
 
-     estado_conexion_kernel = false;
-     estado_conexion_con_cliente = false;
-   }*/
+void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+                         int num_marco,
+                         int num_pagina,
+                         int tam_pagina) {
+  armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina);
+  solicitud_dato_fisico->socket = socket_memoria;
+  t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
+  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  free(read);
+  paquete_destroy(paquete_con_direccion_a_leer);
+}
+
+void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
+                          int num_pagina,
+                          int cant_entradas_por_tabla,
+                          int numero_tabla_segundo_nivel) {
+  armar_solicitud_marco(solicitud_marco, num_pagina, cant_entradas_por_tabla, numero_tabla_segundo_nivel);
+  solicitud_marco->socket = socket_memoria;
+  t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  paquete_add_solicitud_marco(paquete_con_direccion_a_leer, solicitud_marco);
+  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  free(read);
+  paquete_destroy(paquete_con_direccion_a_leer);
+}
+
+void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
+                                        t_pcb* pcb,
+                                        int num_pagina,
+                                        int cant_entradas_por_tabla) {
+  armar_solicitud_tabla_segundo_nivel(read, pcb->tabla_primer_nivel, num_pagina, cant_entradas_por_tabla);
+  read->socket = socket_memoria;
+  t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  paquete_add_solicitud_tabla_segundo_nivel(paquete_con_direccion_a_leer, read);
+  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  free(read);
+  paquete_destroy(paquete_con_direccion_a_leer);
+}
+
+
+void armar_solicitud_tabla_segundo_nivel(t_solicitud_segunda_tabla* solicitud_tabla_segundo_nivel,
+                                         int num_tabla_primer_nivel,
+                                         int num_pagina,
+                                         int cant_entradas_por_tabla) {
+  solicitud_tabla_segundo_nivel->num_tabla_primer_nivel = num_tabla_primer_nivel;
+  solicitud_tabla_segundo_nivel->entrada_primer_nivel = (float)num_pagina / (float)cant_entradas_por_tabla;
+}
+
+void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
+                           int num_pagina,
+                           int cant_entradas_por_tabla,
+                           int numero_tabla_segundo_nivel) {
+  solicitud_marco->num_tabla_segundo_nivel = numero_tabla_segundo_nivel;
+  solicitud_marco->entrada_segundo_nivel = num_pagina % cant_entradas_por_tabla;
 }
 
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion) {

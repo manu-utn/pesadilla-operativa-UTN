@@ -38,6 +38,7 @@ typedef struct{
 }t_entrada_tlb;
 
 
+
 /*
 typedef struct{
     int id_proceso;
@@ -76,7 +77,31 @@ void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion);
 void* manejar_nueva_conexion(void* args);
 
 bool esta_en_tlb(int num_pagina);
+void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+                         int num_marco,
+                         int num_pagina,
+                         int tam_pagina);
 
+void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
+                          int num_pagina,
+                          int cant_entradas_por_tabla,
+                          int numero_tabla_segundo_nivel);
+
+void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
+                                        t_pcb* pcb,
+                                        int num_pagina,
+                                        int cant_entradas_por_tabla);			
+
+
+										
+void armar_solicitud_tabla_segundo_nivel(t_solicitud_segunda_tabla* solicitud_tabla_segundo_nivel,
+                                         int num_tabla_primer_nivel,
+                                         int num_pagina,
+                                         int cant_entradas_por_tabla);
+void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
+                           int num_pagina,
+                           int cant_entradas_por_tabla,
+                           int numero_tabla_segundo_nivel);		 
 t_list* marcos;
 t_list* paginas_en_memoria;
 

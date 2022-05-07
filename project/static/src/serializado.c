@@ -187,30 +187,33 @@ t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* pa
 
   t_mensaje_handshake_cpu_memoria* mensaje = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
 
+  memcpy(&(mensaje->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
   memcpy(&(mensaje->size_mensaje), paquete_serializado->buffer->stream + offset, sizeof(int));
-
   offset += sizeof(int);
   memcpy(&(mensaje->mensaje_handshake), paquete_serializado->buffer->stream + offset, mensaje->size_mensaje);
+  offset += mensaje->size_mensaje;
 
   return mensaje;
 }
 
-void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_handshake_cpu_memoria* mensahe_handshake) {
+void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_handshake_cpu_memoria* mensaje_handshake) {
   int offset = 0;
 
-  int size_paquete = sizeof(int) + strlen(mensahe_handshake->mensaje_handshake) + 1;
+  int size_paquete = sizeof(int) + strlen(mensaje_handshake->mensaje_handshake) + 1;
   paquete_serializado->buffer->stream = malloc(size_paquete);
+  mensaje_handshake->size_mensaje = strlen(mensaje_handshake->mensaje_handshake);
 
-  memcpy(paquete_serializado->buffer->stream, &(mensahe_handshake->size_mensaje), sizeof(int));
+  memcpy(paquete_serializado->buffer->stream, &(mensaje_handshake->size_mensaje), sizeof(int));
 
   offset += sizeof(int);
   memcpy(paquete_serializado->buffer->stream + offset,
-         mensahe_handshake->mensaje_handshake,
-         strlen(mensahe_handshake->mensaje_handshake));
+         mensaje_handshake->mensaje_handshake,
+         strlen(mensaje_handshake->mensaje_handshake));
 
   paquete_serializado->buffer->size = size_paquete;
 
-  offset += strlen(mensahe_handshake->mensaje_handshake);
+  offset += strlen(mensaje_handshake->mensaje_handshake);
 }
 
 
@@ -228,6 +231,23 @@ void paquete_add_operacion_read(t_paquete* paquete_serializado, t_operacion_read
   offset += sizeof(read->direccion_logica);
 }
 
+void paquete_add_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado, t_solicitud_segunda_tabla* read) {
+  int offset = 0;
+
+  int size_paquete = sizeof(int) * 3;
+  paquete_serializado->buffer->stream = malloc(size_paquete);
+
+  memcpy(paquete_serializado->buffer->stream, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(paquete_serializado->buffer->stream, &(read->num_tabla_primer_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(paquete_serializado->buffer->stream, &(read->entrada_primer_nivel), sizeof(int));
+  offset += sizeof(int);
+  paquete_serializado->buffer->size = size_paquete;
+  // offset += sizeof(read->direccion_logica);
+}
+
+
 t_operacion_read* paquete_obtener_operacion_read(t_paquete* paquete_serializado) {
   int offset = 0;
 
@@ -239,6 +259,22 @@ t_operacion_read* paquete_obtener_operacion_read(t_paquete* paquete_serializado)
 
   return read;
 }
+
+
+t_solicitud_segunda_tabla* paquete_obtener_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->num_tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->entrada_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+
+  return read;
+}
+
 
 void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo) { // es un add_pcb + el campo bloqueo
 
@@ -279,10 +315,12 @@ void paquete_add_operacion_IO(t_paquete* paquete, t_pcb* pcb, int tiempo_bloqueo
 }
 
 void paquete_add_respuesta_operacion_read(t_paquete* paquete, t_respuesta_operacion_read* respuesta_read) {
-  int offset;
+  int offset = 0;
   int paquete_size = sizeof(int);
   paquete->buffer->stream = malloc(paquete_size);
 
+  memcpy(paquete->buffer->stream + offset, &respuesta_read->socket, sizeof(int));
+  offset += sizeof(int);
   memcpy(paquete->buffer->stream + offset, &respuesta_read->valor_buscado, sizeof(int));
   offset += sizeof(int);
 
@@ -290,11 +328,75 @@ void paquete_add_respuesta_operacion_read(t_paquete* paquete, t_respuesta_operac
 }
 
 t_respuesta_operacion_read* obtener_respuesta_read(t_paquete* paquete_serializado) {
-  int offset = 0;
-
+  int offset = 4;
   t_respuesta_operacion_read* read = malloc(sizeof(t_respuesta_operacion_read));
   memcpy(&(read->valor_buscado), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
 
   return read;
+}
+
+t_respuesta_solicitud_segunda_tabla* obtener_respuesta_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_respuesta_solicitud_segunda_tabla* read = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->entrada_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+
+  return read;
+}
+
+
+void paquete_add_solicitud_marco(t_paquete* paquete_serializado, t_solicitud_marco* solicitud_marco) {
+  int offset = 0;
+
+  int size_paquete = sizeof(int) * 3;
+  paquete_serializado->buffer->stream = malloc(size_paquete);
+
+  memcpy(paquete_serializado->buffer->stream, &(solicitud_marco->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(paquete_serializado->buffer->stream, &(solicitud_marco->num_tabla_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(paquete_serializado->buffer->stream, &(solicitud_marco->entrada_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  paquete_serializado->buffer->size = size_paquete;
+  // offset += sizeof(read->direccion_logica);
+}
+
+
+t_respuesta_solicitud_marco* obtener_respuesta_solicitud_marco(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_respuesta_solicitud_marco* solicitud_marco = malloc(sizeof(t_respuesta_solicitud_marco));
+  memcpy(&(solicitud_marco->num_marco), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  return solicitud_marco;
+}
+
+void paquete_add_solicitud_dato_fisico(t_paquete* paquete_serializado, t_solicitud_dato_fisico* solicitud_dato_fisico) {
+  int offset = 0;
+
+  int size_paquete = sizeof(int) * 3;
+  paquete_serializado->buffer->stream = malloc(size_paquete);
+
+  memcpy(paquete_serializado->buffer->stream, &(solicitud_dato_fisico->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(paquete_serializado->buffer->stream, &(solicitud_dato_fisico->dir_fisica), sizeof(int));
+  offset += sizeof(int);
+  paquete_serializado->buffer->size = size_paquete;
+  // offset += sizeof(read->direccion_logica);
+}
+
+
+t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
+  memcpy(&(respuesta_dato->size_dato), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);
+  offset += respuesta_dato->size_dato;
+  return respuesta_dato;
 }

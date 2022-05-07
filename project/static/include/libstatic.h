@@ -60,6 +60,7 @@ typedef struct {
   int tamanio;
   int estimacion_rafaga;
   int program_counter;
+  int tabla_primer_nivel;
   t_pcb_estado estado;
   t_list* instrucciones;
 } t_pcb;
@@ -72,6 +73,7 @@ typedef struct{
 
 
 typedef struct{
+  int socket;
   uint32_t valor_buscado;
 }t_respuesta_operacion_read;
 
@@ -79,6 +81,37 @@ typedef struct{
   int socket;
   uint32_t direccion_logica;
 }t_operacion_read;
+
+typedef struct{
+	int socket;
+	int num_tabla_primer_nivel;
+	int entrada_primer_nivel;
+}t_solicitud_segunda_tabla;
+
+typedef struct{
+  int socket;
+	int num_tabla_segundo_nivel;
+}t_respuesta_solicitud_segunda_tabla;
+
+typedef struct{
+	int socket;
+	int num_tabla_segundo_nivel;
+	int entrada_segundo_nivel;
+}t_solicitud_marco;
+
+typedef struct{
+	uint32_t num_marco;
+}t_respuesta_solicitud_marco;
+
+typedef struct{
+	int socket;
+	uint32_t dir_fisica;
+}t_solicitud_dato_fisico;
+
+typedef struct{
+  int size_dato;
+  void* dato_buscado;
+}t_respuesta_dato_fisico;
 
 t_config* iniciar_config(char*);
 t_log* iniciar_logger(char* archivo, char* nombre);
