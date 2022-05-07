@@ -20,7 +20,7 @@ typedef enum {
   PCB = 4,
   INTERRUPT = 5,
   MENSAJE_HANDSHAKE= 6,
-  PCB_ACTUALIZADO=7,
+  PCB_ACTUALIZADO2=7,
   READ=8,
   FETCH=9,
 

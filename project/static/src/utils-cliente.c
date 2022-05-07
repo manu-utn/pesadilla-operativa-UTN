@@ -97,7 +97,7 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
 }
 
 void enviar_pcb_actualizado(int socket_destino, t_paquete* paquete) {
-  paquete->codigo_operacion = PCB_ACTUALIZADO;
+  paquete->codigo_operacion = PCB_ACTUALIZADO2;
 
   int status = enviar(socket_destino, paquete);
 
