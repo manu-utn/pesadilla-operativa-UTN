@@ -43,16 +43,25 @@ t_list* deserializar_paquete(t_paquete* paquete_serializado) {
 
 void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   int offset;
-  int paquete_size = sizeof(int) * 5 + sizeof(t_pcb_estado);
+  int cantidad_columnas_tipo_int = 6; // {socket, tamanio, estimacion_rafaga, ...}
+  int paquete_size = sizeof(int) * cantidad_columnas_tipo_int + sizeof(t_pcb_estado);
+
   paquete->buffer->stream = malloc(paquete_size);
 
   offset = 0, memcpy(paquete->buffer->stream + offset, &(pcb->socket), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(int));
+
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
+
   offset += sizeof(t_pcb_estado);
 
   paquete->buffer->size = offset;
