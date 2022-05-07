@@ -1,4 +1,5 @@
 ### C Project ###
+project.cfg
 .nvimlog
 .bash_history
 error.log

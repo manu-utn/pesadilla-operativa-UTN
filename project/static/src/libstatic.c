@@ -62,31 +62,6 @@ t_buffer* crear_mensaje(char* texto) {
   return mensaje;
 }
 
-void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
-  if (paquete->buffer == NULL) {
-    paquete->buffer = nuevo_mensaje;
-  } else {
-    int mensaje_size = nuevo_mensaje->size + sizeof(int);
-    int size = paquete->buffer->size + mensaje_size;
-
-    paquete->buffer->stream = realloc(paquete->buffer->stream, size);
-
-    int offset = 0;
-
-    offset += paquete->buffer->size;
-    memcpy(paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
-
-    offset += sizeof(int);
-    memcpy(paquete->buffer->stream + offset, nuevo_mensaje->stream, nuevo_mensaje->size);
-    log_info(logger,
-             "Se agregó con éxito mensaje al paquete (stream_bytes=%d, stream=%s)",
-             nuevo_mensaje->size,
-             (char*)(paquete->buffer->stream + offset));
-
-    paquete->buffer->size += mensaje_size;
-  }
-}
-
 void iterator_paquete(void* valor) {
   log_info(logger, "[PAQUETE] %s\n", (char*)valor);
 }
@@ -95,9 +70,7 @@ void paquete_destroy(t_paquete* paquete) {
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  log_info(logger,
-           "Se liberaron con éxito los recursos asignados durante de la "
-           "creación del paquete");
+  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {
@@ -141,9 +114,10 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   pcb = malloc(sizeof(t_pcb));
 
   pcb->pid = pid;
-  pcb->tamanio = tamanio;     // TODO: definir
-  pcb->estimacion_rafaga = 0; // TODO: definir
-  pcb->program_counter = 0;   // TODO: definir
+  pcb->tamanio = tamanio;       // TODO: definir
+  pcb->estimacion_rafaga = 0;   // TODO: definir
+  pcb->tiempo_en_ejecucion = 0; // TODO: definir
+  pcb->program_counter = 0;     // TODO: definir
   pcb->estado = NEW;
 
   return pcb;
@@ -182,11 +156,12 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, pc=%d, estado=%d\n",
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, t_en_exec=%d, pc=%d, estado=%d\n",
          pcb->socket,
          pcb->pid,
          pcb->tamanio,
          pcb->estimacion_rafaga,
+         pcb->tiempo_en_ejecucion,
          pcb->program_counter,
          pcb->estado);
 

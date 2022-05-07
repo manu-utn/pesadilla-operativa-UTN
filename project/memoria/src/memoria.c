@@ -52,17 +52,18 @@ void* manejar_nueva_conexion(void* args) {
       } break;
       case READ: {
         log_info(logger, "Comenzando operacion READ...");
-        log_info(logger, "HOLLAAAAAA");
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_operacion_read* read = paquete_obtener_operacion_read(paquete);
+        t_solicitud_segunda_tabla* read = paquete_obtener_solicitud_tabla_segundo_nivel(paquete);
+
+        log_info(logger, "Paquete recibido...");
 
         // PROCESO EL VALOR ENVIADO POR CPU, POR AHORA HARDCODEO UN VALOR PARA PROBAR LA CONEXION
 
-        t_respuesta_operacion_read* respuesta_read = malloc(sizeof(t_respuesta_operacion_read));
-        respuesta_read->valor_buscado = 20314;
+        t_respuesta_solicitud_segunda_tabla* respuesta_read = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+        respuesta_read->entrada_segundo_nivel = 3;
         t_paquete* paquete_con_respuesta = paquete_create();
         paquete_add_respuesta_operacion_read(paquete_con_respuesta, respuesta_read);
-        enviar_operacion_read(read->socket, paquete_con_respuesta);
+        enviar_operacion_read(socket_cliente, paquete_con_respuesta);
         // DESCOMENTAR PARA RESOLVER SEG FAULT
         paquete_destroy(paquete_con_respuesta);
 

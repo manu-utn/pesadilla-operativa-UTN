@@ -20,16 +20,11 @@ void* serializar_paquete(t_paquete* paquete) {
   return paquete_serializado;
 }
 
-void** deserializar_paquete(t_paquete* paquete_serializado) {
-  int offset, size_mensaje;
-  void** mensajes = NULL;
+t_list* deserializar_paquete(t_paquete* paquete_serializado) {
+  int offset = 0, size_mensaje = 0;
+  t_list* buffer = list_create();
 
-  offset = 0;
-
-  size_mensaje = 0;
   for (int index = 0, n = 1; offset < paquete_serializado->buffer->size; n++, index++) {
-    mensajes = realloc(mensajes, sizeof(t_buffer) * n);
-
     t_buffer* mensaje = empty_buffer();
 
     size_mensaje = *(int*)(paquete_serializado->buffer->stream + offset);
@@ -39,12 +34,11 @@ void** deserializar_paquete(t_paquete* paquete_serializado) {
     mensaje->stream = malloc(size_mensaje);
     memcpy(mensaje->stream, paquete_serializado->buffer->stream + offset, size_mensaje);
 
-    mensajes[index] = (t_buffer*)mensaje;
+    list_add(buffer, (t_buffer*)mensaje);
     offset += size_mensaje;
-    mensajes[index + 1] = NULL;
   }
 
-  return mensajes;
+  return buffer;
 }
 
 void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
@@ -56,6 +50,7 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(int));
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(int));
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
   offset += sizeof(t_pcb_estado);
@@ -158,6 +153,9 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
 
   offset += sizeof(int);
   memcpy(&(pcb->estimacion_rafaga), paquete_serializado->buffer->stream + offset, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(&(pcb->tiempo_en_ejecucion), paquete_serializado->buffer->stream + offset, sizeof(int));
 
   offset += sizeof(int);
   memcpy(&(pcb->program_counter), paquete_serializado->buffer->stream + offset, sizeof(int));
@@ -399,4 +397,30 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);
   offset += respuesta_dato->size_dato;
   return respuesta_dato;
+}
+void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
+  if (paquete->buffer == NULL) {
+    paquete->buffer = nuevo_mensaje;
+  } else {
+    int mensaje_size = nuevo_mensaje->size + sizeof(int);
+    int size = paquete->buffer->size + mensaje_size;
+
+    paquete->buffer->stream = realloc(paquete->buffer->stream, size);
+
+    int offset = 0;
+
+    offset += paquete->buffer->size;
+    memcpy(paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
+    xlog(COLOR_SERIALIZADO,
+         "Se agregó al buffer del paquete el tamaño de un stream (size=%d)",
+         *(int*)(paquete->buffer->stream + offset));
+
+    offset += sizeof(int);
+    memcpy(paquete->buffer->stream + offset, nuevo_mensaje->stream, nuevo_mensaje->size);
+    xlog(COLOR_SERIALIZADO,
+         "Se agregó al buffer del paquete un stream (stream=%s)",
+         (char*)(paquete->buffer->stream + offset));
+
+    paquete->buffer->size += mensaje_size;
+  }
 }
