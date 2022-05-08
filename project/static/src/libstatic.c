@@ -67,10 +67,15 @@ void iterator_paquete(void* valor) {
 }
 
 void paquete_destroy(t_paquete* paquete) {
+  int codigo_operacion = paquete->codigo_operacion;
+
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
+  xlog(COLOR_RECURSOS,
+       "Se liberaron con éxito los recursos asignados durante de la creación del paquete (%d, tipo=%s)",
+       codigo_operacion,
+       obtener_tipo_operacion(codigo_operacion));
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {
@@ -175,4 +180,13 @@ void imprimir_instrucciones(t_list* lista) {
     t_instruccion* instruccion = list_get(lista, index);
     imprimir_instruccion(instruccion);
   }
+}
+
+t_paquete* paquete_instruccion_create(int tamanio) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = PAQUETE_INSTRUCCION;
+  paquete->buffer->stream = malloc(tamanio);
+  paquete->buffer->size = tamanio;
+
+  return paquete;
 }

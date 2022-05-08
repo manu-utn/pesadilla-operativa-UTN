@@ -52,10 +52,42 @@ int esperar_cliente(int socket_servidor) {
   return socket_cliente;
 }
 
+char* obtener_tipo_operacion(op_code codigo_operacion) {
+  switch (codigo_operacion) {
+    case OPERACION_PAQUETE:
+      return "PAQUETE";
+      break;
+    case OPERACION_PCB:
+    case OPERACION_PCB_DESALOJADO:
+      return "PCB";
+      break;
+    case OPERACION_INTERRUPT:
+      return "INTERRUPT";
+      break;
+    case OPERACION_MENSAJE:
+      return "MENSAJE";
+      break;
+    case OPERACION_CONSOLA:
+      return "CONSOLA";
+      break;
+    case PAQUETE_INSTRUCCION:
+      return "PAQUETE_INSTRUCCION";
+      break;
+    default:
+      return "";
+  }
+}
+
 int recibir_operacion(int socket_cliente) {
+  xlog(COLOR_INFO, "Esperando recibir una operación...");
+
   int cod_op = -1;
   if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0) {
-    xlog(COLOR_PAQUETE, "Recibi una operacion (socket=%d, operacion=%d)", socket_cliente, cod_op);
+    xlog(COLOR_PAQUETE,
+         "Recibi una operacion (socket=%d, operacion=%d, tipo=%s)",
+         socket_cliente,
+         cod_op,
+         obtener_tipo_operacion(cod_op));
     return cod_op;
   } else {
     xlog(COLOR_CONEXION, "Se cerró una de las conexiones entrantes (socket=%d)", socket_cliente);
@@ -98,7 +130,7 @@ t_buffer* recibir_mensaje(int socket_cliente) {
 
 t_paquete* recibir_paquete(int socket_cliente) {
   t_paquete* paquete = paquete_create(); // TODO: need free x3
-  paquete->codigo_operacion = PAQUETE;
+  paquete->codigo_operacion = OPERACION_PAQUETE;
 
   int status = recibir(socket_cliente, paquete->buffer);
 
