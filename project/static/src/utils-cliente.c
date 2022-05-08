@@ -109,6 +109,21 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void matar_proceso(int socket_conexion_entrante) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = OPERACION_EXIT;
+
+  int status = enviar(socket_conexion_entrante, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "Se envió con éxito solicitud para finalizar una conexión entrante (socket_destino=%d)",
+         socket_conexion_entrante);
+  }
+
+  paquete_destroy(paquete);
+}
+
 // TODO: log_error si no asignó un codigo de operación
 void enviar_paquete(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
