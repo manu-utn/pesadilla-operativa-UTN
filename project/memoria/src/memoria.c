@@ -77,6 +77,15 @@ void* manejar_nueva_conexion(void* args) {
         estado_conexion_memoria = false;
         estado_conexion_con_cliente = false;
       }
+      case OPERACION_OBTENER_SEGUNDA_TABLA: {
+        break;
+      }
+      case OPERACION_OBTENER_MARCO: {
+        break;
+      }
+      case OPERACION_OBTENER_DATO: {
+        break;
+      }
       case -1: {
         log_info(logger, "el cliente se desconecto");
         estado_conexion_con_cliente = false;

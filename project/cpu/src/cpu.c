@@ -229,7 +229,7 @@ void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
   solicitud_dato_fisico->socket = socket_memoria;
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
-  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  enviar_operacion_obtener_dato(socket_memoria, paquete_con_direccion_a_leer);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
@@ -241,7 +241,7 @@ void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
   solicitud_marco->socket = socket_memoria;
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_marco(paquete_con_direccion_a_leer, solicitud_marco);
-  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  enviar_operacion_obtener_marco(socket_memoria, paquete_con_direccion_a_leer);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
@@ -253,7 +253,7 @@ void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
   read->socket = socket_memoria;
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_tabla_segundo_nivel(paquete_con_direccion_a_leer, read);
-  enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
+  enviar_operacion_obtener_segunda_tabla(socket_memoria, paquete_con_direccion_a_leer);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
