@@ -62,6 +62,91 @@ t_buffer* crear_mensaje(char* texto) {
   return mensaje;
 }
 
+
+t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer(); // <- generaba leaks
+  // mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  // mensaje->size = mensaje_size;
+
+  int offset;
+  int paquete_size = sizeof(int) * 6 + sizeof(t_pcb_estado);
+  mensaje->stream = malloc(paquete_size);
+
+  offset = 0, memcpy(mensaje->stream + offset, &(pcb->socket), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->pid), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->tamanio), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->estimacion_rafaga), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->program_counter), sizeof(int));
+  offset += sizeof(int), memcpy(mensaje->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
+  offset += sizeof(t_pcb_estado);
+
+  mensaje->size = offset;
+  for (int i = 0; i < list_size(pcb->instrucciones); i++) {
+    t_instruccion* instruccion = list_get(pcb->instrucciones, i);
+
+    int identificador_longitud = strlen(instruccion->identificador) + 1;
+    int identificador_size = identificador_longitud * sizeof(char);
+
+    int params_longitud = strlen(instruccion->params) + 1;
+    int params_size = params_longitud * sizeof(char);
+
+    int instruccion_size = identificador_size + params_size + sizeof(int) + sizeof(int);
+
+    mensaje->stream = realloc(mensaje->stream, offset + instruccion_size);
+    paquete_add_instruccion(mensaje, instruccion);
+
+    offset += instruccion_size;
+  }
+
+  if (tiempo_bloqueo != NULL) {
+    offset += sizeof(int), memcpy(mensaje->stream + offset, &tiempo_bloqueo, sizeof(int));
+  }
+
+
+  mensaje->size = offset;
+}
+
+
+void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion) {
+  int identificador_longitud = strlen(instruccion->identificador) + 1;
+  int identificador_size = identificador_longitud * sizeof(char);
+
+  int params_longitud = strlen(instruccion->params) + 1;
+  int params_size = params_longitud * sizeof(char);
+
+  int instruccion_size = identificador_size + params_size + sizeof(int) + sizeof(int);
+
+  int offset = 0;
+
+  if (mensaje->stream == NULL) {
+    mensaje->stream = malloc(instruccion_size);
+  } else {
+    mensaje->stream = realloc(mensaje->stream, mensaje->size + instruccion_size);
+    offset = mensaje->size;
+  }
+
+  memcpy(mensaje->stream + offset, &identificador_size, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, instruccion->identificador, identificador_size);
+
+  offset += identificador_size;
+  memcpy(mensaje->stream + offset, &params_size, sizeof(int));
+
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, instruccion->params, params_size);
+
+  mensaje->size = mensaje->size + instruccion_size;
+
+  offset += params_size;
+}
+
+
 void iterator_paquete(void* valor) {
   log_info(logger, "[PAQUETE] %s\n", (char*)valor);
 }

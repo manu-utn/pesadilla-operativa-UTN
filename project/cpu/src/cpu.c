@@ -3,7 +3,7 @@
 #include "utils-cliente.h"
 #include "utils-servidor.h"
 #include <libstatic.h> // <-- STATIC LIB
-
+int CONEXION_CPU_INTERRUPT;
 // void* escuchar_dispatch(void* arguments) {
 void* escuchar_dispatch() {
   // struct arg_struct* args = (struct arg_struct*)arguments;
@@ -50,7 +50,7 @@ void* manejar_nueva_conexion(void* args) {
 
         t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
         pcb_deserializado->socket = socket_cliente;
-        ciclo_instruccion(pcb_deserializado);
+        ciclo_instruccion(pcb_deserializado, socket_cliente);
         imprimir_pcb(pcb_deserializado);
         paquete_destroy(paquete_con_pcb);
         free(pcb_deserializado);
@@ -100,14 +100,14 @@ void* escuchar_interrupt() {
   free(puerto);
 }
 
-void ciclo_instruccion(t_pcb* pcb) {
+void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
 
   while (pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion) + 1);
     instruccion = fetch(pcb);
-    decode(instruccion, pcb);
+    decode(instruccion, pcb, socket_cliente);
     // free(instruccion);
     pcb->program_counter++;
   }
@@ -117,7 +117,7 @@ t_instruccion* fetch(t_pcb* pcb) {
   return list_get(pcb->instrucciones, pcb->program_counter - 1);
 }
 
-void decode(t_instruccion* instruccion, t_pcb* pcb) {
+void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     log_info(logger, "Ejecutando NO_OP...");
     // int retardo = (float)config_get_int_value(config, "RETARDO_NOOP") / (float)1000;
@@ -127,12 +127,20 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
 
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
     log_info(logger, "Ejecutando IO...");
-    t_paquete* paquete_con_pcb = paquete_create();
-    // uint32_t tiempo_bloqueo = 0;
-    // tiempo_bloqueo = atoi(instruccion->params);
+    // t_paquete* paquete_con_pcb = paquete_create();
+    uint32_t tiempo_bloqueo = 0;
+    pcb->program_counter++;
+    tiempo_bloqueo = atoi(instruccion->params);
     // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
     // enviar_pcb(pcb->socket, paquete_con_pcb);
-    paquete_destroy(paquete_con_pcb);
+
+    t_paquete* paquete = paquete_create();
+    t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, tiempo_bloqueo);
+
+    paquete_cambiar_mensaje(paquete, mensaje);
+    enviar_pcb_actualizado(socket_cliente, paquete);
+
+    // paquete_destroy(paquete_con_pcb);
   }
 
   else if (strcmp(instruccion->identificador, "READ") ==
@@ -199,6 +207,16 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
   }
 
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
+  }
+
+  else if ((instruccion->identificador, "EXIT") == 0) {
+    xlog(COLOR_CONEXION, "Ejecutando EXIT");
+    pcb->program_counter++;
+    t_paquete* paquete = paquete_create();
+    t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
+
+    paquete_cambiar_mensaje(paquete, mensaje);
+    enviar_pcb_actualizado(socket_cliente, paquete);
   }
 }
 
@@ -294,4 +312,72 @@ bool esta_en_tlb(int num_pagina) {
     return contenido_tlb->pagina == num_pagina;
   }
   return list_any_satisfy(tlb, es_la_pagina);
+}
+
+
+void* iniciar_conexion_interrupt() {
+  char* ip = config_get_string_value(config, "IP_ESCUCHA");
+  char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
+
+  CONEXION_CPU_INTERRUPT = iniciar_servidor(ip, puerto); // TODO: evaluar posibilidad de condición de carrera
+
+  xlog(COLOR_CONEXION, "Conexión Interrupt lista con el cliente Kernel");
+
+  pthread_t th;
+  pthread_create(&th, NULL, escuchar_conexiones_entrantes_en_interrupt, NULL), pthread_detach(th);
+
+  pthread_exit(NULL);
+}
+
+void* escuchar_conexiones_entrantes_en_interrupt() {
+  CONEXION_ESTADO estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
+  CONEXION_ESTADO ESTADO_CONEXION_INTERRUPT = CONEXION_ESCUCHANDO;
+
+  while (ESTADO_CONEXION_INTERRUPT) {
+    int socket_cliente = esperar_cliente(CONEXION_CPU_INTERRUPT);
+    estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
+
+    while (estado_conexion_con_cliente) {
+      int codigo_operacion = recibir_operacion(socket_cliente);
+
+      switch (codigo_operacion) {
+        case OPERACION_INTERRUPT: {
+          t_paquete* paquete = recibir_paquete(socket_cliente);
+          xlog(COLOR_PAQUETE, "se recibió una Interrupción");
+          t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
+          paquete_con_pcb = recibir_paquete(socket_cliente);
+          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
+
+          pcb_deserializado->program_counter++;
+          t_paquete* paquete_respuesta = paquete_create();
+          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, NULL);
+          paquete_cambiar_mensaje(paquete_respuesta, mensaje);
+          enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
+
+          paquete_destroy(paquete);
+        } break;
+        case OPERACION_MENSAJE: {
+          recibir_mensaje(socket_cliente);
+        } break;
+        case OPERACION_EXIT: {
+          xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
+
+          log_destroy(logger), close(CONEXION_CPU_INTERRUPT);
+          // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
+          ESTADO_CONEXION_INTERRUPT = CONEXION_FINALIZADA;
+          estado_conexion_con_cliente = CONEXION_FINALIZADA;
+        } break;
+        case -1: {
+          xlog(COLOR_CONEXION, "el cliente se desconecto (socket=%d)", socket_cliente);
+
+          // centinela para detener el loop del hilo asociado a la conexión
+          // entrante
+          estado_conexion_con_cliente = CONEXION_FINALIZADA;
+        } break;
+        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+      }
+    }
+  }
+
+  pthread_exit(NULL);
 }

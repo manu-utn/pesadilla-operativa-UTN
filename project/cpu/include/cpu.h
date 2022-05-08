@@ -61,6 +61,7 @@ int socket_cpu_dispatch;
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);
 void limpiarConfiguracion();
+void* iniciar_conexion_interrupt();
 void iniciar_ciclo_instruccion();
 //void* escuchar_dispatch(void* arguments);
 //void* escuchar_interrupt(void* arguments);
@@ -70,11 +71,13 @@ int conectarse_a_memoria();
 t_instruccion* fetch(t_pcb* pcb);
 
 void iniciar_tlb();
-void ciclo_instruccion(t_pcb* pcb);
-void decode(t_instruccion* instruccion, t_pcb* pcb);
+void ciclo_instruccion(t_pcb* pcb, int socket_cliente);
+void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente);
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion);
 
 void* manejar_nueva_conexion(void* args);
+
+void* escuchar_conexiones_entrantes_en_interrupt();
 
 bool esta_en_tlb(int num_pagina);
 void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,

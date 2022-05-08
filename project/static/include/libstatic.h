@@ -26,7 +26,7 @@ typedef enum {
 
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
-  OPERACION_INTERRUPT, OPERACION_CONSOLA
+  OPERACION_INTERRUPT, OPERACION_CONSOLA, OPERACION_IO
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -150,4 +150,7 @@ void pcb_destroy(t_pcb* pcb);
 t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
+
+t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
+void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion);
 #endif
