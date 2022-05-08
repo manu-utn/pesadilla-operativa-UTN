@@ -19,7 +19,7 @@ int CONEXION_CPU_INTERRUPT;
 int SOCKET_CLIENTE_DISPATCH;
 
 int main() {
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "Servidor-1");
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU-Fake");
   config = iniciar_config(DIR_SERVIDOR_CFG);
 
   pthread_t th1, th2;
@@ -195,7 +195,7 @@ void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
     t_instruccion* instruccion = list_get(instrucciones, index);
 
     validar_operacion_io(pcb, instruccion);
-    validar_operacion_exit(pcb, instruccion);
+    // validar_operacion_exit(pcb, instruccion);
   }
 
   imprimir_pcb(pcb);

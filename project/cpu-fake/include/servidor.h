@@ -15,7 +15,7 @@ t_config *config;
 
 pcb_timer_t TIMER;
 
-#define MODULO "servidor-1"
+#define MODULO "cpu-fake"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/servidor.cfg"
 
