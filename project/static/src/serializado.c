@@ -1,6 +1,5 @@
 #include "serializado.h"
 #include "libstatic.h"
-#include <commons/collections/list.h>
 
 void* serializar_paquete(t_paquete* paquete) {
   // int size_paquete = sizeof(int) + sizeof(int) + paquete->buffer->size;
@@ -43,7 +42,7 @@ t_list* deserializar_paquete(t_paquete* paquete_serializado) {
 
 void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   int offset;
-  int cantidad_columnas_tipo_int = 6; // {socket, tamanio, estimacion_rafaga, ...}
+  int cantidad_columnas_tipo_int = 7; // {socket, tamanio, estimacion_rafaga, ...}
   int paquete_size = sizeof(int) * cantidad_columnas_tipo_int + sizeof(t_pcb_estado);
 
   paquete->buffer->stream = malloc(paquete_size);
@@ -57,6 +56,8 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(int));
 
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(int));
+
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_de_bloqueado), sizeof(int));
 
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(int));
 
@@ -156,21 +157,31 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
 
   offset += sizeof(int);
   memcpy(&(pcb->pid), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->pid = %d", pcb->pid);
 
   offset += sizeof(int);
   memcpy(&(pcb->tamanio), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->tamanio = %d", pcb->tamanio);
 
   offset += sizeof(int);
   memcpy(&(pcb->estimacion_rafaga), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->estimacion_rafaga = %d", pcb->estimacion_rafaga);
 
   offset += sizeof(int);
   memcpy(&(pcb->tiempo_en_ejecucion), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->tiempo_en_ejecucion = %d", pcb->tiempo_en_ejecucion);
+
+  offset += sizeof(int);
+  memcpy(&(pcb->tiempo_de_bloqueado), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->tiempo_de_bloqueado = %d", pcb->tiempo_de_bloqueado);
 
   offset += sizeof(int);
   memcpy(&(pcb->program_counter), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->program_counter = %d", pcb->program_counter);
 
   offset += sizeof(int);
   memcpy(&(pcb->estado), paquete_serializado->buffer->stream + offset, sizeof(t_pcb_estado));
+  xlog(COLOR_DESERIALIZADO, "pcb->estado = %d", pcb->estado);
 
   offset += sizeof(t_pcb_estado);
 
