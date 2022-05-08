@@ -36,6 +36,15 @@ void *escuchar_conexion_cpu_dispatch() {
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
 
     switch (codigo_operacion) {
+      case OPERACION_PCB_CON_IO: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
+        t_pcb *pcb = paquete_obtener_pcb(paquete);
+        paquete_destroy(paquete);
+
+        xlog(COLOR_PAQUETE, "Se recibió un pcb con operación de I/O (pid=%d)", pcb->pid);
+        xlog(COLOR_INFO, "Se bloquea un proceso (pid=%d, tiempo=%d)", pcb->pid, pcb->tiempo_de_bloqueado);
+        imprimir_pcb(pcb);
+      } break;
       case OPERACION_PCB_DESALOJADO: {
         t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
         t_pcb *pcb = paquete_obtener_pcb(paquete);
