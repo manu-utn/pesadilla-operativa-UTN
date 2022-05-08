@@ -16,52 +16,48 @@
 
 t_pcb *PROCESO_EJECUTANDO = NULL;
 
-int CONEXION_DISPATCH;
+int SOCKET_CONEXION_DISPATCH;
 // TODO: Evaluar si esta variable global es necesaria
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
-sem_t CONEXION_CON_CPU_HECHA;
-sem_t PCB_ACTUALIZADO;
+
+sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
+sem_t HAY_PCB_DESALOJADO;           // semáforo binario
 
 void *escuchar_conexion_cpu_dispatch() {
-  // ESTADO_CONEXION_DISPATCH = CONEXION_ESCUCHANDO;
+  SOCKET_CONEXION_DISPATCH = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
 
-  sem_wait(&CONEXION_CON_CPU_HECHA);
   CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
+  xlog(COLOR_INFO, "Escuchando Conexión CPU Dispatch...");
+
+  sem_post(&CONEXION_DISPATCH_DISPONIBLE); // se sincroniza con el interrupt
 
   while (estado_conexion) {
-    int codigo_operacion = recibir_operacion(CONEXION_DISPATCH);
+    int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
 
     switch (codigo_operacion) {
       case OPERACION_PCB_DESALOJADO: {
-        xlog(COLOR_INFO, "Recibi un pcb desalojado..!");
-        t_paquete *paquete = recibir_paquete(CONEXION_DISPATCH);
-        t_pcb *pcb = paquete_obtener_pcb(paquete); // 1) log de liberar recursos por la lista de instrucciones
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
+        t_pcb *pcb = paquete_obtener_pcb(paquete);
+        paquete_destroy(paquete);
+
+        liberar_cpu();
+        xlog(COLOR_PAQUETE, "Se recibió un pcb desalojado (pid=%d)", pcb->pid);
 
         // TODO: Actualizar tiempo en ejecucion usando timestamps
         pcb->tiempo_en_ejecucion--;
 
         imprimir_pcb(pcb);
-
-        paquete_destroy(paquete); // 2) log de liberar recursos por el paquete con pcb
-        // 3) log de liberar recursos por el paquete enviado con la interrupcion
-
-        PROCESO_EJECUTANDO = NULL;
         cambiar_estado_pcb(pcb, READY);
 
         // imprimir_grado_multiprogramacion_actual();
+        agregar_pcb_a_cola(pcb, COLA_READY);
 
-        // TODO: Revisar esto
-        // NO usar agregar_pcb_a_cola xq el signal de ahi adentro genera un loop infinito
-        pthread_mutex_lock(&(COLA_READY->mutex));
-        list_add(COLA_READY->lista_pcbs, pcb);
-        pthread_mutex_unlock(&(COLA_READY->mutex));
-        // agregar_pcb_a_cola(pcb, COLA_READY);
-
-        sem_post(&PCB_ACTUALIZADO);
+        sem_post(&HAY_PCB_DESALOJADO);
+        // estado_conexion = CONEXION_FINALIZADA;
       } break;
       case -1: {
-        xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", CONEXION_DISPATCH);
+        xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", SOCKET_CONEXION_DISPATCH);
 
         // TODO: se debería actualizar el NEW
         // bajar_grado_multiprogramacion();
@@ -74,7 +70,7 @@ void *escuchar_conexion_cpu_dispatch() {
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
-        log_destroy(logger), close(CONEXION_DISPATCH);
+        log_destroy(logger), close(SOCKET_CONEXION_DISPATCH);
         // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
         // Antes se esperaba un cliente pero ya no xq ya esxiste la conexion dispatch con kernel como cliente
         // ESTADO_CONEXION_DISPATCH = CONEXION_FINALIZADA;
@@ -88,21 +84,21 @@ void *escuchar_conexion_cpu_dispatch() {
     }
   }
 
+  // xlog(COLOR_CONEXION, "Se dejó de escuchar una (socket=%d, conexion=CPU_DISPATCH)", SOCKET_CONEXION_DISPATCH);
   pthread_exit(NULL);
 }
 
-void *iniciar_conexion_cpu_dispatch() {
-  CONEXION_DISPATCH = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-  sem_post(&CONEXION_CON_CPU_HECHA);
-  pthread_exit(NULL);
+void iniciar_conexion_cpu_dispatch() {
+  pthread_t th;
+  pthread_create(&th, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 }
 
 void iniciar_planificacion() {
   pthread_t th1, th2, th3;
 
   inicializar_grado_multiprogramacion();
-  sem_init(&CONEXION_CON_CPU_HECHA, 0, 0);
-  sem_init(&PCB_ACTUALIZADO, 0, 0);
+  sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
+  sem_init(&HAY_PCB_DESALOJADO, 0, 0);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
 
@@ -113,7 +109,9 @@ void iniciar_planificacion() {
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
+
   pthread_create(&th3, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th3);
+
   // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
   // sleep(1);
 
@@ -132,63 +130,65 @@ void cola_destroy(t_cola_planificacion *cola) {
 void *iniciar_corto_plazo() {
   xlog(COLOR_INFO, "Planificador de Corto Plazo: Ejecutando...");
 
-
   // TODO: evaluar si corresponde conectar/desconectar a cada rato, ó si solo mantenemos la conexión
   // Decidi mantener la conexion, especialmente porque se deben escuchar por mensajes de esta conexion ademas de enviar
-  pthread_t th;
-  pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
+  // pthread_t th;
+  // pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 
   while (1) {
-    // xlog(COLOR_INFO, "Entro a while de pcp");
-    // TODO: falta hacer un sem_signal() para que ande ok lo de hay_procesos en running
     sem_wait(&(COLA_READY->cantidad_procesos));
 
-    // TODO: No está contemplando varios procesos..
-    xlog(COLOR_INFO, "Hay procesos en running? %s", hay_un_proceso_en_running() ? "SI" : "NO");
+    t_pcb *pcb_elegido_a_ejecutar = NULL;
 
-    // TODO: falta contemplar FIFO
-    if (hay_un_proceso_en_running()) {
-      if (algoritmo_cargado_es("SJF")) {
-        enviar_interrupcion(); // para desalojar al que esté ejecutando
-        sem_wait(&PCB_ACTUALIZADO);
-        enviar_pcb_de_cola_ready_a_cpu();
-        // int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-      }
+    imprimir_proceso_en_running();
+    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SJF")) {
+      xlog(COLOR_ERROR, "No hay un algoritmo de planificación cargado ó dicho algoritmo no está implementado");
     } else {
-      enviar_pcb_de_cola_ready_a_cpu();
+      if (algoritmo_cargado_es("SJF") && hay_algun_proceso_ejecutando()) {
+        // TODO: validar en el foro, ya que si no se está realizando un handshake y no lo solicitan
+
+        enviar_interrupcion();
+        // iniciar_conexion_cpu_dispatch(), enviar_interrupcion();
+        sem_wait(&HAY_PCB_DESALOJADO); // se bloquea hasta recibir el pcb de cpu
+      }
     }
 
+    pcb_elegido_a_ejecutar = elegir_pcb_segun_algoritmo(COLA_READY);
+    imprimir_pcb(pcb_elegido_a_ejecutar);
+    xlog(COLOR_TAREA,
+         "Se seleccionó un Proceso para ejecutar en CPU (pid=%d, algoritmo=%s)",
+         pcb_elegido_a_ejecutar->pid,
+         obtener_algoritmo_cargado());
 
-    // TODO: al enviar la interrupción a CPU, éste nos debe devolver el PCB del proceso que estaba
-    // ejecutando, para elegir el siguiente proceso
-
-    // TODO: agregar en el planificador de corto plazo
-    // esto lanza una excepción si la conexión dispatch de cpu no fue iniciada..
+    ejecutar_proceso(pcb_elegido_a_ejecutar);
   }
 
   pthread_exit(NULL);
 }
 
-void enviar_pcb_de_cola_ready_a_cpu() {
-  xlog(COLOR_TAREA, "Cantidad de procesos en cola READY: %d", list_size(COLA_READY->lista_pcbs));
-  // int socket_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-  t_pcb *pcb = elegir_pcb_segun_algoritmo(COLA_READY);
-  xlog(COLOR_TAREA, "Se seleccionó un Proceso para ejecutar en CPU (pid=%d)", pcb->pid);
+void ejecutar_proceso(t_pcb *pcb) {
   transicion_ready_a_running(pcb);
-
-  // int conexion_cpu_dispatch = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
-  // CONEXION_DISPATCH = conexion_cpu_dispatch;
-  int conexion_cpu_dispatch = CONEXION_DISPATCH;
+  xlog(COLOR_TAREA, "Cantidad de procesos en cola READY: %d", list_size(COLA_READY->lista_pcbs));
 
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
-  enviar_pcb(conexion_cpu_dispatch, paquete);
+  enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
 
-  // close(socket_cpu_dispatch);
+  // TODO: validar en el foro si se permite el escuchar la conexión dispatch desde kernel,
+  // caso contrario deberiamos optar por algo asi
+  // TODO: esto genera problemas para el envío/recepción de los paquetes apesar que esté sincronizado con semáforos
+
+  // int socket_destino = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+  /* if (socket_destino != -1) { */
+  /*   t_paquete *paquete = paquete_create(); */
+  /*   paquete_add_pcb(paquete, pcb); */
+  /*   enviar_pcb(socket_destino, paquete); */
+  /* } */
+  /* close(socket_destino); */
 }
 
-// TODO: se deben cambiar de estado a EXIT y remover de la cola de READY... cuando se desconecten ó cuando terminen sus
-// hilos
+// TODO: se deben cambiar de estado a EXIT y remover de la cola de READY...
+// cuando se desconecten ó cuando terminen sus hilos
 void *iniciar_largo_plazo() {
   xlog(COLOR_INFO, "Planificador de Largo Plazo: Ejecutando...");
 
@@ -475,16 +475,19 @@ t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
   return pcb;
 }
 
-bool algoritmo_cargado_es(char *algoritmo) {
-  char *algoritmo_cargado = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+char *obtener_algoritmo_cargado() {
+  return config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+}
 
-  return strcmp(algoritmo_cargado, algoritmo) == 0;
+bool algoritmo_cargado_es(char *algoritmo) {
+  return strcmp(obtener_algoritmo_cargado(), algoritmo) == 0;
 }
 
 void enviar_interrupcion() {
   t_paquete *paquete = paquete_create();
   paquete->codigo_operacion = OPERACION_INTERRUPT;
 
+  sem_wait(&CONEXION_DISPATCH_DISPONIBLE); // para sincronizar la respuesta de cpu con el pcb desalojado
   int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
 
   if (socket_destino != -1) {
@@ -498,6 +501,18 @@ void enviar_interrupcion() {
   }
 }
 
-bool hay_un_proceso_en_running() {
+bool hay_algun_proceso_ejecutando() {
   return PROCESO_EJECUTANDO != NULL;
+}
+
+void liberar_cpu() {
+  PROCESO_EJECUTANDO = NULL;
+}
+
+void imprimir_proceso_en_running() {
+  if (hay_algun_proceso_ejecutando()) {
+    xlog(COLOR_INFO, "Hay algún proceso en running? SI (pid=%d)", PROCESO_EJECUTANDO->pid);
+  } else {
+    xlog(COLOR_INFO, "Hay algún proceso en running? NO");
+  }
 }

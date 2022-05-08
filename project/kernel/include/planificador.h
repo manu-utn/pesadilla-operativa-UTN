@@ -83,8 +83,15 @@ int pcb_tiempo_restante_de_ejecucion(t_pcb *pcb);
 
 t_pcb *elegir_pcb_segun_algoritmo();
 bool algoritmo_cargado_es(char *algoritmo);
+void liberar_cpu();
 
 void enviar_interrupcion();
-bool hay_un_proceso_en_running();
+bool hay_algun_proceso_ejecutando();
 void transicion_ready_a_running(t_pcb *pcb);
+char *obtener_algoritmo_cargado();
+void ejecutar_proceso(t_pcb*pcb);
+void imprimir_proceso_en_running();
+
+void iniciar_conexion_cpu_dispatch();
+void *escuchar_conexion_cpu_dispatch();
 #endif

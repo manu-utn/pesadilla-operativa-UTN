@@ -22,7 +22,8 @@ typedef enum {
 
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
-  OPERACION_INTERRUPT, OPERACION_CONSOLA
+  OPERACION_INTERRUPT, OPERACION_CONSOLA,
+  PAQUETE_INSTRUCCION
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -75,6 +76,7 @@ t_buffer* crear_mensaje(char* texto);
 t_pcb* pcb_create(int socket, int pid, int tamanio);
 t_instruccion* instruccion_create(char* identificador, char* params);
 t_paquete* paquete_create();
+t_paquete* paquete_instruccion_create(int tamanio);
 t_buffer* empty_buffer();
 int get_paquete_size(t_paquete* paquete);
 

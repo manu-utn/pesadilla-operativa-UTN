@@ -175,10 +175,12 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
   offset += sizeof(t_pcb_estado);
 
   int instrucciones_size = paquete_serializado->buffer->size - offset;
+  t_paquete* paquete_con_instrucciones = paquete_instruccion_create(instrucciones_size);
 
-  t_paquete* paquete_con_instrucciones = paquete_create();
-  paquete_con_instrucciones->buffer->stream = malloc(instrucciones_size);
-  paquete_con_instrucciones->buffer->size = instrucciones_size;
+  // TODO: no borrar hasta comprobar que funciona sin errores la nueva función paquete_instruccion_create()
+  /* t_paquete* paquete_con_instrucciones = paquete_create(); */
+  /* paquete_con_instrucciones->buffer->stream = malloc(instrucciones_size); */
+  /* paquete_con_instrucciones->buffer->size = instrucciones_size; */
 
   memcpy(paquete_con_instrucciones->buffer->stream, paquete_serializado->buffer->stream + offset, instrucciones_size);
 
