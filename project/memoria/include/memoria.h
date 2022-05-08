@@ -39,7 +39,7 @@ uint32_t size_memoria_principal;
 void* memoria_principal;
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
-
+int socket_memoria;
 void limpiarConfiguracion();
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);

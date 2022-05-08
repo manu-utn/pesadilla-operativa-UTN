@@ -57,7 +57,7 @@ t_list* tlb;
 int socket_memoria;
 bool estado_conexion_kernel;
 bool estado_conexion_con_cliente;
-
+int socket_cpu_dispatch;
 int cargarConfiguracion();
 int configValida(t_config* fd_configuracion);
 void limpiarConfiguracion();
@@ -80,7 +80,8 @@ bool esta_en_tlb(int num_pagina);
 void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
                          int num_marco,
                          int num_pagina,
-                         int tam_pagina);
+                         int tam_pagina,
+                         uint32_t dir_logica);
 
 void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
                           int num_pagina,
@@ -102,6 +103,9 @@ void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
                            int num_pagina,
                            int cant_entradas_por_tabla,
                            int numero_tabla_segundo_nivel);		 
+
+void armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
+
 t_list* marcos;
 t_list* paginas_en_memoria;
 

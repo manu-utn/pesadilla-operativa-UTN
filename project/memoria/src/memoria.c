@@ -16,19 +16,19 @@ void* escuchar_conexiones() {
   estado_conexion_memoria = true;
   char* ip = config_get_string_value(config, "IP_ESCUCHA");
   char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA");
-  int socket_kernel = iniciar_servidor(ip, puerto);
+  socket_memoria = iniciar_servidor(ip, puerto);
 
   while (estado_conexion_memoria) {
-    int cliente_fd = esperar_cliente(socket_kernel);
+    int cliente_fd = esperar_cliente(socket_memoria);
+    /*
+        if (cliente_fd != -1) {
+          t_paquete* paquete = paquete_create();
+          t_buffer* mensaje = crear_mensaje("Conexión aceptada por MEMORIA");
 
-    if (cliente_fd != -1) {
-      t_paquete* paquete = paquete_create();
-      t_buffer* mensaje = crear_mensaje("Conexión aceptada por MEMORIA");
-
-      paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-      // paquete_add_mensaje(paquete, mensaje);
-    }
-
+          paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
+          // paquete_add_mensaje(paquete, mensaje);
+        }
+    */
     pthread_t th;
     pthread_create(&th, NULL, manejar_nueva_conexion, &cliente_fd), pthread_detach(th);
   }
@@ -39,13 +39,13 @@ void* escuchar_conexiones() {
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   estado_conexion_con_cliente = true;
-
   while (estado_conexion_con_cliente) {
     int codigo_operacion = recibir_operacion(socket_cliente);
 
     switch (codigo_operacion) {
-      case MENSAJE_HANDSHAKE: {
-        log_info(logger, "Handshake establecido...");
+      case OPERACION_MENSAJE: {
+        recibir_mensaje(socket_cliente);
+
         // t_paquete* paquete = recibir_paquete(cliente_fd);
         // t_mensaje_handshake_cpu_memoria* mensaje = paquete_obtener_mensaje_handshake(paquete);
 
@@ -60,7 +60,7 @@ void* manejar_nueva_conexion(void* args) {
         // PROCESO EL VALOR ENVIADO POR CPU, POR AHORA HARDCODEO UN VALOR PARA PROBAR LA CONEXION
 
         t_respuesta_solicitud_segunda_tabla* respuesta_read = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
-        respuesta_read->entrada_segundo_nivel = 3;
+        respuesta_read->num_tabla_segundo_nivel = 3;
         t_paquete* paquete_con_respuesta = paquete_create();
         paquete_add_respuesta_operacion_read(paquete_con_respuesta, respuesta_read);
         enviar_operacion_read(socket_cliente, paquete_con_respuesta);
@@ -68,6 +68,14 @@ void* manejar_nueva_conexion(void* args) {
         paquete_destroy(paquete_con_respuesta);
 
         free(respuesta_read);
+      }
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
+
+        log_destroy(logger), close(socket_memoria);
+        // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
+        estado_conexion_memoria = false;
+        estado_conexion_con_cliente = false;
       }
       case -1: {
         log_info(logger, "el cliente se desconecto");

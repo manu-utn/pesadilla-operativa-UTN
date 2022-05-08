@@ -340,7 +340,7 @@ t_respuesta_solicitud_segunda_tabla* obtener_respuesta_solicitud_tabla_segundo_n
   t_respuesta_solicitud_segunda_tabla* read = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
   memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
-  memcpy(&(read->entrada_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  memcpy(&(read->num_tabla_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
 
   return read;
@@ -362,7 +362,6 @@ void paquete_add_solicitud_marco(t_paquete* paquete_serializado, t_solicitud_mar
   paquete_serializado->buffer->size = size_paquete;
   // offset += sizeof(read->direccion_logica);
 }
-
 
 t_respuesta_solicitud_marco* obtener_respuesta_solicitud_marco(t_paquete* paquete_serializado) {
   int offset = 0;

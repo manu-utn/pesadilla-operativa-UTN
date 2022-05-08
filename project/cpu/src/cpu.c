@@ -13,7 +13,7 @@ void* escuchar_dispatch() {
   // memcpy(puerto, args->arg2, strlen(args->arg2));
   char* ip = config_get_string_value(config, "IP_ESCUCHA");
   char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
-  int socket_cpu_dispatch = iniciar_servidor(ip, puerto);
+  socket_cpu_dispatch = iniciar_servidor(ip, puerto);
 
   while (estado_conexion_kernel) {
     int cliente_fd = esperar_cliente(socket_cpu_dispatch);
@@ -44,7 +44,7 @@ void* manejar_nueva_conexion(void* args) {
 
     // MENSAJE=0, PAQUETE=1
     switch (cod_op) {
-      case PCB: {
+      case OPERACION_PCB: {
         t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
         paquete_con_pcb = recibir_paquete(socket_cliente);
 
@@ -57,6 +57,14 @@ void* manejar_nueva_conexion(void* args) {
         // descomentar para validar el memcheck
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
+      } break;
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
+
+        log_destroy(logger), close(socket_cpu_dispatch);
+        // TODO: no estaría funcionando del todo, queda bloqueado en esperar_cliente()
+        estado_conexion_kernel = false;
+        estado_conexion_con_cliente = false;
       } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");
@@ -95,7 +103,6 @@ void* escuchar_interrupt() {
 void ciclo_instruccion(t_pcb* pcb) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
-  int i = 0;
 
   while (pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion) + 1);
@@ -121,8 +128,8 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
     log_info(logger, "Ejecutando IO...");
     t_paquete* paquete_con_pcb = paquete_create();
-    uint32_t tiempo_bloqueo = 0;
-    tiempo_bloqueo = atoi(instruccion->params);
+    // uint32_t tiempo_bloqueo = 0;
+    // tiempo_bloqueo = atoi(instruccion->params);
     // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
     // enviar_pcb(pcb->socket, paquete_con_pcb);
     paquete_destroy(paquete_con_pcb);
@@ -134,6 +141,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
     int cant_entradas_por_tabla = 10;
     int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
+    uint32_t dir_logica = atoi(instruccion->params);
     log_info(logger, "Leyendo de TLB");
     bool acierto_tlb = esta_en_tlb(num_pagina);
     if (acierto_tlb == false) {
@@ -149,11 +157,12 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
       // ACCESOS A MEMORIA PARA OBTENER EL MARCO
       // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
       t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
-      obtener_numero_tabla_segundo_nivel(read, pcb->tabla_primer_nivel, num_pagina, cant_entradas_por_tabla);
+      obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
       free(read);
       // RECIBO RESPUESTA DE MEMORIA
       t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
-      t_respuesta_solicitud_segunda_tabla* respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
+      t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+      respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
 
       // Envio operacion para obtener el marco
       t_solicitud_marco* solicitud_marco = malloc(sizeof(t_solicitud_marco));
@@ -164,12 +173,14 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
 
       // RECIBO RESPUESTA DE MEMORIA
       t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
-      t_respuesta_solicitud_marco* respuesta_solicitud_marco = obtener_respuesta_solicitud_marco(paquete_respuesta);
+      t_respuesta_solicitud_marco* respuesta_solicitud_marco =
+        obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
       free(respuesta_solicitud_marco);
 
       // ARMO SOLICITUD DATO
       t_solicitud_dato_fisico* solicitud_dato_fisico = malloc(sizeof(t_solicitud_dato_fisico));
-      obtener_dato_fisico(solicitud_dato_fisico, respuesta_solicitud_marco->num_marco, num_pagina, tam_pagina);
+      obtener_dato_fisico(
+        solicitud_dato_fisico, respuesta_solicitud_marco->num_marco, num_pagina, tam_pagina, dir_logica);
       free(solicitud_dato_fisico);
 
       // RECIBO RESPUESTA DE MEMORIA
@@ -194,13 +205,13 @@ void decode(t_instruccion* instruccion, t_pcb* pcb) {
 void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
                          int num_marco,
                          int num_pagina,
-                         int tam_pagina) {
-  armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina);
+                         int tam_pagina,
+                         uint32_t dir_logica) {
+  armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
   solicitud_dato_fisico->socket = socket_memoria;
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
   enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-  free(read);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
@@ -213,7 +224,6 @@ void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_marco(paquete_con_direccion_a_leer, solicitud_marco);
   enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-  free(read);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
@@ -226,7 +236,6 @@ void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
   t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_tabla_segundo_nivel(paquete_con_direccion_a_leer, read);
   enviar_operacion_read(socket_memoria, paquete_con_direccion_a_leer);
-  free(read);
   paquete_destroy(paquete_con_direccion_a_leer);
 }
 
@@ -249,6 +258,15 @@ void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
 
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion) {
   read->direccion_logica = atoi(instruccion->params);
+}
+
+void armar_solicitud_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+                                 int num_marco,
+                                 int num_pagina,
+                                 int tam_pagina,
+                                 uint32_t dir_logica) {
+  int desplazamiento = dir_logica - (num_pagina * tam_pagina);
+  solicitud_dato_fisico->dir_fisica = num_marco * tam_pagina + desplazamiento;
 }
 
 

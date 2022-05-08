@@ -29,17 +29,22 @@ int main() {
   socket_memoria = conectarse_a_memoria();
 
   // HANDSHAKE CON MEMORIA
-  t_mensaje_handshake_cpu_memoria* mensaje_hs = mensaje_handshake_create("MENSAJE PRUEBA");
+  /*t_mensaje_handshake_cpu_memoria* mensaje_hs = mensaje_handshake_create("MENSAJE PRUEBA");
 
   t_paquete* paquete_con_mensaje = paquete_create();
 
   paquete_add_mensaje_handshake(paquete_con_mensaje, mensaje_hs);
 
-  enviar_mensaje_handshake(socket_memoria, paquete_con_mensaje);
+  enviar_mensaje_handshake(socket_memoria, paquete_con_mensaje);*/
 
-  free(mensaje_hs);
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje("Conexión aceptada por Kernel");
+  paquete_cambiar_mensaje(paquete, mensaje);
+  enviar_mensaje(socket_memoria, paquete);
 
-  paquete_destroy(paquete_con_mensaje);
+  // free(mensaje);
+
+  // paquete_destroy(paquete);
 
 
   pthread_t th;
