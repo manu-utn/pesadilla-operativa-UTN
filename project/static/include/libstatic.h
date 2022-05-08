@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "xlog.h"
+#include "timer.h"
 
 typedef enum {
   OPERACION_EXIT=0,
@@ -23,6 +24,7 @@ typedef enum {
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
   OPERACION_INTERRUPT, OPERACION_CONSOLA,
+  OPERACION_PCB_CON_IO,
   PAQUETE_INSTRUCCION
   } op_code;
 
@@ -64,6 +66,7 @@ typedef struct {
   int tamanio;
   int estimacion_rafaga;
   int tiempo_en_ejecucion;
+  int tiempo_de_bloqueado;
   int program_counter;
   t_pcb_estado estado;
   t_list* instrucciones;

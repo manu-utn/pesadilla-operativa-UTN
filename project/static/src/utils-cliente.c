@@ -83,6 +83,19 @@ void enviar_pcb_desalojado(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_pcb_con_operacion_io(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PCB_CON_IO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "El PCB fue actualizado con una operación I/O y fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
+  }
+}
+
 void enviar_pcb(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PCB;
 

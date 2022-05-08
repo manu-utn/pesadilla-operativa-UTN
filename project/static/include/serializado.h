@@ -12,7 +12,7 @@
 
 #include "libstatic.h"
 
-t_log *logger;
+//t_log *logger;
 
 void *serializar_paquete(t_paquete *paquete);
 t_list* deserializar_paquete(t_paquete *paquete_serializado);

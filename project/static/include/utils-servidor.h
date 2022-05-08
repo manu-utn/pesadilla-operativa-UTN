@@ -14,7 +14,7 @@
 #include "libstatic.h"
 #include "serializado.h"
 
-t_log *logger;
+//t_log *logger;
 
 void *recibir_buffer(int *, int);
 int iniciar_servidor(char *, char *);

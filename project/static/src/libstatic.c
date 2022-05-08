@@ -1,7 +1,5 @@
 #include "libstatic.h"
 #include "utils-servidor.h"
-#include <stdint.h>
-#include <stdio.h>
 
 t_config* iniciar_config(char* config) {
   return config_create(config);
@@ -118,6 +116,7 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   pcb->tamanio = tamanio;       // TODO: definir
   pcb->estimacion_rafaga = 0;   // TODO: definir
   pcb->tiempo_en_ejecucion = 0; // TODO: definir
+  pcb->tiempo_de_bloqueado = 0; // TODO: definir
   pcb->program_counter = 0;     // TODO: definir
   pcb->estado = NEW;
 
@@ -147,14 +146,16 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, t_en_exec=%d, pc=%d, estado=%d\n",
-         pcb->socket,
-         pcb->pid,
-         pcb->tamanio,
-         pcb->estimacion_rafaga,
-         pcb->tiempo_en_ejecucion,
-         pcb->program_counter,
-         pcb->estado);
+  printf(
+    "socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d\n",
+    pcb->socket,
+    pcb->pid,
+    pcb->tamanio,
+    pcb->estimacion_rafaga,
+    pcb->tiempo_en_ejecucion,
+    pcb->tiempo_de_bloqueado,
+    pcb->program_counter,
+    pcb->estado);
 
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
@@ -167,10 +168,12 @@ void imprimir_pcb(t_pcb* pcb) {
 
 t_pcb* pcb_fake() {
   t_pcb* pcb = pcb_create(1, 10, 5);
-  pcb->socket = 4;
-  pcb->tamanio = 5000;
-  pcb->estimacion_rafaga = 2;
-  pcb->program_counter = 1;
+  pcb->socket = 0;
+  pcb->tamanio = 0;
+  pcb->estimacion_rafaga = 0;
+  pcb->program_counter = 0;
+  pcb->tiempo_en_ejecucion = 0;
+  pcb->tiempo_de_bloqueado = 0;
 
   return pcb;
 }
