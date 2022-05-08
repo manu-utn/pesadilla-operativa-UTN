@@ -96,13 +96,16 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
   pthread_exit(NULL);
 }
 
+// t_pcb* desalojar_proceso_en_ejecucion() { }
+
 void desalojar_y_enviar_proceso_en_ejecucion() {
   t_paquete* paquete = paquete_create();
-  paquete_add_pcb(paquete, PROCESO_EJECUTANDO);
   imprimir_pcb(PROCESO_EJECUTANDO);
 
+  paquete_add_pcb(paquete, PROCESO_EJECUTANDO);
+
   enviar_pcb_desalojado(SOCKET_CLIENTE_DISPATCH, paquete);
-  xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU");
+  xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", PROCESO_EJECUTANDO->pid);
   // pcb_destroy(PROCESO_EJECUTANDO);
 }
 
@@ -142,8 +145,8 @@ void* escuchar_conexiones_entrantes(void* args) {
 
           PROCESO_EJECUTANDO = paquete_obtener_pcb(paquete_con_pcb);
           xlog(COLOR_TAREA, "Ejecutando instrucciones de un proceso (pid=%d)", PROCESO_EJECUTANDO->pid);
+          imprimir_pcb(PROCESO_EJECUTANDO);
 
-          // imprimir_pcb(pcb_deserializado);
 
           // pcb_destroy(pcb_deserializado);
           // paquete_destroy(paquete_con_pcb);

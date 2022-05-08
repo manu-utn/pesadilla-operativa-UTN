@@ -91,4 +91,7 @@ void transicion_ready_a_running(t_pcb *pcb);
 char *obtener_algoritmo_cargado();
 void ejecutar_proceso(t_pcb*pcb);
 void imprimir_proceso_en_running();
+
+void iniciar_conexion_cpu_dispatch();
+void *escuchar_conexion_cpu_dispatch();
 #endif
