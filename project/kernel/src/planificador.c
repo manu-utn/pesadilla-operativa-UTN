@@ -43,7 +43,21 @@ void *escuchar_conexion_cpu_dispatch() {
 
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación de I/O (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se bloquea un proceso (pid=%d, tiempo=%d)", pcb->pid, pcb->tiempo_de_bloqueado);
+
+        // TODO: se debe bloquear el proceso, sin bloquear la escucha
+        transicion_running_a_blocked(pcb);
+
         imprimir_pcb(pcb);
+      } break;
+      case OPERACION_PCB_CON_EXIT: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
+        t_pcb *pcb = paquete_obtener_pcb(paquete);
+        paquete_destroy(paquete);
+
+        // TODO: sincronizar con plp para matar el proceso, y hacer transicion de estado/cola
+
+        xlog(COLOR_PAQUETE, "Se recibió un pcb con operación EXIT (pid=%d)", pcb->pid);
+        xlog(COLOR_INFO, "Se finaliza un proceso (pid=%d)", pcb->pid);
       } break;
       case OPERACION_PCB_DESALOJADO: {
         t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
@@ -52,9 +66,6 @@ void *escuchar_conexion_cpu_dispatch() {
 
         liberar_cpu();
         xlog(COLOR_PAQUETE, "Se recibió un pcb desalojado (pid=%d)", pcb->pid);
-
-        // TODO: Actualizar tiempo en ejecucion usando timestamps
-        pcb->tiempo_en_ejecucion--;
 
         imprimir_pcb(pcb);
         cambiar_estado_pcb(pcb, READY);
@@ -110,6 +121,7 @@ void iniciar_planificacion() {
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
+  COLA_BLOCKED = cola_planificacion_create();
 
   // TODO: descomentar a medida que se vayan implementando los planificadores
   /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
@@ -289,6 +301,20 @@ void transicion_ready_a_running(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_READY);
 
   PROCESO_EJECUTANDO = pcb;
+}
+
+void transicion_running_a_blocked(t_pcb *pcb) {
+  cambiar_estado_pcb(pcb, BLOCKED);
+  agregar_pcb_a_cola(pcb, COLA_BLOCKED);
+
+  liberar_cpu();
+
+  xlog(COLOR_TAREA,
+       "Transición de RUNNING a BLOCKED, el PCP atendió una operación de I/O (pid=%d, pcbs_en_blocked=%d, "
+       "tiempo_bloqueo=%d)",
+       pcb->pid,
+       list_size(COLA_BLOCKED->lista_pcbs),
+       pcb->tiempo_de_bloqueado);
 }
 
 void transicion_a_new(t_pcb *pcb) {

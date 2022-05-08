@@ -62,6 +62,7 @@ void transicion_new_a_ready(t_pcb *pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 void transicion_susready_a_ready(t_pcb *pcb);
+void transicion_running_a_blocked(t_pcb *pcb);
 
 t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
