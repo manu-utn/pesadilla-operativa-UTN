@@ -22,6 +22,13 @@ int SOCKET_CONEXION_DISPATCH;
 
 sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
 sem_t HAY_PCB_DESALOJADO;           // semáforo binario
+sem_t EJECUTAR_ALGORITMO_PCP;       // semaforo binario
+time_t BEGIN;
+time_t END;
+
+void avisar_a_pcp_que_decida() {
+  sem_post(&EJECUTAR_ALGORITMO_PCP);
+}
 
 void *escuchar_conexion_cpu_dispatch() {
   SOCKET_CONEXION_DISPATCH = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
@@ -29,11 +36,13 @@ void *escuchar_conexion_cpu_dispatch() {
   CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
   xlog(COLOR_INFO, "Escuchando Conexión CPU Dispatch...");
 
-  sem_post(&CONEXION_DISPATCH_DISPONIBLE); // se sincroniza con el interrupt
+  // sem_post(&CONEXION_DISPATCH_DISPONIBLE); // se sincroniza con el interrupt
 
   while (estado_conexion) {
     int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
+    END = time(NULL);
+    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %f", difftime(END, BEGIN));
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -46,7 +55,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // TODO: se debe bloquear el proceso, sin bloquear la escucha
         transicion_running_a_blocked(pcb);
-
+        avisar_a_pcp_que_decida(); // Le indico al pcb q debe realizar una eleccion ya q cpu esta vacia
         imprimir_pcb(pcb);
       } break;
       case OPERACION_PCB_CON_EXIT: {
@@ -72,7 +81,13 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // imprimir_grado_multiprogramacion_actual();
         agregar_pcb_a_cola(pcb, COLA_READY);
+        /*
+        pthread_mutex_lock(&(COLA_READY->mutex));
 
+        list_add(COLA_READY->lista_pcbs, pcb);
+
+        pthread_mutex_unlock(&(COLA_READY->mutex));
+        */
         sem_post(&HAY_PCB_DESALOJADO);
         // estado_conexion = CONEXION_FINALIZADA;
       } break;
@@ -98,9 +113,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // sem_post(&CERRAR_PROCESO);
       } break;
-      default: {
-        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 
@@ -151,13 +164,21 @@ void cola_destroy(t_cola_planificacion *cola) {
 void *iniciar_corto_plazo() {
   xlog(COLOR_INFO, "Planificador de Corto Plazo: Ejecutando...");
 
+  sem_init(&EJECUTAR_ALGORITMO_PCP, 0, 0);
   // TODO: evaluar si corresponde conectar/desconectar a cada rato, ó si solo mantenemos la conexión
   // Decidi mantener la conexion, especialmente porque se deben escuchar por mensajes de esta conexion ademas de enviar
   // pthread_t th;
   // pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 
   while (1) {
-    sem_wait(&(COLA_READY->cantidad_procesos));
+    sem_wait(&EJECUTAR_ALGORITMO_PCP); // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo
+                                           // proceso a cpu
+    xlog(COLOR_INFO, "PCP: Realizar toma de decision");
+    sem_wait(&(COLA_READY->cantidad_procesos)); // pero si no hay pcbs en ready se queda bloqueado aca hasta q haya
+    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso 
+    // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
+
+    // TODO: Si el semaforo EJECUTAR_ALGORITMO_PCP tiene valor 1, disminuirlo
 
     t_pcb *pcb_elegido_a_ejecutar = NULL;
 
@@ -194,7 +215,7 @@ void ejecutar_proceso(t_pcb *pcb) {
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
-
+  BEGIN = time(NULL);
   // TODO: validar en el foro si se permite el escuchar la conexión dispatch desde kernel,
   // caso contrario deberiamos optar por algo asi
   // TODO: esto genera problemas para el envío/recepción de los paquetes apesar que esté sincronizado con semáforos
@@ -340,6 +361,10 @@ void transicion_new_a_ready(t_pcb *pcb) {
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
 
+  if(!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+    sem_post(&EJECUTAR_ALGORITMO_PCP);
+  }
+  
   /*
    *
   liberar_una_instancia_de_recurso(COLA_NEW); // sem++
@@ -522,7 +547,7 @@ void enviar_interrupcion() {
   t_paquete *paquete = paquete_create();
   paquete->codigo_operacion = OPERACION_INTERRUPT;
 
-  sem_wait(&CONEXION_DISPATCH_DISPONIBLE); // para sincronizar la respuesta de cpu con el pcb desalojado
+  // sem_wait(&CONEXION_DISPATCH_DISPONIBLE); // para sincronizar la respuesta de cpu con el pcb desalojado
   int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
 
   if (socket_destino != -1) {

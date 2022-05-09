@@ -90,9 +90,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: {
-          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-        } break;
+        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
       }
     }
   }
@@ -176,9 +174,7 @@ void* escuchar_conexiones_entrantes(void* args) {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: {
-          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-        } break;
+        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
       }
     }
   }
@@ -203,8 +199,6 @@ void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
 
 void validar_operacion_io(t_pcb* pcb, t_instruccion* instruccion) {
   if (es_esta_instruccion(instruccion, "I/O")) {
-    t_paquete* paquete = paquete_create();
-    paquete_add_pcb(paquete, pcb);
     int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
 
     timer_detener();
@@ -212,6 +206,8 @@ void validar_operacion_io(t_pcb* pcb, t_instruccion* instruccion) {
     pcb->tiempo_de_bloqueado = tiempo_bloqueado;
     pcb->tiempo_en_ejecucion = TIMER.tiempo_total;
 
+    t_paquete* paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
     xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
     enviar_pcb_con_operacion_io(SOCKET_CLIENTE_DISPATCH, paquete);
   }
