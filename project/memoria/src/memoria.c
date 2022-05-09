@@ -78,6 +78,7 @@ void* manejar_nueva_conexion(void* args) {
         estado_conexion_con_cliente = false;
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
+        xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
         break;
       }
       case OPERACION_OBTENER_MARCO: {

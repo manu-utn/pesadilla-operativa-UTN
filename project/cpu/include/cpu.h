@@ -37,7 +37,10 @@ typedef struct{
 	int marco;
 }t_entrada_tlb;
 
-
+typedef enum{
+    ALGORITMO_FIFO=1,
+    ALGORITMO_LRU=2
+}algoritmo;
 
 /*
 typedef struct{
@@ -49,6 +52,7 @@ typedef struct{
     float estimacion_rafaga;
 }t_pcb;*/
 
+int algoritmo_reemplazo;
 t_configuracion * configuracion;
 t_config * fd_configuracion;
 t_config* config;
@@ -69,6 +73,7 @@ void* escuchar_dispatch();
 void* escuchar_interrupt();
 int conectarse_a_memoria();
 t_instruccion* fetch(t_pcb* pcb);
+int puntero_reemplazo;
 
 void iniciar_tlb();
 void ciclo_instruccion(t_pcb* pcb, int socket_cliente);
@@ -109,6 +114,10 @@ void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
 
 void armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
 
+void ejecutar_reemplazo();
+void reemplazo_fifo();
+void reemplazo_lru();
+void mock_datos_tlb();
 t_list* marcos;
 t_list* paginas_en_memoria;
 

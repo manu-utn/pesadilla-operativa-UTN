@@ -27,7 +27,7 @@ typedef enum {
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
   OPERACION_INTERRUPT, OPERACION_CONSOLA, OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,
-  OPERACION_OBTENER_MARCO, OPERACION_OBTENER_DATO
+  OPERACION_OBTENER_MARCO, OPERACION_OBTENER_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -154,4 +154,9 @@ t_pcb* pcb_fake();
 
 t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion);
+
+t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);
+t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read);
+t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read);
+
 #endif

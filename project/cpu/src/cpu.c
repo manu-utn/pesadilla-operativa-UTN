@@ -5,6 +5,14 @@
 #include <libstatic.h> // <-- STATIC LIB
 int CONEXION_CPU_INTERRUPT;
 // void* escuchar_dispatch(void* arguments) {
+
+void setear_algoritmo_reemplazo() {
+  char* algoritmo = config_get_string_value(config, "REEMPLAZO_TLB");
+  if (strcmp(algoritmo, "ALGORITMO_FIFO") == 0) {
+    algoritmo_reemplazo = ALGORITMO_FIFO;
+  } else
+    algoritmo_reemplazo = ALGORITMO_LRU;
+}
 void* escuchar_dispatch() {
   // struct arg_struct* args = (struct arg_struct*)arguments;
   estado_conexion_kernel = true;
@@ -58,6 +66,10 @@ void* manejar_nueva_conexion(void* args) {
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
       } break;
+      case OPERACION_BUSQUEDA_EN_MEMORIA_OK: {
+        xlog(COLOR_INFO, "Se recibe respuesta del proceso de busqueda en memoria");
+        // Aca va la logica para agregar entrada en la TLB, y efecturar el reemplazo si correspondiera
+      }
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -129,7 +141,6 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     log_info(logger, "Ejecutando IO...");
     // t_paquete* paquete_con_pcb = paquete_create();
     uint32_t tiempo_bloqueo = 0;
-    pcb->program_counter++;
     tiempo_bloqueo = atoi(instruccion->params);
     // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
     // enviar_pcb(pcb->socket, paquete_con_pcb);
@@ -167,6 +178,8 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
       t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
       obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
       free(read);
+
+
       // RECIBO RESPUESTA DE MEMORIA
       t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
       t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
@@ -227,10 +240,13 @@ void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
                          uint32_t dir_logica) {
   armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
   solicitud_dato_fisico->socket = socket_memoria;
-  t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  /*t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
   enviar_operacion_obtener_dato(socket_memoria, paquete_con_direccion_a_leer);
-  paquete_destroy(paquete_con_direccion_a_leer);
+  paquete_destroy(paquete_con_direccion_a_leer);*/
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje_obtener_dato_fisico(read);
+  paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_dato(socket_memoria, paquete);
 }
 
 void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
@@ -239,10 +255,13 @@ void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
                           int numero_tabla_segundo_nivel) {
   armar_solicitud_marco(solicitud_marco, num_pagina, cant_entradas_por_tabla, numero_tabla_segundo_nivel);
   solicitud_marco->socket = socket_memoria;
-  t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  /*t_paquete* paquete_con_direccion_a_leer = paquete_create();
   paquete_add_solicitud_marco(paquete_con_direccion_a_leer, solicitud_marco);
   enviar_operacion_obtener_marco(socket_memoria, paquete_con_direccion_a_leer);
-  paquete_destroy(paquete_con_direccion_a_leer);
+  paquete_destroy(paquete_con_direccion_a_leer);*/
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje_obtener_marco(read);
+  paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_marco(socket_memoria, paquete);
 }
 
 void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
@@ -251,10 +270,14 @@ void obtener_numero_tabla_segundo_nivel(t_solicitud_segunda_tabla* read,
                                         int cant_entradas_por_tabla) {
   armar_solicitud_tabla_segundo_nivel(read, pcb->tabla_primer_nivel, num_pagina, cant_entradas_por_tabla);
   read->socket = socket_memoria;
-  t_paquete* paquete_con_direccion_a_leer = paquete_create();
-  paquete_add_solicitud_tabla_segundo_nivel(paquete_con_direccion_a_leer, read);
-  enviar_operacion_obtener_segunda_tabla(socket_memoria, paquete_con_direccion_a_leer);
-  paquete_destroy(paquete_con_direccion_a_leer);
+  // t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  // paquete_add_solicitud_tabla_segundo_nivel(paquete_con_direccion_a_leer, read);
+  /*enviar_operacion_obtener_segunda_tabla(socket_memoria, paquete_con_direccion_a_leer);
+  paquete_destroy(paquete_con_direccion_a_leer);*/
+
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje_obtener_segunda_tabla(read);
+  paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_segunda_tabla(socket_memoria, paquete);
 }
 
 
@@ -380,4 +403,34 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
   }
 
   pthread_exit(NULL);
+}
+
+void ejecutar_reemplazo() {
+  switch (algoritmo_reemplazo) {
+    case ALGORITMO_FIFO: {
+      reemplazo_fifo();
+
+      break;
+    }
+
+    case ALGORITMO_LRU: {
+      reemplazo_lru();
+      break;
+    }
+  }
+}
+
+void reemplazo_fifo(t_entrada_tlb* entrada_reemplazo) {
+  while (puntero_reemplazo < list_size(tlb) - 1) {
+    t_entrada_tlb* entrada_actual = list_get(tlb, puntero_reemplazo);
+    list_replace(tlb, puntero_reemplazo, entrada_actual);
+    puntero_reemplazo++;
+  }
+
+  if (puntero_reemplazo == list_size(tlb) - 1) {
+    puntero_reemplazo = 0;
+  }
+}
+
+void reemplazo_lru() {
 }

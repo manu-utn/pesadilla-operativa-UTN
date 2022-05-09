@@ -16,6 +16,9 @@ int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU");
   config = iniciar_config(DIR_CPU_CFG);
   iniciar_tlb();
+  setear_algoritmo_reemplazo();
+  puntero_reemplazo = 0;
+  mock_datos_tlb();
 
   /*pthread_t th1, th2;
   struct arg_struct args_dispatch;
