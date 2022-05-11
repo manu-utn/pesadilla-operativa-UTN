@@ -46,10 +46,6 @@ int main() {
   return 0;
 }
 
-int es_esta_instruccion(char* identificador, char** params) {
-  return strcmp(identificador, params[0]) == 0;
-}
-
 int conectarse_a_cpu(char* conexion_puerto) {
   char* ip = config_get_string_value(config, "IP_CPU");
   char* puerto = config_get_string_value(config, conexion_puerto);
@@ -145,7 +141,9 @@ void* escuchar_nueva_conexion(void* args) {
 
         sem_post(&CERRAR_PROCESO);
       } break;
-      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+      default: {
+        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+      } break;
     }
   }
 

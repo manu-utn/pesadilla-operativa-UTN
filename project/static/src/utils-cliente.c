@@ -83,6 +83,19 @@ void enviar_pcb_desalojado(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_pcb_con_operacion_io(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PCB_CON_IO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "El PCB fue actualizado con una operación I/O y fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
+  }
+}
+
 void enviar_pcb(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PCB;
 
@@ -187,6 +200,21 @@ void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete) {
   }
 }
 
+
+void matar_proceso(int socket_conexion_entrante) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = OPERACION_EXIT;
+
+  int status = enviar(socket_conexion_entrante, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "Se envió con éxito solicitud para finalizar una conexión entrante (socket_destino=%d)",
+         socket_conexion_entrante);
+  }
+
+  paquete_destroy(paquete);
+}
 
 // TODO: log_error si no asignó un codigo de operación
 void enviar_paquete(int socket_destino, t_paquete* paquete) {

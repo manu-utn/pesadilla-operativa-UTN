@@ -79,6 +79,10 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+
+
+        paquete_destroy(paquete);
         break;
       }
       case OPERACION_OBTENER_MARCO: {

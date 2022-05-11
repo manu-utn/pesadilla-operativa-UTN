@@ -14,7 +14,7 @@
 #include "libstatic.h"
 #include "serializado.h"
 
-t_log *logger;
+//t_log *logger;
 
 void *recibir_buffer(int *, int);
 int iniciar_servidor(char *, char *);
@@ -25,4 +25,5 @@ t_buffer* recibir_mensaje(int);
 t_pcb *recibir_proceso(int socket_cliente);
 int recibir_operacion(int);
 void terminar_servidor(int fd_servidor, t_log *logger, t_config *config);
+char *obtener_tipo_operacion(op_code codigo_operacion);
 #endif

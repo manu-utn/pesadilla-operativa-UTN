@@ -14,7 +14,7 @@
 #include "libstatic.h"
 #include "serializado.h"
 
-t_log *logger;
+//t_log *logger;
 
 int conectar_a_servidor(char *ip, char *puerto);
 int enviar(int socket_destino, t_paquete *paquete);
@@ -23,6 +23,8 @@ void enviar_paquete(int socket_destino, t_paquete *paquete);
 void enviar_instrucciones(int socket_destino, t_paquete *paquete);
 void enviar_pcb(int socket_destino, t_paquete *paquete);
 void enviar_pcb_desalojado(int socket_destino, t_paquete *paquete);
+void enviar_pcb_con_operacion_io(int socket_destino, t_paquete *paquete);
+void matar_proceso(int socket_conexion_entrante);
 void terminar_cliente(int fd_servidor, t_log *logger, t_config *config);
 void enviar_operacion_read(int socket_destino, t_paquete *paquete);
 void enviar_mensaje_handshake(int socket_destino, t_paquete *paquete);

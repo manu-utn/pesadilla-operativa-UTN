@@ -117,7 +117,7 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
   log_info(logger, "leyendo instrucciones");
 
   while (pcb->program_counter < list_size(pcb->instrucciones)) {
-    t_instruccion* instruccion = malloc(sizeof(t_instruccion) + 1);
+    t_instruccion* instruccion = malloc(sizeof(t_instruccion));
     instruccion = fetch(pcb);
     decode(instruccion, pcb, socket_cliente);
     // free(instruccion);
@@ -126,7 +126,7 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
 }
 
 t_instruccion* fetch(t_pcb* pcb) {
-  return list_get(pcb->instrucciones, pcb->program_counter - 1);
+  return list_get(pcb->instrucciones, pcb->program_counter);
 }
 
 void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
@@ -140,6 +140,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
     log_info(logger, "Ejecutando IO...");
     // t_paquete* paquete_con_pcb = paquete_create();
+    /*
     uint32_t tiempo_bloqueo = 0;
     tiempo_bloqueo = atoi(instruccion->params);
     // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
@@ -150,6 +151,15 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
 
     paquete_cambiar_mensaje(paquete, mensaje);
     enviar_pcb_actualizado(socket_cliente, paquete);
+    */
+    int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
+
+    pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
+    t_paquete* paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
+    enviar_pcb_con_operacion_io(socket_cliente, paquete);
 
     // paquete_destroy(paquete_con_pcb);
   }
@@ -222,7 +232,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
   }
 
-  else if ((instruccion->identificador, "EXIT") == 0) {
+  else if (strcmp(instruccion->identificador, "EXIT") == 0) {
     xlog(COLOR_CONEXION, "Ejecutando EXIT");
     pcb->program_counter++;
     t_paquete* paquete = paquete_create();
@@ -433,4 +443,13 @@ void reemplazo_fifo(t_entrada_tlb* entrada_reemplazo) {
 }
 
 void reemplazo_lru() {
+}
+
+int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro) {
+  char** parametros = string_split(instruccion->params, " ");
+  int valor = atoi(parametros[numero_parametro]);
+
+  string_iterate_lines(parametros, (void*)free);
+
+  return valor;
 }

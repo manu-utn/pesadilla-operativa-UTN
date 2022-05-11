@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "xlog.h"
+#include "timer.h"
 
 typedef enum {
   OPERACION_EXIT=0,
@@ -26,8 +27,11 @@ typedef enum {
 
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
-  OPERACION_INTERRUPT, OPERACION_CONSOLA, OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,
-  OPERACION_OBTENER_MARCO, OPERACION_OBTENER_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK
+  OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,
+  OPERACION_OBTENER_MARCO, OPERACION_OBTENER_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK,
+  OPERACION_INTERRUPT, OPERACION_CONSOLA,
+  OPERACION_PCB_CON_IO, OPERACION_PCB_CON_EXIT,
+  PAQUETE_INSTRUCCION
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -69,6 +73,7 @@ typedef struct {
   int tamanio;
   int estimacion_rafaga;
   int tiempo_en_ejecucion;
+  int tiempo_de_bloqueado;
   int program_counter;
   int tabla_primer_nivel;
   t_pcb_estado estado;
@@ -130,6 +135,7 @@ t_buffer* crear_mensaje(char* texto);
 t_pcb* pcb_create(int socket, int pid, int tamanio);
 t_instruccion* instruccion_create(char* identificador, char* params);
 t_paquete* paquete_create();
+t_paquete* paquete_instruccion_create(int tamanio);
 t_buffer* empty_buffer();
 int get_paquete_size(t_paquete* paquete);
 

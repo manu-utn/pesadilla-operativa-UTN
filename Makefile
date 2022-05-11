@@ -35,6 +35,11 @@ exec-consola:
 	$(MAKE) --no-print-directory -C $(DIR_PROJECT)/consola compile
 	$(DIR_PROJECT)/consola/bin$(DIR_BIN)/consola.out $(ARCHIVO) $(TAMANIO)
 
+debug-consola:
+	$(info Ejecutando modulo consola...)
+	$(MAKE) --no-print-directory -C $(DIR_PROJECT)/consola compile
+	$(DEBUGGER) $(DIR_PROJECT)/consola/bin$(DIR_BIN)/consola.out $(ARCHIVO) $(TAMANIO)
+
 d debug: debugger-installed ## Debugear uno de los módulos
 	$(info Debugeando modulo...)
 	@$(call module_cmd,debug)

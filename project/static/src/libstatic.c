@@ -1,7 +1,5 @@
 #include "libstatic.h"
 #include "utils-servidor.h"
-#include <stdint.h>
-#include <stdio.h>
 
 t_config* iniciar_config(char* config) {
   return config_create(config);
@@ -71,7 +69,7 @@ t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read) {
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
-  mensaje->size = mensaje_size;
+  // mensaje->size = mensaje_size;
 
   memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
   offset += sizeof(int);
@@ -79,6 +77,8 @@ t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read) {
   offset += sizeof(int);
   memcpy(mensaje->stream + offset, &(read->entrada_primer_nivel), sizeof(int));
   offset += sizeof(int);
+
+  mensaje->size = offset;
 
   return mensaje;
 }
@@ -212,10 +212,15 @@ void iterator_paquete(void* valor) {
 }
 
 void paquete_destroy(t_paquete* paquete) {
+  int codigo_operacion = paquete->codigo_operacion;
+
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
+  xlog(COLOR_RECURSOS,
+       "Se liberaron con éxito los recursos asignados durante de la creación del paquete (%d, tipo=%s)",
+       codigo_operacion,
+       obtener_tipo_operacion(codigo_operacion));
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {
@@ -262,6 +267,7 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   pcb->tamanio = tamanio;       // TODO: definir
   pcb->estimacion_rafaga = 0;   // TODO: definir
   pcb->tiempo_en_ejecucion = 0; // TODO: definir
+  pcb->tiempo_de_bloqueado = 0; // TODO: definir
   pcb->program_counter = 0;     // TODO: definir
   pcb->estado = NEW;
 
@@ -301,14 +307,16 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, t_en_exec=%d, pc=%d, estado=%d\n",
-         pcb->socket,
-         pcb->pid,
-         pcb->tamanio,
-         pcb->estimacion_rafaga,
-         pcb->tiempo_en_ejecucion,
-         pcb->program_counter,
-         pcb->estado);
+  printf(
+    "socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d\n",
+    pcb->socket,
+    pcb->pid,
+    pcb->tamanio,
+    pcb->estimacion_rafaga,
+    pcb->tiempo_en_ejecucion,
+    pcb->tiempo_de_bloqueado,
+    pcb->program_counter,
+    pcb->estado);
 
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
@@ -321,10 +329,12 @@ void imprimir_pcb(t_pcb* pcb) {
 
 t_pcb* pcb_fake() {
   t_pcb* pcb = pcb_create(1, 10, 5);
-  pcb->socket = 4;
-  pcb->tamanio = 5000;
-  pcb->estimacion_rafaga = 2;
-  pcb->program_counter = 1;
+  pcb->socket = 0;
+  pcb->tamanio = 0;
+  pcb->estimacion_rafaga = 0;
+  pcb->program_counter = 0;
+  pcb->tiempo_en_ejecucion = 0;
+  pcb->tiempo_de_bloqueado = 0;
 
   return pcb;
 }
@@ -334,4 +344,13 @@ void imprimir_instrucciones(t_list* lista) {
     t_instruccion* instruccion = list_get(lista, index);
     imprimir_instruccion(instruccion);
   }
+}
+
+t_paquete* paquete_instruccion_create(int tamanio) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = PAQUETE_INSTRUCCION;
+  paquete->buffer->stream = malloc(tamanio);
+  paquete->buffer->size = tamanio;
+
+  return paquete;
 }
