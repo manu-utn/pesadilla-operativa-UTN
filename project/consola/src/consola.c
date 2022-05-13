@@ -2,6 +2,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <libstatic.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

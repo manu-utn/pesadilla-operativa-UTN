@@ -7,7 +7,7 @@
                 "${workspaceFolder}/include/*",
                 "/usr/local/include",
                 "/usr/include",
-                "/home/jelou/Documents/git/manu-cproject/project/static/include",
+                "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/static/include"
             ],
             "browse": {
                 "path": [
@@ -15,16 +15,18 @@
                     "${workspaceFolder}/include/*",
                     "/usr/local/include",
                     "/usr/include",
-                    "/home/jelou/Documents/git/manu-cproject/project/static/include",
-                    ],
+                    "/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/static/include"
+                ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            },            
+            },
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
-            "cppStandard": "c++17",            
+            "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-x64",
-            "defines": ["_GNU_SOURCE"],
+            "defines": [
+                "_GNU_SOURCE"
+            ],
             "compilerArgs": [
                 "-Wall",
                 "-Wextra",
@@ -32,5 +34,5 @@
             ]
         }
     ],
-    "version": 4
+    "version": 3
 }
