@@ -66,8 +66,9 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
 
-          timer_detener();
-          timer_imprimir();
+          // timer_detener();
+          // usleep(1000);
+          // timer_imprimir();
           desalojar_y_enviar_proceso_en_ejecucion();
 
           paquete_destroy(paquete);
@@ -101,14 +102,14 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 void desalojar_y_enviar_proceso_en_ejecucion() {
   t_paquete* paquete = paquete_create();
   t_pcb* pcb = PROCESO_EJECUTANDO;
-  pcb->tiempo_en_ejecucion = TIMER.tiempo_total; // en microsegundos
+  // pcb->tiempo_en_ejecucion = TIMER.tiempo_total; // en milisegundos
 
   xlog(COLOR_INFO,
        "Se actualizó el tiempo en ejecución de un pcb (pcb=%d, tiempo=%d)",
        pcb->pid,
        pcb->tiempo_en_ejecucion);
 
-  timer_imprimir();
+  // timer_imprimir();
   imprimir_pcb(pcb);
   paquete_add_pcb(paquete, pcb);
 
@@ -149,10 +150,10 @@ void* escuchar_conexiones_entrantes(void* args) {
 
           PROCESO_EJECUTANDO = paquete_obtener_pcb(paquete_con_pcb);
           xlog(COLOR_TAREA, "Ejecutando instrucciones de un proceso (pid=%d)", PROCESO_EJECUTANDO->pid);
-          timer_iniciar();
+          // timer_iniciar();
           // imprimir_pcb(PROCESO_EJECUTANDO);
 
-          iniciar_ciclo_de_instruccion(PROCESO_EJECUTANDO);
+          // iniciar_ciclo_de_instruccion(PROCESO_EJECUTANDO);
           // pcb_destroy(pcb_deserializado);
           // paquete_destroy(paquete_con_pcb);
         } break;
@@ -200,12 +201,12 @@ void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
 void validar_operacion_io(t_pcb* pcb, t_instruccion* instruccion) {
   if (es_esta_instruccion(instruccion, "I/O")) {
     int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
-
+    /*
     timer_detener();
     timer_imprimir();
     pcb->tiempo_de_bloqueado = tiempo_bloqueado;
     pcb->tiempo_en_ejecucion = TIMER.tiempo_total;
-
+    */
     t_paquete* paquete = paquete_create();
     paquete_add_pcb(paquete, pcb);
     xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);

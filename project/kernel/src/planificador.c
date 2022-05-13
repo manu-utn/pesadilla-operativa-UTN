@@ -42,7 +42,16 @@ void *escuchar_conexion_cpu_dispatch() {
     int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
     END = time(NULL);
-    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %f", difftime(END, BEGIN));
+    timer_detener();
+    timer_imprimir();
+    /*
+    struct tm *ptr;
+    time_t t;
+    t = time(NULL);
+    ptr = localtime(&t);
+    printf("%s", asctime(ptr));
+    */
+    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %lf", difftime(END, BEGIN));
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -72,6 +81,8 @@ void *escuchar_conexion_cpu_dispatch() {
         t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
         t_pcb *pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
+
+        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
 
         liberar_cpu();
         xlog(COLOR_PAQUETE, "Se recibió un pcb desalojado (pid=%d)", pcb->pid);
@@ -172,10 +183,10 @@ void *iniciar_corto_plazo() {
 
   while (1) {
     sem_wait(&EJECUTAR_ALGORITMO_PCP); // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo
-                                           // proceso a cpu
+                                       // proceso a cpu
     xlog(COLOR_INFO, "PCP: Realizar toma de decision");
     sem_wait(&(COLA_READY->cantidad_procesos)); // pero si no hay pcbs en ready se queda bloqueado aca hasta q haya
-    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso 
+    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso
     // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
 
     // TODO: Si el semaforo EJECUTAR_ALGORITMO_PCP tiene valor 1, disminuirlo
@@ -216,6 +227,14 @@ void ejecutar_proceso(t_pcb *pcb) {
   paquete_add_pcb(paquete, pcb);
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
   BEGIN = time(NULL);
+  timer_iniciar();
+  /*
+  struct tm *ptr;
+  time_t t;
+  t = time(NULL);
+  ptr = localtime(&t);
+  printf("%s", asctime(ptr));
+  */
   // TODO: validar en el foro si se permite el escuchar la conexión dispatch desde kernel,
   // caso contrario deberiamos optar por algo asi
   // TODO: esto genera problemas para el envío/recepción de los paquetes apesar que esté sincronizado con semáforos
@@ -361,10 +380,11 @@ void transicion_new_a_ready(t_pcb *pcb) {
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
 
-  if(!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+  if (!algoritmo_cargado_es("FIFO") ||
+      !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
     sem_post(&EJECUTAR_ALGORITMO_PCP);
   }
-  
+
   /*
    *
   liberar_una_instancia_de_recurso(COLA_NEW); // sem++
