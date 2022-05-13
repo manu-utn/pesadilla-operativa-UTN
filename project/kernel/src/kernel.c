@@ -89,6 +89,10 @@ void asignar_pid(t_pcb* pcb) {
   pcb->pid = ULTIMO_PID++;
 }
 
+void asignar_estimacion_rafaga_inicial(t_pcb* pcb) {
+  pcb->estimacion_rafaga = config_get_int_value(config, "ESTIMACION_INICIAL");
+}
+
 void* escuchar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   CONEXION_ESTADO estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
@@ -105,6 +109,7 @@ void* escuchar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         asignar_pid(pcb); // TODO: evaluar posibilidad de condición de carrera contra el recurso ULTIMO_PID
+        asignar_estimacion_rafaga_inicial(pcb);
 
         // TODO: validar si necesitamos contemplar algo más
         queue_push(PCBS_PROCESOS_ENTRANTES, pcb);

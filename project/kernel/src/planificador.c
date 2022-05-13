@@ -62,6 +62,12 @@ void *escuchar_conexion_cpu_dispatch() {
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación de I/O (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se bloquea un proceso (pid=%d, tiempo=%d)", pcb->pid, pcb->tiempo_de_bloqueado);
 
+        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
+
+        pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        pcb->tiempo_en_ejecucion = 0;
+
+
         // TODO: se debe bloquear el proceso, sin bloquear la escucha
         transicion_running_a_blocked(pcb);
         avisar_a_pcp_que_decida(); // Le indico al pcb q debe realizar una eleccion ya q cpu esta vacia
@@ -595,4 +601,11 @@ void imprimir_proceso_en_running() {
   } else {
     xlog(COLOR_INFO, "Hay algún proceso en running? NO");
   }
+}
+
+int calcular_estimacion_rafaga(t_pcb *pcb) {
+  double alfa = config_get_double_value(config, "ALFA");
+  xlog(COLOR_INFO, "El alfa es: %.2f", alfa);
+  int estimacion_proxima_rafaga = alfa * pcb->tiempo_en_ejecucion + (1 - alfa) * pcb->estimacion_rafaga;
+  return estimacion_proxima_rafaga;
 }
