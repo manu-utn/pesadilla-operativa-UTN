@@ -152,8 +152,8 @@ void* escuchar_conexiones_entrantes(void* args) {
           xlog(COLOR_TAREA, "Ejecutando instrucciones de un proceso (pid=%d)", PROCESO_EJECUTANDO->pid);
           // timer_iniciar();
           // imprimir_pcb(PROCESO_EJECUTANDO);
-
-          // iniciar_ciclo_de_instruccion(PROCESO_EJECUTANDO);
+          // sleep(1);
+          iniciar_ciclo_de_instruccion(PROCESO_EJECUTANDO);
           // pcb_destroy(pcb_deserializado);
           // paquete_destroy(paquete_con_pcb);
         } break;
@@ -191,8 +191,8 @@ void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
   for (int index = 0; index < list_size(instrucciones); index++) {
     t_instruccion* instruccion = list_get(instrucciones, index);
 
-    validar_operacion_io(pcb, instruccion);
-    // validar_operacion_exit(pcb, instruccion);
+    // validar_operacion_io(pcb, instruccion);
+    validar_operacion_exit(pcb, instruccion);
   }
 
   imprimir_pcb(pcb);
@@ -204,13 +204,23 @@ void validar_operacion_io(t_pcb* pcb, t_instruccion* instruccion) {
     /*
     timer_detener();
     timer_imprimir();
-    pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
     pcb->tiempo_en_ejecucion = TIMER.tiempo_total;
     */
+    pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
     t_paquete* paquete = paquete_create();
     paquete_add_pcb(paquete, pcb);
     xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
     enviar_pcb_con_operacion_io(SOCKET_CLIENTE_DISPATCH, paquete);
+  }
+}
+
+void validar_operacion_exit(t_pcb* pcb, t_instruccion* instruccion) {
+  if (es_esta_instruccion(instruccion, "EXIT")) {
+    t_paquete* paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    enviar_pcb_con_operacion_exit(SOCKET_CLIENTE_DISPATCH, paquete);
   }
 }
 

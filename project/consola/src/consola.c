@@ -69,7 +69,8 @@ void escuchar_a_kernel(int socket_servidor) {
 
         // matar_proceso(socket_servidor);
 
-        log_destroy(logger), liberar_conexion(socket_servidor);
+        liberar_conexion(socket_servidor), log_destroy(logger);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
       } break;
       case -1: {
         xlog(COLOR_CONEXION, "el servidor se desconecto (socket=%d)", socket_servidor);
@@ -79,6 +80,7 @@ void escuchar_a_kernel(int socket_servidor) {
       } break;
     }
   }
+  pthread_exit(NULL);
 }
 
 int conectarse_a_kernel() {

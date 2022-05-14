@@ -63,7 +63,8 @@ typedef enum {
   BLOCKED,
   SUSBLOCKED,
   SUSREADY,
-  FINISHED
+  FINISHED,
+  EXIT
 } t_pcb_estado;
 
 // TODO: definir atributos: instrucciones y tabla de paginas
