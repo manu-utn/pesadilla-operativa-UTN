@@ -42,7 +42,7 @@ t_cola_planificacion *COLA_NEW;
 t_cola_planificacion *COLA_READY;
 t_cola_planificacion *COLA_BLOCKED;
 t_cola_planificacion *COLA_SUSREADY;
-t_cola_planificacion *COLA_SUSBLOCKED;
+t_cola_planificacion *COLA_SUSBLOCKED; // No va a ser vecesaria
 t_cola_planificacion *COLA_FINISHED;
 
 void iniciar_planificacion();
@@ -63,6 +63,7 @@ void enviar_pcb_de_cola_ready_a_cpu();
 void transicion_a_new(t_pcb* pcb);
 void transicion_new_a_ready(t_pcb *pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
+void transicion_blocked_a_susready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 void transicion_susready_a_ready(t_pcb *pcb);
 void transicion_running_a_blocked(t_pcb *pcb);
@@ -101,4 +102,5 @@ int calcular_estimacion_rafaga(t_pcb *pcb);
 void iniciar_conexion_cpu_dispatch();
 void *escuchar_conexion_cpu_dispatch();
 void *gestor_de_procesos_bloqueados();
+void timer_suspension_proceso(t_pcb *pcb);
 #endif

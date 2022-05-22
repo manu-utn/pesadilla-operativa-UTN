@@ -171,7 +171,7 @@ void iniciar_planificacion() {
   // TODO: descomentar a medida que se vayan implementando los planificadores
   /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
   COLA_SUSREADY = cola_planificacion_create();
-  COLA_SUSBLOCKED = cola_planificacion_create();
+  COLA_SUSBLOCKED = cola_planificacion_create(); // No va a ser necesaria
   COLA_FINISHED = cola_planificacion_create();
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
@@ -347,6 +347,13 @@ void *iniciar_mediano_plazo() {
   pthread_exit(NULL);
 }
 
+void pmp_suspender_proceso(t_pcb *pcb) {
+  pcb->estado = SUSBLOCKED;
+  // TODO: Informar a memoria de suspension
+  // TODO: Aumentar grado de multiprogramacion
+  xlog(COLOR_INFO, "Se suspendio un proceso (pid = %d)", pcb->pid);
+}
+
 /*
 void *pmp_gestionar_blocked_a_susblocked() {
   xlog(COLOR_INFO, "Planificador de Mediano Plazo: Funcion gestion suspension de pcbs Ejecutando...");
@@ -414,7 +421,14 @@ void *gestor_de_procesos_bloqueados() {
     xlog(COLOR_INFO, "Finalizo el bloqueo del pcb=%d", pcb->pid);
     // TODO: Avisar a memoria fin de bloqueo y esperar respuesta
 
-    transicion_blocked_a_ready(pcb);
+    if (pcb->estado != BLOCKED) {
+      xlog(COLOR_INFO, "Proceso suspendido-bloqueado pasa a SUSREADY (pid = %d)", pcb->pid);
+      transicion_blocked_a_susready(pcb);
+    } else {
+      pcb->estado = READY;
+      xlog(COLOR_INFO, "Proceso bloqueado pasa a READY (pid = %d)", pcb->pid);
+      transicion_blocked_a_ready(pcb);
+    }
   }
 }
 
@@ -466,7 +480,8 @@ void transicion_running_a_blocked(t_pcb *pcb) {
   agregar_pcb_a_cola(pcb, COLA_BLOCKED);
 
   liberar_cpu();
-
+  pthread_t th;
+  pthread_create(&th, NULL, (void *)timer_suspension_proceso, (void *)pcb), pthread_detach(th);
   xlog(COLOR_TAREA,
        "Transición de RUNNING a BLOCKED, el PCP atendió una operación de I/O (pid=%d, pcbs_en_blocked=%d, "
        "tiempo_bloqueo=%d)",
@@ -540,6 +555,26 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
       sem_post(&EJECUTAR_ALGORITMO_PCP);
     }
   }
+}
+
+// TODO: Añadir un signal
+void transicion_blocked_a_susready(t_pcb *pcb) {
+  remover_pcb_de_cola(pcb, COLA_BLOCKED);
+  cambiar_estado_pcb(pcb, SUSREADY);
+  agregar_pcb_a_cola(pcb, COLA_SUSREADY);
+
+  log_info(logger,
+           "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
+           pcb->pid,
+           list_size(COLA_SUSREADY->lista_pcbs));
+
+  /*
+  if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
+    pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
+  }
+
+  sem_post(&(COLA_SUSREADY->instancias_disponibles));
+   */
 }
 
 // TODO: Añadir un signal
@@ -757,4 +792,25 @@ int calcular_estimacion_rafaga(t_pcb *pcb) {
 int obtener_tiempo_maximo_bloqueado() {
   int tiempo_maximo_bloqueado = config_get_int_value(config, "TIEMPO_MAXIMO_BLOQUEADO");
   return tiempo_maximo_bloqueado;
+}
+
+void timer_suspension_proceso(t_pcb *pcb) {
+  xlog(COLOR_INFO, "Comenzando timer de suspension (pid = %d)...", pcb->pid);
+  pcb_timer_t timer_suspension;
+  int tiempo_maximo_bloqueado = obtener_tiempo_maximo_bloqueado();
+  timer_suspension.timer_inicio = clock();
+
+  do {
+    timer_suspension.timer_fin = clock();
+
+    timer_suspension.tiempo_total = (timer_suspension.timer_fin - timer_suspension.timer_inicio) / 1000;
+  } while (pcb->estado == BLOCKED && timer_suspension.tiempo_total < tiempo_maximo_bloqueado);
+
+  xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);
+
+  if (pcb->estado == BLOCKED) {
+    pmp_suspender_proceso(pcb);
+  }
+
+  pthread_exit(NULL);
 }
