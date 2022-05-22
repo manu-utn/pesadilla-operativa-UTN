@@ -26,8 +26,10 @@ sem_t EJECUTAR_ALGORITMO_PCP;       // semaforo binario
 time_t BEGIN;
 time_t END;
 int SE_ENVIO_INTERRUPCION = 0;
+int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
 void avisar_a_pcp_que_decida() {
+  SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
   sem_post(&EJECUTAR_ALGORITMO_PCP);
 }
 
@@ -85,6 +87,11 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // TODO: sincronizar con plp para matar el proceso, y hacer transicion de estado/cola
         transicion_running_a_exit(pcb);
+        if (SE_ENVIO_INTERRUPCION) {
+          sem_post(&HAY_PCB_DESALOJADO);
+        } else {
+          avisar_a_pcp_que_decida(); // Le indico al pcb q debe realizar una eleccion ya q cpu esta vacia
+        }
 
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación EXIT (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se finaliza un proceso (pid=%d)", pcb->pid);
@@ -228,6 +235,8 @@ void *iniciar_corto_plazo() {
          obtener_algoritmo_cargado());
 
     ejecutar_proceso(pcb_elegido_a_ejecutar);
+
+    SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
   }
 
   pthread_exit(NULL);
@@ -426,11 +435,14 @@ void transicion_new_a_ready(t_pcb *pcb) {
        pcb->pid,
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
-
-  if (!algoritmo_cargado_es("FIFO") ||
-      !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-    sem_post(&EJECUTAR_ALGORITMO_PCP);
+  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
+    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      sem_post(&EJECUTAR_ALGORITMO_PCP);
+    }
   }
+
 
   /*
    *
