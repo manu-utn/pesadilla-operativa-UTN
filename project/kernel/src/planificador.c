@@ -85,16 +85,17 @@ void *escuchar_conexion_cpu_dispatch() {
         t_pcb *pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
 
+        xlog(COLOR_PAQUETE, "Se recibió un pcb con operación EXIT (pid=%d)", pcb->pid);
+        xlog(COLOR_INFO, "Se finaliza un proceso (pid=%d)", pcb->pid);
+
         // TODO: sincronizar con plp para matar el proceso, y hacer transicion de estado/cola
-        transicion_running_a_exit(pcb);
+        transicion_running_a_finished(pcb);
         if (SE_ENVIO_INTERRUPCION) {
           sem_post(&HAY_PCB_DESALOJADO);
         } else {
           avisar_a_pcp_que_decida(); // Le indico al pcb q debe realizar una eleccion ya q cpu esta vacia
         }
 
-        xlog(COLOR_PAQUETE, "Se recibió un pcb con operación EXIT (pid=%d)", pcb->pid);
-        xlog(COLOR_INFO, "Se finaliza un proceso (pid=%d)", pcb->pid);
       } break;
       case OPERACION_PCB_DESALOJADO: {
         t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
@@ -170,7 +171,7 @@ void iniciar_planificacion() {
   /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
   COLA_SUSREADY = cola_planificacion_create();
   COLA_SUSBLOCKED = cola_planificacion_create();
-  COLA_EXIT = cola_planificacion_create();
+  COLA_FINISHED = cola_planificacion_create();
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
@@ -279,7 +280,7 @@ void *iniciar_largo_plazo() {
   xlog(COLOR_INFO, "Planificador de Largo Plazo: Ejecutando...");
 
   pthread_t th;
-  pthread_create(&th, NULL, pcb_exit, NULL), pthread_detach(th);
+  pthread_create(&th, NULL, plp_pcb_finished, NULL), pthread_detach(th);
 
   while (1) {
     sem_wait(&(COLA_NEW->cantidad_procesos));
@@ -307,15 +308,15 @@ void *iniciar_largo_plazo() {
   pthread_exit(NULL);
 }
 
-void *pcb_exit() {
-  xlog(COLOR_INFO, "Planificador de Largo Plazo: Funcion transicion exit ejecutando...");
+void *plp_pcb_finished() {
+  xlog(COLOR_INFO, "Planificador de Largo Plazo: Funcion transicion finished ejecutando...");
 
   while (1) {
-    sem_wait(&(COLA_EXIT->cantidad_procesos));
+    sem_wait(&(COLA_FINISHED->cantidad_procesos));
 
     // TODO: Informar a memoria que termina el proceso y esperar respuesta
-    t_pcb *pcb = elegir_pcb_fifo(COLA_EXIT);
-    remover_pcb_de_cola(pcb, COLA_EXIT);
+    t_pcb *pcb = elegir_pcb_fifo(COLA_FINISHED);
+    remover_pcb_de_cola(pcb, COLA_FINISHED);
     imprimir_pcb(pcb);
     matar_proceso(pcb->socket);
     pcb_destroy(pcb);
@@ -401,16 +402,16 @@ void transicion_running_a_blocked(t_pcb *pcb) {
        pcb->tiempo_de_bloqueado);
 }
 
-void transicion_running_a_exit(t_pcb *pcb) {
-  cambiar_estado_pcb(pcb, EXIT);
-  agregar_pcb_a_cola(pcb, COLA_EXIT);
+void transicion_running_a_finished(t_pcb *pcb) {
+  cambiar_estado_pcb(pcb, FINISHED);
+  agregar_pcb_a_cola(pcb, COLA_FINISHED);
 
   liberar_cpu();
 
   xlog(COLOR_TAREA,
-       "Transición de RUNNING a EXIT, el PCP atendió una operación de EXIT (pid=%d, pcbs_en_exit=%d)",
+       "Transición de RUNNING a FINISHED, el PCP atendió una operación de FINISHED (pid=%d, pcbs_en_finished=%d)",
        pcb->pid,
-       list_size(COLA_EXIT->lista_pcbs));
+       list_size(COLA_FINISHED->lista_pcbs));
 }
 
 void transicion_a_new(t_pcb *pcb) {

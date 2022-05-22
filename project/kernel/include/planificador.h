@@ -43,14 +43,14 @@ t_cola_planificacion *COLA_READY;
 t_cola_planificacion *COLA_BLOCKED;
 t_cola_planificacion *COLA_SUSREADY;
 t_cola_planificacion *COLA_SUSBLOCKED;
-t_cola_planificacion *COLA_EXIT;
+t_cola_planificacion *COLA_FINISHED;
 
 void iniciar_planificacion();
 void *iniciar_corto_plazo();
 void *iniciar_largo_plazo();
 void *iniciar_mediano_plazo();
 
-void *pcb_exit();
+void *plp_pcb_finished();
 
 int pcb_get_posicion(t_pcb *pcb, t_list *lista);
 
@@ -66,7 +66,7 @@ void transicion_blocked_a_ready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 void transicion_susready_a_ready(t_pcb *pcb);
 void transicion_running_a_blocked(t_pcb *pcb);
-void transicion_running_a_exit(t_pcb *pcb);
+void transicion_running_a_finished(t_pcb *pcb);
 
 t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
