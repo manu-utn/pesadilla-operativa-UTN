@@ -1,0 +1,30 @@
+[INFO] 19:31:36:35 CPU/(15294:15294): ENTRADAS_TLB: 4
+REEMPLAZO_TLB: LRU
+RETARDO_NOOP: 1000
+IP_MEMORIA: 127.0.0.1
+PUERTO_MEMORIA: 8002
+PUERTO_ESCUCHA_DISPATCH: 4444
+PUERTO_ESCUCHA_INTERRUPT: 8005
+
+[INFO] 19:31:36:35 CPU/(15294:15294): Conectando a servidor... (ip=127.0.0.1, puerto=8002)
+[ERROR] 19:31:36:35 CPU/(15294:15294): Ocurrió un error al intentar conectarse a un proceso servidor
+[INFO] 19:31:36:35 CPU/(15294:15294): Se liberaron con éxito los recursos asignados durante de la creación del paquete
+[INFO] 19:31:36:35 CPU/(15294:15294): Se creo el socket con exito (socket=5)
+[INFO] 19:31:36:35 CPU/(15294:15294): Se asoció el puerto a la conexión con éxito (socket=5)
+[INFO] 19:31:36:36 CPU/(15294:15294): Esperando conexiones entrantes por el puerto 4444...
+[INFO] 19:31:36:36 CPU/(15294:15294): Servidor listo para recibir al cliente Kernel
+[INFO] 19:32:41:210 CPU/(16742:16742): ENTRADAS_TLB: 4
+REEMPLAZO_TLB: LRU
+RETARDO_NOOP: 1000
+IP_MEMORIA: 127.0.0.1
+PUERTO_MEMORIA: 8002
+PUERTO_ESCUCHA_DISPATCH: 4444
+PUERTO_ESCUCHA_INTERRUPT: 8005
+
+[INFO] 19:32:41:210 CPU/(16742:16742): Conectando a servidor... (ip=127.0.0.1, puerto=8002)
+[ERROR] 19:32:41:210 CPU/(16742:16742): Ocurrió un error al intentar conectarse a un proceso servidor
+[INFO] 19:32:41:211 CPU/(16742:16742): Se liberaron con éxito los recursos asignados durante de la creación del paquete
+[INFO] 19:32:41:211 CPU/(16742:16742): Se creo el socket con exito (socket=5)
+[INFO] 19:32:41:211 CPU/(16742:16742): Se asoció el puerto a la conexión con éxito (socket=5)
+[INFO] 19:32:41:211 CPU/(16742:16742): Esperando conexiones entrantes por el puerto 4444...
+[INFO] 19:32:41:211 CPU/(16742:16742): Servidor listo para recibir al cliente Kernel

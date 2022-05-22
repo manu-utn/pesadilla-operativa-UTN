@@ -24,5 +24,13 @@ void enviar_instrucciones(int socket_destino, t_paquete *paquete);
 void enviar_pcb(int socket_destino, t_paquete *paquete);
 void enviar_pcb_desalojado(int socket_destino, t_paquete *paquete);
 void enviar_pcb_con_operacion_io(int socket_destino, t_paquete *paquete);
+void matar_proceso(int socket_conexion_entrante);
 void terminar_cliente(int fd_servidor, t_log *logger, t_config *config);
+void enviar_operacion_read(int socket_destino, t_paquete *paquete);
+void enviar_mensaje_handshake(int socket_destino, t_paquete *paquete);
+void enviar_pcb_interrupt(int socket_destino, t_paquete* paquete);
+void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete);
+void enviar_operacion_obtener_segunda_tabla(int socket_destino, t_paquete* paquete);
+void enviar_operacion_obtener_marco(int socket_destino, t_paquete* paquete);
+
 #endif

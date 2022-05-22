@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <semaphore.h>
 #include "xlog.h"
 
 typedef enum { TIMER_ACTIVADO = 1, TIMER_DESACTIVADO = 0 } timer_estado;

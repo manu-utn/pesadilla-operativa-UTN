@@ -1,3 +1,10 @@
+bool es_esta_instruccion(t_instruccion * instruccion,char * identificador);
+int instruccion_obtener_parametro(t_instruccion * instruccion,int numero_parametro);
 int main();
+void * escuchar_conexiones_entrantes(void * args);
+void * escuchar_conexiones_entrantes_en_interrupt();
 void * iniciar_conexion_dispatch();
 void * iniciar_conexion_interrupt();
+void desalojar_y_enviar_proceso_en_ejecucion();
+void iniciar_ciclo_de_instruccion(t_pcb * pcb);
+void validar_operacion_io(t_pcb * pcb,t_instruccion * instruccion);

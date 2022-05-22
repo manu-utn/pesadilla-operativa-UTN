@@ -60,6 +60,7 @@ char* obtener_tipo_operacion(op_code codigo_operacion) {
     case OPERACION_PCB:
     case OPERACION_PCB_DESALOJADO:
     case OPERACION_PCB_CON_IO:
+    case OPERACION_PCB_CON_EXIT:
       return "PCB";
       break;
     case OPERACION_INTERRUPT:

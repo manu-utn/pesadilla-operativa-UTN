@@ -96,6 +96,19 @@ void enviar_pcb_con_operacion_io(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_pcb_con_operacion_exit(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PCB_CON_EXIT;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "El PCB fue actualizado con una operación EXIT y fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
+  }
+}
+
 void enviar_pcb(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PCB;
 
@@ -107,6 +120,113 @@ void enviar_pcb(int socket_destino, t_paquete* paquete) {
          socket_destino,
          paquete->buffer->size);
   }
+}
+
+void enviar_pcb_actualizado(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_IO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_pcb_interrupt(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_INTERRUPT;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "El PCB fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = MENSAJE_HANDSHAKE;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_operacion_read(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = READ;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_operacion_obtener_segunda_tabla(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_OBTENER_SEGUNDA_TABLA;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_operacion_obtener_marco(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_OBTENER_MARCO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_OBTENER_DATO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+
+void matar_proceso(int socket_conexion_entrante) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = OPERACION_EXIT;
+
+  int status = enviar(socket_conexion_entrante, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "Se envió con éxito solicitud para finalizar una conexión entrante (socket_destino=%d)",
+         socket_conexion_entrante);
+  }
+
+  paquete_destroy(paquete);
 }
 
 // TODO: log_error si no asignó un codigo de operación
