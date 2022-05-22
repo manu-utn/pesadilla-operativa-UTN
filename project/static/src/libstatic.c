@@ -255,7 +255,7 @@ void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete) {
 }
 
 void terminar_programa(int conexion, t_log* logger, t_config* config) {
-  log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
+  liberar_conexion(conexion), log_destroy(logger), config_destroy(config);
 }
 
 t_pcb* pcb_create(int socket, int pid, int tamanio) {

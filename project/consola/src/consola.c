@@ -69,7 +69,8 @@ void escuchar_a_kernel(int socket_servidor) {
 
         // matar_proceso(socket_servidor);
 
-        liberar_conexion(socket_servidor), log_destroy(logger);
+        // liberar_conexion(socket_servidor), log_destroy(logger);
+        terminar_programa(socket_servidor, logger, config);
         estado_conexion_con_servidor = CONEXION_FINALIZADA;
       } break;
       case -1: {
