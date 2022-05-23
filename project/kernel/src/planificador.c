@@ -55,7 +55,7 @@ void *escuchar_conexion_cpu_dispatch() {
     ptr = localtime(&t);
     printf("%s", asctime(ptr));
     */
-    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %lf", difftime(END, BEGIN));
+    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %lf", difftime(END, BEGIN)); // Timer en segundos para comparar aproximadamente con el de milisegundos
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -212,8 +212,6 @@ void *iniciar_corto_plazo() {
     // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso
     // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
 
-    // TODO: Si el semaforo EJECUTAR_ALGORITMO_PCP tiene valor 1, disminuirlo
-
     t_pcb *pcb_elegido_a_ejecutar = NULL;
 
     imprimir_proceso_en_running();
@@ -290,9 +288,9 @@ void *iniciar_largo_plazo() {
 
     // xlog(COLOR_BLANCO, "Nuevo proceso Consola ingresar (pcbs=%d)", queue_size(PCBS_PROCESOS_ENTRANTES));
 
-    t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
-    transicion_a_new(pcb);
-
+    // t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
+    // transicion_a_new(pcb);
+    t_pcb *pcb = elegir_pcb_fifo(COLA_NEW);
     // TODO: creo que no tengo que hacer bajar_grado...
     // TODO: me parece que debo usar un wait_condition que compare el valor de  READY contra el grado de
     // multiprogramacion?
@@ -503,10 +501,11 @@ void transicion_running_a_finished(t_pcb *pcb) {
 }
 
 void transicion_a_new(t_pcb *pcb) {
+  cambiar_estado_pcb(pcb, NEW);
   agregar_pcb_a_cola(pcb, COLA_NEW);
 
   // sem_post(&(COLA_NEW->instancias_disponibles));
-  sem_post(&(COLA_NEW->cantidad_procesos));
+  // sem_post(&(COLA_NEW->cantidad_procesos));
 
   xlog(COLOR_TAREA,
        "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)",

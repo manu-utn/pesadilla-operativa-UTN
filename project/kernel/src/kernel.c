@@ -112,11 +112,12 @@ void* escuchar_nueva_conexion(void* args) {
         asignar_estimacion_rafaga_inicial(pcb);
         pcb->socket = socket_cliente;
         // TODO: validar si necesitamos contemplar algo más
-        queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
-        sem_post(&HAY_PROCESOS_ENTRANTES);
+        // queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
 
+        transicion_a_new(pcb);
+        sem_post(&HAY_PROCESOS_ENTRANTES);
         // log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));
-        sem_post(&(COLA_NEW->cantidad_procesos));
+        // sem_post(&(COLA_NEW->cantidad_procesos));
 
         paquete_destroy(paquete);
         // pcb_destroy(pcb); // TODO: definir cuando liberar el recurso de pcb, supongo que al finalizar kernel (?)
