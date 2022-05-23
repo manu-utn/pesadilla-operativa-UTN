@@ -19,7 +19,7 @@
 int ULTIMO_PID;
 t_queue* PCBS_PROCESOS_ENTRANTES;
 sem_t HAY_PROCESOS_ENTRANTES;
-pthread_mutex_t NO_HAY_PROCESOS_EN_SUSREADY;
+sem_t NO_HAY_PROCESOS_EN_SUSREADY;
 
 typedef struct {
   t_list *lista_pcbs;
@@ -78,7 +78,7 @@ int obtener_cantidad_procesos_disponibles_en_memoria();
 //int obtener_grado_multiprogramacion_por_config();
 void bajar_grado_multiprogramacion();
 void subir_grado_multiprogramacion();
-void controlar_procesos_disponibles_en_memoria();
+void controlar_procesos_disponibles_en_memoria(int llamado_por_plp);
 void liberar_espacio_en_memoria_para_proceso();
 void imprimir_cantidad_procesos_disponibles_en_memoria();
 

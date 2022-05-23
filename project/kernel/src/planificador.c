@@ -161,11 +161,12 @@ void iniciar_conexion_cpu_dispatch() {
 }
 
 void iniciar_planificacion() {
-  pthread_t th1, th2, th3, th4;
+  pthread_t th1, th2, th3, th4, th5;
 
   inicializar_grado_multiprogramacion();
   sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
+  sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
   COLA_BLOCKED = cola_planificacion_create();
@@ -182,7 +183,7 @@ void iniciar_planificacion() {
   pthread_create(&th3, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th3);
   pthread_create(&th4, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th4);
 
-  // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
+  pthread_create(&th5, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
   // sleep(1);
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
@@ -298,7 +299,7 @@ void *iniciar_largo_plazo() {
     // multiprogramacion?
     // TODO: después tendrias que chequear SUSREADY+READY
 
-    controlar_procesos_disponibles_en_memoria();
+    controlar_procesos_disponibles_en_memoria(1); // Llamado por plp
     transicion_new_a_ready(pcb), imprimir_cantidad_procesos_disponibles_en_memoria();
 
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
@@ -330,15 +331,13 @@ void *plp_pcb_finished() {
 void *iniciar_mediano_plazo() {
   xlog(COLOR_INFO, "Planificador de Mediano Plazo: Ejecutando...");
 
-  // TODO: Agregar logica transicion de blocked a susblocked
-
   while (1) {
-    // sem_wait(&(COLA_SUSREADY->instancias_disponibles));
-
+    sem_wait(&(COLA_SUSREADY->cantidad_procesos));
+    sleep(5);
     t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
 
-    // controlar_procesos_disponibles_en_memoria();
-    transicion_susready_a_ready(pcb);
+    controlar_procesos_disponibles_en_memoria(0); // Llamado por PMP
+    transicion_susready_a_ready(pcb), imprimir_cantidad_procesos_disponibles_en_memoria();
 
     // TODO: contemplar cuando el proceso finaliza, por momento habrán memory leaks
     // pcb_destroy(pcb);
@@ -565,16 +564,16 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
 
-  log_info(logger,
-           "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
-           pcb->pid,
-           list_size(COLA_SUSREADY->lista_pcbs));
-
-  /*
   if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
-    pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
+    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
 
+  xlog(COLOR_TAREA,
+       "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_SUSREADY->lista_pcbs));
+
+  /*
   sem_post(&(COLA_SUSREADY->instancias_disponibles));
    */
 }
@@ -604,17 +603,17 @@ void transicion_susready_a_ready(t_pcb *pcb) {
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
 
-  log_info(logger,
-           "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
-           pcb->pid,
-           list_size(COLA_READY->lista_pcbs));
+  if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
+    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
+  }
+
+  xlog(COLOR_TAREA,
+       "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_READY->lista_pcbs));
   /*
   sem_post(&(COLA_READY->instancias_disponibles));
-
-  if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
-    pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
-  }
-   */
+  */
 }
 /*
 void suspender_pcb_bloqueado(t_pcb *pcb) {
@@ -692,11 +691,20 @@ void liberar_espacio_en_memoria_para_proceso() {
   imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
-void controlar_procesos_disponibles_en_memoria() {
+void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
   imprimir_cantidad_procesos_disponibles_en_memoria();
-  sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
-
   xlog(COLOR_TAREA, "Controlamos contra el grado de multiprogramación antes de ingresar procesos al sistema");
+
+  sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+  while (llamado_por_plp && list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+    xlog(COLOR_TAREA, "Se entro en el ciclo del while al controlar los procesos disponibles en memoria");
+    sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar espera activa
+    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar posible deadlock si se entra en el ciclo otra vez
+    sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+  }
+
+
   imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
