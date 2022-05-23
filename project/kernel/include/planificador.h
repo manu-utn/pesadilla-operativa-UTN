@@ -36,7 +36,8 @@ typedef enum {
 
 t_log *logger;
 
-sem_t GRADO_MULTIPROGRAMACION;
+// TODO: Revisar por mejor nombre
+sem_t PROCESOS_DISPONIBLES_EN_MEMORIA; // El maximo es el grado de multiprogramacion
 
 t_cola_planificacion *COLA_NEW;
 t_cola_planificacion *COLA_READY;
@@ -73,13 +74,13 @@ t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
 
 void inicializar_grado_multiprogramacion();
-int obtener_grado_multiprogramacion_actual();
+int obtener_cantidad_procesos_disponibles_en_memoria();
 //int obtener_grado_multiprogramacion_por_config();
 void bajar_grado_multiprogramacion();
 void subir_grado_multiprogramacion();
-void controlar_grado_multiprogramacion();
-void actualizar_grado_multiprogramacion();
-void imprimir_grado_multiprogramacion_actual();
+void controlar_procesos_disponibles_en_memoria();
+void liberar_espacio_en_memoria_para_proceso();
+void imprimir_cantidad_procesos_disponibles_en_memoria();
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
 t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);

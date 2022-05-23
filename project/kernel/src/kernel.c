@@ -131,7 +131,7 @@ void* escuchar_nueva_conexion(void* args) {
 
         // TODO: se debería actualizar el NEW
         // bajar_grado_multiprogramacion();
-        actualizar_grado_multiprogramacion();
+        liberar_espacio_en_memoria_para_proceso();
 
         // centinela para detener el loop del hilo asociado a la conexión entrante
         estado_conexion_con_cliente = CONEXION_FINALIZADA;

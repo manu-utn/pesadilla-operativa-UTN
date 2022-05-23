@@ -55,7 +55,9 @@ void *escuchar_conexion_cpu_dispatch() {
     ptr = localtime(&t);
     printf("%s", asctime(ptr));
     */
-    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %lf", difftime(END, BEGIN)); // Timer en segundos para comparar aproximadamente con el de milisegundos
+    xlog(COLOR_INFO,
+         "Tiempo que pcb estuvo en cpu: %lf",
+         difftime(END, BEGIN)); // Timer en segundos para comparar aproximadamente con el de milisegundos
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -111,7 +113,7 @@ void *escuchar_conexion_cpu_dispatch() {
         imprimir_pcb(pcb);
         cambiar_estado_pcb(pcb, READY);
 
-        // imprimir_grado_multiprogramacion_actual();
+        // imprimir_cantidad_procesos_disponibles_en_memoria();
         agregar_pcb_a_cola(pcb, COLA_READY);
         /*
         pthread_mutex_lock(&(COLA_READY->mutex));
@@ -128,7 +130,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // TODO: se debería actualizar el NEW
         // bajar_grado_multiprogramacion();
-        actualizar_grado_multiprogramacion();
+        liberar_espacio_en_memoria_para_proceso();
 
         // centinela para detener el loop del hilo asociado a la conexión entrante
         estado_conexion = CONEXION_FINALIZADA;
@@ -296,8 +298,8 @@ void *iniciar_largo_plazo() {
     // multiprogramacion?
     // TODO: después tendrias que chequear SUSREADY+READY
 
-    // controlar_grado_multiprogramacion();
-    transicion_new_a_ready(pcb), imprimir_grado_multiprogramacion_actual();
+    controlar_procesos_disponibles_en_memoria();
+    transicion_new_a_ready(pcb), imprimir_cantidad_procesos_disponibles_en_memoria();
 
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
 
@@ -335,7 +337,7 @@ void *iniciar_mediano_plazo() {
 
     t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
 
-    // controlar_grado_multiprogramacion();
+    // controlar_procesos_disponibles_en_memoria();
     transicion_susready_a_ready(pcb);
 
     // TODO: contemplar cuando el proceso finaliza, por momento habrán memory leaks
@@ -350,6 +352,7 @@ void pmp_suspender_proceso(t_pcb *pcb) {
   // TODO: Informar a memoria de suspension
   // TODO: Aumentar grado de multiprogramacion
   xlog(COLOR_INFO, "Se suspendio un proceso (pid = %d)", pcb->pid);
+  liberar_espacio_en_memoria_para_proceso();
 }
 
 /*
@@ -641,24 +644,26 @@ t_cola_planificacion *cola_planificacion_create() {
 
 void inicializar_grado_multiprogramacion() {
   int grado = atoi(config_get_string_value(config, "GRADO_MULTIPROGRAMACION"));
-  sem_init(&GRADO_MULTIPROGRAMACION, 0, grado);
+  sem_init(&PROCESOS_DISPONIBLES_EN_MEMORIA, 0, grado);
 }
 
-int obtener_grado_multiprogramacion_actual() {
+int obtener_cantidad_procesos_disponibles_en_memoria() {
   int grado;
-  // sem_getvalue(&GRADO_MULTIPROGRAMACION, &grado);
+  sem_getvalue(&PROCESOS_DISPONIBLES_EN_MEMORIA, &grado);
 
   // TODO: se debe contemplar también el susready?
-  pthread_mutex_lock(&(COLA_READY->mutex));
+  // pthread_mutex_lock(&(COLA_READY->mutex));
   // grado = list_size(COLA_READY->lista_pcbs);
-  sem_getvalue(&(COLA_READY->cantidad_procesos), &grado);
-  pthread_mutex_unlock(&(COLA_READY->mutex));
+  // sem_getvalue(&(COLA_READY->cantidad_procesos), &grado);
+  // pthread_mutex_unlock(&(COLA_READY->mutex));
 
   return grado;
 }
 
-void imprimir_grado_multiprogramacion_actual() {
-  xlog(COLOR_TAREA, "El grado de multiprogramación actual es %d", obtener_grado_multiprogramacion_actual());
+void imprimir_cantidad_procesos_disponibles_en_memoria() {
+  xlog(COLOR_TAREA,
+       "La cantidad de instancias de procesos disponibles para cargar en memoria actualmente es %d",
+       obtener_cantidad_procesos_disponibles_en_memoria());
 }
 /*
 int obtener_grado_multiprogramacion_por_config() {
@@ -670,28 +675,29 @@ int obtener_grado_multiprogramacion_por_config() {
 
 // TODO: evaluar si corresponde manejar esto, el valor es fijo y no deberíamos modificarlo
 void subir_grado_multiprogramacion() {
-  // sem_post(&GRADO_MULTIPROGRAMACION); // hace sem++
+  // sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA); // hace sem++
   // xlog(COLOR_AMARILLO, "Subió el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
 }
 
 // TODO: evaluar si corresponde manejar esto, el valor es fijo y no deberíamos modificarlo
 void bajar_grado_multiprogramacion() {
-  // sem_wait(&GRADO_MULTIPROGRAMACION);
+  // sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   // xlog(COLOR_AMARILLO, "Bajó el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
 }
 
-void actualizar_grado_multiprogramacion() {
-  sem_post(&GRADO_MULTIPROGRAMACION);
+void liberar_espacio_en_memoria_para_proceso() {
+  sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
 
-  xlog(COLOR_TAREA, "Se actualizó el grado de multiprogramación");
-  imprimir_grado_multiprogramacion_actual();
+  xlog(COLOR_TAREA, "Se libero un espacio en memoria para un nuevo proceso");
+  imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
-void controlar_grado_multiprogramacion() {
-  sem_wait(&GRADO_MULTIPROGRAMACION);
+void controlar_procesos_disponibles_en_memoria() {
+  imprimir_cantidad_procesos_disponibles_en_memoria();
+  sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
 
-  xlog(COLOR_TAREA, "Controlamos el grado de multiprogramación antes de ingresar procesos al sistema");
-  imprimir_grado_multiprogramacion_actual();
+  xlog(COLOR_TAREA, "Controlamos contra el grado de multiprogramación antes de ingresar procesos al sistema");
+  imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
