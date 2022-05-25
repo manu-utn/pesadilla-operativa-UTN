@@ -108,7 +108,7 @@ t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
     char* identificador = instruccion_texto[0];
     char* params = instruccion_texto[1] ? instruccion_texto[1] : "";
     t_instruccion* instruccion = instruccion_create(identificador, params);
-    string_array_destroy(instruccion_texto);
+    // string_array_destroy(instruccion_texto);
 
     list_add(lista_instrucciones, instruccion);
   }

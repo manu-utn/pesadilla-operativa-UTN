@@ -79,8 +79,21 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
+        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_respuesta_solicitud_segunda_tabla* req = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
 
+        req = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete);
+
+        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+
+        t_paquete* paquete_respuesta = paquete_create();
+        t_respuesta_solicitud_segunda_tabla* resp = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+        resp->socket = socket_cliente;
+        resp->num_tabla_segundo_nivel = 200;
+        t_buffer* mensaje = crear_mensaje_respuesta_segunda_tabla(resp);
+        paquete_cambiar_mensaje(paquete_respuesta, mensaje),
+          enviar_operacion_respuesta_segunda_tabla(socket_cliente, paquete_respuesta);
 
         paquete_destroy(paquete);
         break;

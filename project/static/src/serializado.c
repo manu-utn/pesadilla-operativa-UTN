@@ -419,6 +419,16 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   offset += respuesta_dato->size_dato;
   return respuesta_dato;
 }
+
+t_respuesta_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_respuesta_escritura_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
+  memcpy(&(respuesta_dato->resultado), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  return respuesta_dato;
+}
+
 void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
   if (paquete->buffer == NULL) {
     paquete->buffer = nuevo_mensaje;

@@ -35,6 +35,7 @@ typedef struct{
 	int proceso;
 	int pagina;
 	int marco;
+    uint64_t timestamp;
 }t_entrada_tlb;
 
 typedef enum{
@@ -118,7 +119,9 @@ void ejecutar_reemplazo();
 void reemplazo_fifo();
 void reemplazo_lru();
 void mock_datos_tlb();
+int buscar_marco_en_tlb(int num_pagina);
 t_list* marcos;
 t_list* paginas_en_memoria;
+t_operacion_respuesta_fetch_operands* fetch_operands();
 
 #endif /* CPU_H_ */

@@ -66,10 +66,19 @@ void* manejar_nueva_conexion(void* args) {
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
       } break;
-      case OPERACION_BUSQUEDA_EN_MEMORIA_OK: {
-        xlog(COLOR_INFO, "Se recibe respuesta del proceso de busqueda en memoria");
-        // Aca va la logica para agregar entrada en la TLB, y efecturar el reemplazo si correspondiera
-      }
+
+      /* case OPERACION_RESPUESTA_SEGUNDA_TABLA: {
+         xlog(COLOR_INFO, "Se recibe respuesta de tabla de segundo nivel en memoria");
+       }
+
+       case OPERACION_RESPUESTA_MARCO: {
+         xlog(COLOR_INFO, "Se recibe respuesta del proceso de busqueda en memoria");
+       }
+
+       case OPERACION_BUSQUEDA_EN_MEMORIA_OK: {
+         xlog(COLOR_INFO, "Se recibe respuesta del proceso de busqueda en memoria");
+         break;
+       }*/
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -132,34 +141,13 @@ t_instruccion* fetch(t_pcb* pcb) {
 void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     log_info(logger, "Ejecutando NO_OP...");
-    // int retardo = (float)config_get_int_value(config, "RETARDO_NOOP") / (float)1000;
-    int retardo = 1;
-    sleep(retardo);
+    execute_no_op();
   }
 
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
     log_info(logger, "Ejecutando IO...");
-    // t_paquete* paquete_con_pcb = paquete_create();
-    /*
-    uint32_t tiempo_bloqueo = 0;
-    tiempo_bloqueo = atoi(instruccion->params);
-    // paquete_add_operacion_IO(paquete_con_pcb, pcb, tiempo_bloqueo);  //DESCOMENTAR PARA PROBAR LA RESPUESTA A KERNEL
-    // enviar_pcb(pcb->socket, paquete_con_pcb);
 
-    t_paquete* paquete = paquete_create();
-    t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, tiempo_bloqueo);
-
-    paquete_cambiar_mensaje(paquete, mensaje);
-    enviar_pcb_actualizado(socket_cliente, paquete);
-    */
-    int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
-
-    pcb->tiempo_de_bloqueado = tiempo_bloqueado;
-
-    t_paquete* paquete = paquete_create();
-    paquete_add_pcb(paquete, pcb);
-    xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
-    enviar_pcb_con_operacion_io(socket_cliente, paquete);
+    execute_io(pcb, instruccion, socket_cliente);
 
     // paquete_destroy(paquete_con_pcb);
   }
@@ -171,76 +159,213 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int cant_entradas_por_tabla = 10;
     int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
     uint32_t dir_logica = atoi(instruccion->params);
-    log_info(logger, "Leyendo de TLB");
-    bool acierto_tlb = esta_en_tlb(num_pagina);
-    if (acierto_tlb == false) {
-      // SE BUSCA EN MEMORIA LA PAGINA, PARA ELLO SE REALIZAN 3 ACCESOS:
-      // ENVIO EL NUM DE TABLA DE 1er NIVEL JUNTO CON LA ENTRADA A DICHA TABLA
-      // MEMORIA ME DEVUELVE EL NUM DE TABLA DE 2DO NIVEL
-      // LUEGO ENVIO LA ENTRADA DE LA TABLA DE SEGUNDO NIVEL JUNTO CON EL NUM DE TABLA DE 2DO NIVEL
-      // MEMORIA ME DEVUELVE EL NUM DE MARCO
-      // CON ESTO ARMO LA DIRECCION FISICA Y ENVIO A MEMORIA PARA LEER EL DATO (DF= MARCO*TAM MARCO + DESPLAZAMIENTO)
 
-      log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
-
-      // ACCESOS A MEMORIA PARA OBTENER EL MARCO
-      // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
-      t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
-      obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
-      free(read);
-
-
-      // RECIBO RESPUESTA DE MEMORIA
-      t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
-      t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
-      respuesta_operacion = obtener_respuesta_read(paquete_respuesta);
-
-      // Envio operacion para obtener el marco
-      t_solicitud_marco* solicitud_marco = malloc(sizeof(t_solicitud_marco));
-      obtener_numero_marco(
-        solicitud_marco, num_pagina, cant_entradas_por_tabla, respuesta_operacion->num_tabla_segundo_nivel);
-      free(solicitud_marco);
-      free(respuesta_operacion);
-
-      // RECIBO RESPUESTA DE MEMORIA
-      t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
-      t_respuesta_solicitud_marco* respuesta_solicitud_marco =
-        obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
-      free(respuesta_solicitud_marco);
-
-      // ARMO SOLICITUD DATO
-      t_solicitud_dato_fisico* solicitud_dato_fisico = malloc(sizeof(t_solicitud_dato_fisico));
-      obtener_dato_fisico(
-        solicitud_dato_fisico, respuesta_solicitud_marco->num_marco, num_pagina, tam_pagina, dir_logica);
-      free(solicitud_dato_fisico);
-
-      // RECIBO RESPUESTA DE MEMORIA
-      t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
-      t_respuesta_dato_fisico* respuesta_solicitud_dato_fisico =
-        obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
-      free(respuesta_solicitud_dato_fisico);
-    } else {
-      log_info(logger, "Accediendo a buscar el valor en memoria");
-    }
-
-
+    execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, NULL);
   }
 
   else if (strcmp(instruccion->identificador, "WRITE") == 0) {
+    log_info(logger, "Ejecutando WRITE...");
+    int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+    int cant_entradas_por_tabla = 10;
+    char** params = string_split(instruccion->params, " ");
+    uint32_t dir_logica = params[0];
+    void* valor = params[1];
+    int num_pagina = (float)atoi(dir_logica) / tam_pagina;
+    // uint32_t dir_logica = atoi(instruccion->params);
+    execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, valor);
+
   }
 
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
+    xlog(COLOR_CONEXION, "Ejecutando COPY");
+    int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+    int cant_entradas_por_tabla = 10;
+    char** params = string_split(instruccion->params, " ");
+    uint32_t dir_logica_destino = params[0];
+    uint32_t dir_logica_origen = params[1];
+    int num_pagina = (float)atoi(dir_logica_origen) / tam_pagina;
+    t_operacion_respuesta_fetch_operands* respuesta_fetch =
+      fetch_operands(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen);
+    execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen, respuesta_fetch->valor);
+
   }
+
 
   else if (strcmp(instruccion->identificador, "EXIT") == 0) {
     xlog(COLOR_CONEXION, "Ejecutando EXIT");
-    pcb->program_counter++;
-    t_paquete* paquete = paquete_create();
-    t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
-
-    paquete_cambiar_mensaje(paquete, mensaje);
-    enviar_pcb_actualizado(socket_cliente, paquete);
+    execute_exit(pcb, socket_cliente);
   }
+}
+
+void execute_no_op() {
+  int retardo = config_get_int_value(config, "RETARDO_NOOP");
+  usleep(retardo);
+}
+
+void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
+  int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
+  pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
+  t_paquete* paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
+  enviar_pcb_con_operacion_io(socket_cliente, paquete);
+}
+void execute_exit(t_pcb* pcb, int socket_cliente) {
+  pcb->program_counter++;
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
+  paquete_cambiar_mensaje(paquete, mensaje);
+  enviar_pcb_actualizado(socket_cliente, paquete);
+}
+
+t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
+                                                     int tam_pagina,
+                                                     int cant_entradas_por_tabla,
+                                                     int num_pagina,
+                                                     uint32_t dir_logica) {
+  log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+
+  // ACCESOS A MEMORIA PARA OBTENER EL MARCO
+  // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+  t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+  obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
+  free(read);
+
+
+  // RECIBO RESPUESTA DE MEMORIA
+  xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+  t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+  respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
+
+
+  // ACCESO PARA OBTENER MARCO
+  t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
+  obtener_numero_marco(read_marco, pcb, num_pagina, cant_entradas_por_tabla);
+  free(read_marco);
+
+  // RECIBO RESPUESTA DE MEMORIA
+  xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
+  t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
+  respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
+
+
+  // ACCESO PARA OBTENER DATO FISICO
+  t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+  obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
+  free(read_marco);
+
+  // RECIBO RESPUESTA DE MEMORIA
+  xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+  t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
+  respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+
+  t_operacion_respuesta_fetch_operands* respuesta_fetch = malloc(sizeof(t_operacion_respuesta_fetch_operands));
+
+  respuesta_fetch->valor = respuesta_operacion_dato->dato_buscado;
+
+  return respuesta_fetch;
+}
+
+
+void execute_read_write(t_pcb* pcb,
+                        int tam_pagina,
+                        int cant_entradas_por_tabla,
+                        int num_pagina,
+                        uint32_t dir_logica,
+                        void* valor) {
+  log_info(logger, "Leyendo de TLB");
+  bool acierto_tlb = esta_en_tlb(num_pagina);
+  if (acierto_tlb == false) {
+    // SE BUSCA EN MEMORIA LA PAGINA, PARA ELLO SE REALIZAN 3 ACCESOS:
+    // ENVIO EL NUM DE TABLA DE 1er NIVEL JUNTO CON LA ENTRADA A DICHA TABLA
+    // MEMORIA ME DEVUELVE EL NUM DE TABLA DE 2DO NIVEL
+    // LUEGO ENVIO LA ENTRADA DE LA TABLA DE SEGUNDO NIVEL JUNTO CON EL NUM DE TABLA DE 2DO NIVEL
+    // MEMORIA ME DEVUELVE EL NUM DE MARCO
+    // CON ESTO ARMO LA DIRECCION FISICA Y ENVIO A MEMORIA PARA LEER EL DATO (DF= MARCO*TAM MARCO + DESPLAZAMIENTO)
+
+    log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+
+    // ACCESOS A MEMORIA PARA OBTENER EL MARCO
+    // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+    t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+    obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
+    free(read);
+
+
+    // RECIBO RESPUESTA DE MEMORIA
+    xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+    t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+    respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
+
+
+    // ACCESO PARA OBTENER MARCO
+    t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
+    obtener_numero_marco(read_marco, pcb, num_pagina, cant_entradas_por_tabla);
+    free(read_marco);
+
+    // RECIBO RESPUESTA DE MEMORIA
+    xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
+    t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
+    respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
+
+
+    if (valor == NULL) {
+      // ACCESO PARA OBTENER DATO FISICO
+      t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+      obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
+      free(read_marco);
+
+      // RECIBO RESPUESTA DE MEMORIA
+      xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+      t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+      t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
+      respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+
+    } else {
+      t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
+      escribir_dato_fisico(write_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica, valor);
+      free(read_marco);
+
+      // RECIBO RESPUESTA DE MEMORIA
+      xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+      t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+      t_respuesta_escritura_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
+      respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
+    }
+
+
+  } else { // Busco el valor en la TLB
+    xlog(COLOR_INFO, "Buscando valor en TLB ");
+
+    int num_marco = buscar_marco_en_tlb(num_pagina);
+
+    // ACCESO PARA OBTENER DATO FISICO
+    t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+    obtener_dato_fisico(read_dato, num_marco, num_pagina, tam_pagina, dir_logica);
+    free(read_dato);
+
+    // RECIBO RESPUESTA DE MEMORIA
+    xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+    t_respuesta_dato_fisico* respuesta_operacion = malloc(sizeof(t_respuesta_dato_fisico));
+    respuesta_operacion = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta);
+  }
+}
+
+int buscar_marco_en_tlb(int num_pagina) {
+  bool encontrar_entrada(t_entrada_tlb * entrada) {
+    return num_pagina == entrada->pagina;
+  }
+  t_entrada_tlb* entrada_buscada = list_find(tlb, (void*)encontrar_entrada);
+  int marco_buscado = entrada_buscada->marco;
+  free(entrada_buscada);
+  return marco_buscado;
 }
 
 void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
@@ -255,8 +380,25 @@ void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
   enviar_operacion_obtener_dato(socket_memoria, paquete_con_direccion_a_leer);
   paquete_destroy(paquete_con_direccion_a_leer);*/
   t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje_obtener_dato_fisico(read);
+  t_buffer* mensaje = crear_mensaje_obtener_dato_fisico(solicitud_dato_fisico);
   paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_dato(socket_memoria, paquete);
+}
+
+void escribir_dato_fisico(t_escritura_dato_fisico* escritura_dato_fisico,
+                          int num_marco,
+                          int num_pagina,
+                          int tam_pagina,
+                          uint32_t dir_logica,
+                          void* valor) {
+  armar_escritura_dato_fisico(escritura_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica, valor);
+  escritura_dato_fisico->socket = socket_memoria;
+  /*t_paquete* paquete_con_direccion_a_leer = paquete_create();
+  paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
+  enviar_operacion_obtener_dato(socket_memoria, paquete_con_direccion_a_leer);
+  paquete_destroy(paquete_con_direccion_a_leer);*/
+  t_paquete* paquete = paquete_create();
+  t_buffer* mensaje = crear_mensaje_escritura_dato_fisico(escritura_dato_fisico);
+  paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_escribir_dato(socket_memoria, paquete);
 }
 
 void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
@@ -318,6 +460,17 @@ void armar_solicitud_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
                                  uint32_t dir_logica) {
   int desplazamiento = dir_logica - (num_pagina * tam_pagina);
   solicitud_dato_fisico->dir_fisica = num_marco * tam_pagina + desplazamiento;
+}
+
+void armar_escritura_dato_fisico(t_escritura_dato_fisico* escritura_dato_fisico,
+                                 int num_marco,
+                                 int num_pagina,
+                                 int tam_pagina,
+                                 uint32_t dir_logica,
+                                 void* valor) {
+  int desplazamiento = dir_logica - (num_pagina * tam_pagina);
+  escritura_dato_fisico->dir_fisica = num_marco * tam_pagina + desplazamiento;
+  escritura_dato_fisico->valor = valor;
 }
 
 
@@ -443,6 +596,19 @@ void reemplazo_fifo(t_entrada_tlb* entrada_reemplazo) {
 }
 
 void reemplazo_lru() {
+  t_entrada_tlb* entrada_buscada = malloc(sizeof(t_entrada_tlb));
+  uint64_t aux_timestamp = UINT64_MAX;
+
+  void search_oldest(void* elemento) {
+    t_entrada_tlb* entrada = (t_entrada_tlb*)elemento;
+
+    if (entrada->timestamp < aux_timestamp) {
+      aux_timestamp = entrada->timestamp;
+      entrada_buscada = entrada;
+    }
+  }
+
+  list_iterate(tlb, search_oldest);
 }
 
 int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro) {

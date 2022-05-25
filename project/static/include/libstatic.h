@@ -27,8 +27,9 @@ typedef enum {
 
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
-  OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,
-  OPERACION_OBTENER_MARCO, OPERACION_OBTENER_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK,
+  OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,OPERACION_RESPUESTA_SEGUNDA_TABLA,
+  OPERACION_OBTENER_MARCO,OPERACION_RESPUESTA_MARCO,
+  OPERACION_OBTENER_DATO,OPERACION_ESCRIBIR_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK,
   OPERACION_INTERRUPT, OPERACION_CONSOLA,
   OPERACION_PCB_CON_IO, OPERACION_PCB_CON_EXIT,
   PAQUETE_INSTRUCCION
@@ -86,6 +87,13 @@ typedef struct{
   char* mensaje_handshake;
 }t_mensaje_handshake_cpu_memoria;
 
+typedef struct{
+  uint32_t dir_logica_origen;
+}t_operacion_fetch_operands;
+
+typedef struct{
+  void* valor;
+}t_operacion_respuesta_fetch_operands;
 
 typedef struct{
   int socket;
@@ -127,6 +135,16 @@ typedef struct{
   int size_dato;
   void* dato_buscado;
 }t_respuesta_dato_fisico;
+
+typedef struct{
+	int socket;
+	uint32_t dir_fisica;
+  void* valor;
+}t_escritura_dato_fisico;
+
+typedef struct{
+  int resultado;
+}t_respuesta_escritura_dato_fisico;
 
 t_config* iniciar_config(char*);
 t_log* iniciar_logger(char* archivo, char* nombre);
