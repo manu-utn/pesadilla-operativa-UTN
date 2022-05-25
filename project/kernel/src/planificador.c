@@ -333,7 +333,7 @@ void *iniciar_mediano_plazo() {
 
   while (1) {
     sem_wait(&(COLA_SUSREADY->cantidad_procesos));
-    sleep(5);
+    // sleep(10);
     t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
 
     controlar_procesos_disponibles_en_memoria(0); // Llamado por PMP
