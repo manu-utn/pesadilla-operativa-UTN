@@ -188,11 +188,12 @@ void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
 
   t_list* instrucciones = pcb->instrucciones;
 
-  for (int index = 0; index < list_size(instrucciones); index++) {
-    t_instruccion* instruccion = list_get(instrucciones, index);
-
-    // validar_operacion_io(pcb, instruccion);
-    validar_operacion_exit(pcb, instruccion);
+  // for (pcb->pid; pcb->pid < list_size(instrucciones); pcb->pid++) {
+  while (pcb->program_counter < list_size(instrucciones)) {
+    t_instruccion* instruccion = list_get(instrucciones, pcb->program_counter);
+    pcb->program_counter++;
+    validar_operacion_io(pcb, instruccion);
+    // validar_operacion_exit(pcb, instruccion);
   }
 
   imprimir_pcb(pcb);

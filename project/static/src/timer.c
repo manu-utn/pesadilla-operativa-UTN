@@ -38,15 +38,12 @@ void timer_imprimir() {
   xlog(COLOR_INFO, "[TIMER]: tiempo_total=%d", TIMER.tiempo_total);
 }
 
-int microsegundos_humanizar(int microsegundos) {
+int milisegundos_a_microsegundos(int milisegundos) {
   // usleep: usa microsegundos (1.000.000 microsegundos = 1 segundo)
-  // clock: usa milisegundos (1.000 milisegundos = 1 segundo)
-  // emulamos 3.000 microsegundos a 3 segundos que representan 3.000.000 microsegundos
-
-  // TODO: Verificar si estos no son milisegundos
-  return microsegundos * 1000;
+  // clock: usa milisegundos (1.000 milisegundos = 1 segundo) (1 milisegundo = 1000 microsegundos)
+  return milisegundos * 1000;
 }
 
-void simular_bloqueo_en_segundos(int tiempo_microsegundos) {
-  usleep(microsegundos_humanizar(tiempo_microsegundos));
+void bloquear_por_milisegundos(int tiempo_milisegundos) {
+  usleep(milisegundos_a_microsegundos(tiempo_milisegundos));
 }
