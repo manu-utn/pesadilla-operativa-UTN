@@ -15,6 +15,15 @@
 
 typedef enum {
   OPERACION_EXIT=0,
+  MENSAJE = 1,
+  PAQUETE = 2,
+  CONSOLA = 3,
+  PCB = 4,
+  INTERRUPT = 5,
+  MENSAJE_HANDSHAKE= 6,
+  PCB_ACTUALIZADO2=7,
+  READ=8,
+  FETCH=9,
   // TODO: el resto deben ser removidos
   OPERACION_MENSAJE,
   OPERACION_PAQUETE, 

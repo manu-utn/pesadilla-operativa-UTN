@@ -23,7 +23,7 @@ int main() {
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);
   sem_init(&CERRAR_PROCESO, 0, 0);
-  sem_init(&ASIGNAR_PID, 0, 0);
+  sem_init(&ASIGNAR_PID, 0, 1);
   // pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
 
   char* ip = config_get_string_value(config, "IP_KERNEL");
@@ -117,7 +117,7 @@ void* escuchar_nueva_conexion(void* args) {
         pcb->socket = socket_cliente;
         // queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
 
-        //Se decidio realizar la transicion a new en esta instancia
+        // Se decidio realizar la transicion a new en esta instancia
         transicion_a_new(pcb);
         sem_post(&HAY_PROCESOS_ENTRANTES);
         // log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));

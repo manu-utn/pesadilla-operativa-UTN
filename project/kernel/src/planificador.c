@@ -21,9 +21,9 @@ int SOCKET_CONEXION_DISPATCH;
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
 
 // TODO: Evaluar si este semaforo es o no es necesario al final
-//sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
-sem_t HAY_PCB_DESALOJADO;           // semáforo binario
-sem_t EJECUTAR_ALGORITMO_PCP;       // semaforo binario
+// sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
+sem_t HAY_PCB_DESALOJADO;     // semáforo binario
+sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
 time_t BEGIN;
 time_t END;
 int SE_ENVIO_INTERRUPCION = 0;
@@ -123,7 +123,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // TODO: se debería actualizar el NEW
         // TODO: Evaluar si es necesario aumentar el grado de multiprogramacion
-        liberar_espacio_en_memoria_para_proceso();
+        // liberar_espacio_en_memoria_para_proceso();
 
         // centinela para detener el loop del hilo asociado a la conexión entrante
         estado_conexion = CONEXION_FINALIZADA;
@@ -158,7 +158,7 @@ void iniciar_planificacion() {
   pthread_t th1, th2, th3, th4;
 
   inicializar_grado_multiprogramacion();
-  sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
+  // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
   sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   COLA_NEW = cola_planificacion_create();
@@ -170,7 +170,8 @@ void iniciar_planificacion() {
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
 
-  // Se mantiene la conexion dispatch, especialmente porque se deben escuchar por mensajes de esta conexion ademas de enviar
+  // Se mantiene la conexion dispatch, especialmente porque se deben escuchar por mensajes de esta conexion ademas de
+  // enviar
   iniciar_conexion_cpu_dispatch();
   pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th3);
   pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th4);
@@ -195,7 +196,7 @@ void *iniciar_corto_plazo() {
 
   while (1) {
     // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo proceso a cpu
-    sem_wait(&EJECUTAR_ALGORITMO_PCP); 
+    sem_wait(&EJECUTAR_ALGORITMO_PCP);
 
     xlog(COLOR_INFO, "PCP: Realizar toma de decision");
     sem_wait(&(COLA_READY->cantidad_procesos)); // Si no hay pcbs en ready se queda bloqueado aca hasta q haya
@@ -271,7 +272,7 @@ void *iniciar_largo_plazo() {
 
     // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
     controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
-    
+
     transicion_new_a_ready(pcb);
     imprimir_cantidad_procesos_disponibles_en_memoria();
 
@@ -291,11 +292,10 @@ void *plp_pcb_finished() {
     sem_wait(&(COLA_FINISHED->cantidad_procesos));
 
     // TODO: Informar a memoria que termina el proceso y esperar respuesta
-    // TODO: Avisarle a la consola que tiene que finalizar de ejecutar
     t_pcb *pcb = elegir_pcb_fifo(COLA_FINISHED);
     remover_pcb_de_cola(pcb, COLA_FINISHED);
     imprimir_pcb(pcb);
-    matar_proceso(pcb->socket);
+    matar_proceso(pcb->socket); // Se avisa a la consola de la finalizacion
     pcb_destroy(pcb);
     imprimir_pcb(pcb);
   }
@@ -339,6 +339,8 @@ void *gestor_de_procesos_bloqueados() {
     xlog(COLOR_INFO, "Finalizo el bloqueo del pcb=%d", pcb->pid);
     // TODO: Avisar a memoria fin de bloqueo y esperar respuesta
 
+    // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
+    // y cambiar el estado del pcb
     if (pcb->estado != BLOCKED) {
       xlog(COLOR_INFO, "Proceso suspendido-bloqueado pasa a SUSREADY (pid = %d)", pcb->pid);
       transicion_blocked_a_susready(pcb);
@@ -375,7 +377,8 @@ void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola) {
   if (posicion != -1) {
     list_remove(cola->lista_pcbs, posicion);
     // TODO: Validad que antes de llamar a esta funcion se este haciendo el sem_wait de cantidad_procesos
-    //sem_wait(&(cola->cantidad_procesos));
+    // sem_wait(&(cola->cantidad_procesos));
+    // No es necesario ya que para hacer las transiciones (que es para lo que esto se usa) ya se tuvo que hacer un wait
   } else {
     log_error(logger, "No existe tal elemento en la cola");
   }
@@ -484,6 +487,7 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
    */
 }
 
+/*
 // TODO: Añadir un signal
 void transicion_susblocked_a_susready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSBLOCKED);
@@ -495,6 +499,7 @@ void transicion_susblocked_a_susready(t_pcb *pcb) {
            pcb->pid,
            list_size(COLA_SUSREADY->lista_pcbs));
 }
+*/
 
 void transicion_susready_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSREADY);
@@ -562,7 +567,7 @@ void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
     sem_post(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar posible deadlock si se entra en el ciclo otra vez
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   }
-  
+
   imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
@@ -642,6 +647,7 @@ bool hay_algun_proceso_ejecutando() {
 }
 
 void liberar_cpu() {
+  // pcb_destroy(PROCESO_EJECUTANDO); // Genera core dumped
   PROCESO_EJECUTANDO = NULL;
 }
 
@@ -678,7 +684,8 @@ void timer_suspension_proceso(t_pcb *pcb) {
   } while (pcb->estado == BLOCKED && timer_suspension.tiempo_total < tiempo_maximo_bloqueado);
 
   xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);
-
+  // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
+  // y cambiar el estado del pcb
   if (pcb->estado == BLOCKED) {
     pmp_suspender_proceso(pcb);
   }
