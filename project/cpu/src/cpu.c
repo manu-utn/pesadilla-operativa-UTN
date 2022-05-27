@@ -225,6 +225,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
                                                      int num_pagina,
                                                      uint32_t dir_logica) {
   log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+  int cod_op = 0;
 
   // ACCESOS A MEMORIA PARA OBTENER EL MARCO
   // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
@@ -235,6 +236,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
 
   // RECIBO RESPUESTA DE MEMORIA
   xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  cod_op = recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
   respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
@@ -242,11 +244,12 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
 
   // ACCESO PARA OBTENER MARCO
   t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
-  obtener_numero_marco(read_marco, pcb, num_pagina, cant_entradas_por_tabla);
+  obtener_numero_marco(read_marco, num_pagina, cant_entradas_por_tabla, respuesta_operacion->num_tabla_segundo_nivel);
   free(read_marco);
 
   // RECIBO RESPUESTA DE MEMORIA
   xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  cod_op = recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
   respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
@@ -259,6 +262,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
 
   // RECIBO RESPUESTA DE MEMORIA
   xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  cod_op = recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
   t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
   respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
@@ -279,6 +283,7 @@ void execute_read_write(t_pcb* pcb,
                         void* valor) {
   log_info(logger, "Leyendo de TLB");
   bool acierto_tlb = esta_en_tlb(num_pagina);
+  int cod_op = 0;
   if (acierto_tlb == false) {
     // SE BUSCA EN MEMORIA LA PAGINA, PARA ELLO SE REALIZAN 3 ACCESOS:
     // ENVIO EL NUM DE TABLA DE 1er NIVEL JUNTO CON LA ENTRADA A DICHA TABLA
@@ -298,22 +303,24 @@ void execute_read_write(t_pcb* pcb,
 
     // RECIBO RESPUESTA DE MEMORIA
     xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    cod_op = recibir_operacion(socket_memoria);
     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
     t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
     respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
-
+    printf("Tabla segundo nivel: %d", respuesta_operacion->num_tabla_segundo_nivel);
 
     // ACCESO PARA OBTENER MARCO
     t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
-    obtener_numero_marco(read_marco, pcb, num_pagina, cant_entradas_por_tabla);
+    obtener_numero_marco(read_marco, num_pagina, cant_entradas_por_tabla, respuesta_operacion->num_tabla_segundo_nivel);
     free(read_marco);
 
     // RECIBO RESPUESTA DE MEMORIA
-    xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    xlog(COLOR_INFO, "Recibiendo marco nivel desde Memoria ");
+    cod_op = recibir_operacion(socket_memoria);
     t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
     t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
     respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
-
+    printf("Num marco: %d", respuesta_operacion_marco->num_marco);
 
     if (valor == NULL) {
       // ACCESO PARA OBTENER DATO FISICO
@@ -322,7 +329,8 @@ void execute_read_write(t_pcb* pcb,
       free(read_marco);
 
       // RECIBO RESPUESTA DE MEMORIA
-      xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+      xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
+      cod_op = recibir_operacion(socket_memoria);
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
@@ -333,7 +341,8 @@ void execute_read_write(t_pcb* pcb,
       free(read_marco);
 
       // RECIBO RESPUESTA DE MEMORIA
-      xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+      xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
+      cod_op = recibir_operacion(socket_memoria);
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_escritura_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
@@ -352,6 +361,7 @@ void execute_read_write(t_pcb* pcb,
 
     // RECIBO RESPUESTA DE MEMORIA
     xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+    cod_op = recibir_operacion(socket_memoria);
     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
     t_respuesta_dato_fisico* respuesta_operacion = malloc(sizeof(t_respuesta_dato_fisico));
     respuesta_operacion = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta);

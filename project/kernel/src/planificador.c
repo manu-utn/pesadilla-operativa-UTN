@@ -172,10 +172,10 @@ void *iniciar_corto_plazo() {
 
   while (1) {
     sem_wait(&EJECUTAR_ALGORITMO_PCP); // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo
-                                           // proceso a cpu
+                                       // proceso a cpu
     xlog(COLOR_INFO, "PCP: Realizar toma de decision");
     sem_wait(&(COLA_READY->cantidad_procesos)); // pero si no hay pcbs en ready se queda bloqueado aca hasta q haya
-    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso 
+    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso
     // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
 
     // TODO: Si el semaforo EJECUTAR_ALGORITMO_PCP tiene valor 1, disminuirlo
@@ -361,10 +361,11 @@ void transicion_new_a_ready(t_pcb *pcb) {
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
 
-  if(!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+  if (!algoritmo_cargado_es("FIFO") ||
+      !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
     sem_post(&EJECUTAR_ALGORITMO_PCP);
   }
-  
+
   /*
    *
   liberar_una_instancia_de_recurso(COLA_NEW); // sem++
