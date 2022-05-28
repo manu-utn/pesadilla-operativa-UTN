@@ -17,7 +17,7 @@ sem_t CERRAR_PROCESO;
 int ULTIMO_PID = 0;
 
 int main() {
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "kernel");
   config = iniciar_config(DIR_SERVIDOR_CFG);
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);
@@ -149,7 +149,9 @@ void* escuchar_nueva_conexion(void* args) {
 
         sem_post(&CERRAR_PROCESO);
       } break;
-      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+      default: {
+        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+      } break;
     }
   }
 

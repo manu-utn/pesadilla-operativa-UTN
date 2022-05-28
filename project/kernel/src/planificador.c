@@ -147,7 +147,9 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // sem_post(&CERRAR_PROCESO);
       } break;
-      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+      default: {
+        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+      } break;
     }
   }
 
