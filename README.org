@@ -29,6 +29,12 @@
   Las configuraciones aparecen en el archivo ~project.cfg~ que esta en la raiz del proyecto
   #+END_QUOTE
 
+  #+BEGIN_SRC C
+    // NO te olvides la siguiente macro en el archivo dir.h en esta ruta project/static/include/dir.h
+    //
+    #define DIR_BASE "/home/jelou/Documents/git/tp-2022-1c-Sisop-Oh-Yeah/project/"
+  #+END_SRC
+
   #+BEGIN_SRC makefile
     export DOCKER_RUNNING
 
