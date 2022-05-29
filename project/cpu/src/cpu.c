@@ -4,6 +4,7 @@
 #include "utils-servidor.h"
 #include <libstatic.h> // <-- STATIC LIB
 int CONEXION_CPU_INTERRUPT;
+int HAY_PCB_PARA_EJECUTAR = 0;
 // void* escuchar_dispatch(void* arguments) {
 
 void setear_algoritmo_reemplazo() {
@@ -57,11 +58,12 @@ void* manejar_nueva_conexion(void* args) {
         paquete_con_pcb = recibir_paquete(socket_cliente);
 
         t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-        pcb_deserializado->socket = socket_cliente;
+        // pcb_deserializado->socket = socket_cliente;
+        HAY_PCB_PARA_EJECUTAR = 1;
         ciclo_instruccion(pcb_deserializado, socket_cliente);
         imprimir_pcb(pcb_deserializado);
         paquete_destroy(paquete_con_pcb);
-        free(pcb_deserializado);
+        pcb_destroy(pcb_deserializado);
         // descomentar para validar el memcheck
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
@@ -125,7 +127,7 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
 
-  while (pcb->program_counter < list_size(pcb->instrucciones)) {
+  while (HAY_PCB_PARA_EJECUTAR && pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion));
     instruccion = fetch(pcb);
     pcb->program_counter++;
@@ -214,12 +216,14 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
   paquete_add_pcb(paquete, pcb);
   xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
 }
 void execute_exit(t_pcb* pcb, int socket_cliente) {
   // pcb->program_counter++;
   t_paquete* paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb_con_operacion_exit(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
   /*
   t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
   paquete_cambiar_mensaje(paquete, mensaje);
