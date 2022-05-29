@@ -140,4 +140,7 @@ void execute_read_write(t_pcb* pcb,
 
 int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro);
 
+
+void check_interrupt(t_pcb* pcb, int socket_cliente);
+
 #endif /* CPU_H_ */

@@ -5,6 +5,7 @@
 #include <libstatic.h> // <-- STATIC LIB
 int CONEXION_CPU_INTERRUPT;
 int HAY_PCB_PARA_EJECUTAR = 0;
+int HAY_INTERRUPCION = 0;
 // void* escuchar_dispatch(void* arguments) {
 
 void setear_algoritmo_reemplazo() {
@@ -133,6 +134,7 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
     pcb->program_counter++;
     decode(instruccion, pcb, socket_cliente);
     // free(instruccion);
+    check_interrupt(pcb, socket_cliente);
   }
 }
 
@@ -563,6 +565,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           paquete_cambiar_mensaje(paquete_respuesta, mensaje);
           enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
           */
+          HAY_INTERRUPCION = 1;
           paquete_destroy(paquete);
         } break;
         case OPERACION_MENSAJE: {
@@ -641,4 +644,19 @@ int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_paramet
   string_iterate_lines(parametros, (void*)free);
 
   return valor;
+}
+
+void check_interrupt(t_pcb* pcb, int socket_cliente) {
+  if (HAY_PCB_PARA_EJECUTAR) {
+    if (HAY_INTERRUPCION) {
+      t_paquete* paquete = paquete_create();
+      paquete_add_pcb(paquete, pcb);
+      enviar_pcb_desalojado(socket_cliente, paquete);
+      xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
+      HAY_PCB_PARA_EJECUTAR = 0;
+      HAY_INTERRUPCION = 0;
+    }
+  } else {
+    HAY_INTERRUPCION = 0; // Para el caso en el que no haya pcb pero se haya mandado una interrupcion
+  }
 }
