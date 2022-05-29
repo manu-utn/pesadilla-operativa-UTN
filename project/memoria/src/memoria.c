@@ -79,16 +79,62 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
+        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_solicitud_segunda_tabla* req = malloc(sizeof(t_solicitud_segunda_tabla));
 
+        req = obtener_solicitud_tabla_segundo_nivel(paquete);
+
+        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+
+        t_paquete* paquete_respuesta = paquete_create();
+        t_respuesta_solicitud_segunda_tabla* resp = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+        resp->socket = socket_cliente;
+        resp->num_tabla_segundo_nivel = 200;
+        t_buffer* mensaje = crear_mensaje_respuesta_segunda_tabla(resp);
+        paquete_cambiar_mensaje(paquete_respuesta, mensaje),
+          enviar_operacion_respuesta_segunda_tabla(socket_cliente, paquete_respuesta);
 
         paquete_destroy(paquete);
         break;
       }
       case OPERACION_OBTENER_MARCO: {
+        xlog(COLOR_CONEXION, "Obteniendo numero de marco");
+        // codigo_operacion = recibir_operacion(socket_memoria);
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_solicitud_marco* req = malloc(sizeof(t_solicitud_marco));
+
+        req = obtener_solicitud_marco(paquete);
+
+        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+
+        t_paquete* paquete_respuesta = paquete_create();
+        t_respuesta_solicitud_marco* resp = malloc(sizeof(t_respuesta_solicitud_marco));
+        resp->num_marco = 10;
+        t_buffer* mensaje = crear_mensaje_respuesta_marco(resp);
+        paquete_cambiar_mensaje(paquete_respuesta, mensaje),
+          enviar_operacion_obtener_marco(socket_cliente, paquete_respuesta);
         break;
       }
       case OPERACION_OBTENER_DATO: {
+        xlog(COLOR_CONEXION, "Obteniendo dato fisico en memoria");
+        // codigo_operacion = recibir_operacion(socket_memoria);
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
+
+        req = obtener_solicitud_marco(paquete);
+
+        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+
+        t_paquete* paquete_respuesta = paquete_create();
+        t_respuesta_dato_fisico* resp = malloc(sizeof(t_respuesta_dato_fisico));
+        resp->size_dato = 6;
+        resp->dato_buscado = malloc(7);
+        memcpy(resp->dato_buscado, "holass", 7);
+        memcpy(resp->dato_buscado + 5, "\0", 1);
+        t_buffer* mensaje = crear_mensaje_respuesta_dato_fisico(resp);
+        paquete_cambiar_mensaje(paquete_respuesta, mensaje),
+          enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
         break;
       }
       case -1: {

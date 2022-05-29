@@ -35,6 +35,7 @@ typedef struct{
 	int proceso;
 	int pagina;
 	int marco;
+    uint64_t timestamp;
 }t_entrada_tlb;
 
 typedef enum{
@@ -112,13 +113,31 @@ void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
                            int cant_entradas_por_tabla,
                            int numero_tabla_segundo_nivel);		 
 
-void armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
+void armar_solicitud_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+                                 int num_marco,
+                                 int num_pagina,
+                                 int tam_pagina,
+                                 uint32_t dir_logica);
 
 void ejecutar_reemplazo();
 void reemplazo_fifo();
 void reemplazo_lru();
 void mock_datos_tlb();
+int buscar_marco_en_tlb(int num_pagina);
 t_list* marcos;
 t_list* paginas_en_memoria;
+t_operacion_respuesta_fetch_operands* fetch_operands();
+
+void execute_no_op();
+void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente);
+void execute_exit(t_pcb* pcb, int socket_cliente);
+void execute_read_write(t_pcb* pcb,
+                        int tam_pagina,
+                        int cant_entradas_por_tabla,
+                        int num_pagina,
+                        uint32_t dir_logica,
+                        void* valor);
+
+int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro);
 
 #endif /* CPU_H_ */

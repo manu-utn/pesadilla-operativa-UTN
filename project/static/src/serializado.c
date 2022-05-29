@@ -368,6 +368,34 @@ t_respuesta_solicitud_segunda_tabla* obtener_respuesta_solicitud_tabla_segundo_n
   return read;
 }
 
+t_solicitud_segunda_tabla* obtener_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->num_tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->entrada_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+
+  return read;
+}
+
+t_solicitud_marco* obtener_solicitud_marco(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_solicitud_marco* read = malloc(sizeof(t_solicitud_marco));
+  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->num_tabla_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->entrada_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+
+  return read;
+}
+
 
 void paquete_add_solicitud_marco(t_paquete* paquete_serializado, t_solicitud_marco* solicitud_marco) {
   int offset = 0;
@@ -415,10 +443,20 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
   memcpy(&(respuesta_dato->size_dato), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
-  memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);
+  memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, 6);
   offset += respuesta_dato->size_dato;
   return respuesta_dato;
 }
+
+t_respuesta_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado) {
+  int offset = 0;
+
+  t_respuesta_escritura_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
+  memcpy(&(respuesta_dato->resultado), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  return respuesta_dato;
+}
+
 void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
   if (paquete->buffer == NULL) {
     paquete->buffer = nuevo_mensaje;

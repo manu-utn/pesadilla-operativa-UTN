@@ -38,7 +38,9 @@ typedef enum {
   OPERACION_CONSOLA,
   OPERACION_PCB_CON_IO,
   OPERACION_PCB_CON_EXIT,
-  PAQUETE_INSTRUCCION
+  PAQUETE_INSTRUCCION,
+  OPERACION_RESPUESTA_SEGUNDA_TABLA,
+  OPERACION_ESCRIBIR_DATO
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -94,6 +96,14 @@ typedef struct{
 }t_mensaje_handshake_cpu_memoria;
 
 typedef struct{
+  uint32_t dir_logica_origen;
+}t_operacion_fetch_operands;
+
+typedef struct{
+  void* valor;
+}t_operacion_respuesta_fetch_operands;
+
+typedef struct{
   int socket;
   uint32_t valor_buscado;
 }t_respuesta_operacion_read;
@@ -134,6 +144,16 @@ typedef struct{
   void* dato_buscado;
 }t_respuesta_dato_fisico;
 
+typedef struct{
+	int socket;
+	uint32_t dir_fisica;
+  void* valor;
+}t_escritura_dato_fisico;
+
+typedef struct{
+  int resultado;
+}t_respuesta_escritura_dato_fisico;
+
 t_config* iniciar_config(char*);
 t_log* iniciar_logger(char* archivo, char* nombre);
 
@@ -164,7 +184,7 @@ t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
 
-t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
+// t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion);
 
 t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);
