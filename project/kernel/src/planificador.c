@@ -25,8 +25,10 @@ int SOCKET_CONEXION_DISPATCH;
 sem_t HAY_PCB_DESALOJADO;     // semáforo binario
 sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
 sem_t MUTEX_BLOQUEO_SUSPENSION;
-time_t BEGIN;
-time_t END;
+// time_t BEGIN;
+// time_t END;
+struct timespec BEGIN;
+struct timespec END;
 int SE_ENVIO_INTERRUPCION = 0;
 int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
@@ -46,13 +48,14 @@ void *escuchar_conexion_cpu_dispatch() {
   while (estado_conexion) {
     int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
-    END = time(NULL);
-    timer_detener();
-    timer_imprimir();
-
+    // END = time(NULL);
+    clock_gettime(CLOCK_REALTIME, &END);
+    // timer_detener();
+    // timer_imprimir();
+    int tiempo_en_ejecucion = (END.tv_sec - BEGIN.tv_sec) * 1000 + (END.tv_nsec - BEGIN.tv_nsec) / 1000000;
     xlog(COLOR_INFO,
-         "Tiempo que pcb estuvo en cpu: %lf",
-         difftime(END, BEGIN)); // Timer en segundos para comparar aproximadamente con el de milisegundos
+         "[TIMER]: Tiempo que pcb estuvo en cpu: %d milisegundos",
+         tiempo_en_ejecucion); // Timer en segundos para comparar aproximadamente con el de milisegundos
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -63,8 +66,8 @@ void *escuchar_conexion_cpu_dispatch() {
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación de I/O (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se bloquea un proceso (pid=%d, tiempo=%d)", pcb->pid, pcb->tiempo_de_bloqueado);
 
-        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
-
+        // pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
+        pcb->tiempo_en_ejecucion += tiempo_en_ejecucion;
         pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
         pcb->tiempo_en_ejecucion = 0;
 
@@ -99,7 +102,8 @@ void *escuchar_conexion_cpu_dispatch() {
         t_pcb *pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
 
-        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
+        // pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
+        pcb->tiempo_en_ejecucion += tiempo_en_ejecucion;
 
         liberar_cpu();
         xlog(COLOR_PAQUETE, "Se recibió un pcb desalojado (pid=%d)", pcb->pid);
@@ -242,8 +246,10 @@ void ejecutar_proceso(t_pcb *pcb) {
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
   // pcb_destroy(pcb); // Luego sera recibido uno igual pero actualizado
   // imprimir_pcb(pcb);
-  BEGIN = time(NULL);
-  timer_iniciar();
+  // BEGIN = time(NULL);
+  xlog(COLOR_INFO, "[TIMER]: Contando..");
+  clock_gettime(CLOCK_REALTIME, &BEGIN);
+  // timer_iniciar();
   // TODO: validar en el foro si se permite el escuchar la conexión dispatch desde kernel,
   // caso contrario deberiamos optar por algo asi
   // TODO: esto genera problemas para el envío/recepción de los paquetes apesar que esté sincronizado con semáforos
