@@ -181,7 +181,20 @@ void enviar_operacion_obtener_segunda_tabla(int socket_destino, t_paquete* paque
 
   if (status != -1) {
     log_info(logger,
-             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             "La operacion SOLICITUD_SEGUNDA_TABLA fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void enviar_operacion_respuesta_segunda_tabla(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_RESPUESTA_SEGUNDA_TABLA;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion RESPUESTA_SEGUNDA_TABLA fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
   }
@@ -194,7 +207,7 @@ void enviar_operacion_obtener_marco(int socket_destino, t_paquete* paquete) {
 
   if (status != -1) {
     log_info(logger,
-             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             "La operacion OBTENER_MARCO fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
   }
@@ -207,12 +220,24 @@ void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete) {
 
   if (status != -1) {
     log_info(logger,
-             "La operacion READ fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             "La operacion OBTENER_DATO fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
   }
 }
 
+void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_ESCRIBIR_DATO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "La operacion ESCRIBIR_DATO fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
 
 void matar_proceso(int socket_conexion_entrante) {
   t_paquete* paquete = paquete_create();

@@ -14,6 +14,7 @@
 CONEXION_ESTADO ESTADO_CONEXION_KERNEL;
 int SERVIDOR_KERNEL;
 sem_t CERRAR_PROCESO;
+sem_t ASIGNAR_PID;
 int ULTIMO_PID = 0;
 
 int main() {
@@ -22,6 +23,7 @@ int main() {
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);
   sem_init(&CERRAR_PROCESO, 0, 0);
+  sem_init(&ASIGNAR_PID, 0, 1);
   // pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
 
   char* ip = config_get_string_value(config, "IP_KERNEL");
@@ -86,7 +88,9 @@ void* escuchar_conexiones_entrantes() {
 }
 
 void asignar_pid(t_pcb* pcb) {
+  sem_wait(&ASIGNAR_PID);
   pcb->pid = ULTIMO_PID++;
+  sem_post(&ASIGNAR_PID);
 }
 
 void asignar_estimacion_rafaga_inicial(t_pcb* pcb) {
@@ -108,16 +112,15 @@ void* escuchar_nueva_conexion(void* args) {
       case OPERACION_PCB: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        asignar_pid(pcb); // TODO: evaluar posibilidad de condición de carrera contra el recurso ULTIMO_PID
+        asignar_pid(pcb);
         asignar_estimacion_rafaga_inicial(pcb);
         pcb->socket = socket_cliente;
-        // TODO: validar si necesitamos contemplar algo más
         // queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
 
+        // Se decidio realizar la transicion a new en esta instancia
         transicion_a_new(pcb);
         sem_post(&HAY_PROCESOS_ENTRANTES);
         // log_info(logger, "conexiones: pcbs=%d", queue_size(PCBS_PROCESOS_ENTRANTES));
-        // sem_post(&(COLA_NEW->cantidad_procesos));
 
         paquete_destroy(paquete);
         // pcb_destroy(pcb); // TODO: definir cuando liberar el recurso de pcb, supongo que al finalizar kernel (?)
