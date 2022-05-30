@@ -19,7 +19,7 @@ int CONEXION_CPU_INTERRUPT;
 int SOCKET_CLIENTE_DISPATCH;
 
 int main() {
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU-Fake");
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "cpu-fake");
   config = iniciar_config(DIR_SERVIDOR_CFG);
 
   pthread_t th1, th2;
@@ -91,7 +91,9 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
@@ -175,7 +177,9 @@ void* escuchar_conexiones_entrantes(void* args) {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
@@ -221,7 +225,7 @@ void validar_operacion_exit(t_pcb* pcb, t_instruccion* instruccion) {
   if (es_esta_instruccion(instruccion, "EXIT")) {
     t_paquete* paquete = paquete_create();
     paquete_add_pcb(paquete, pcb);
-    enviar_pcb_con_operacion_exit(SOCKET_CLIENTE_DISPATCH, paquete);
+    // enviar_pcb_con_operacion_exit(SOCKET_CLIENTE_DISPATCH, paquete);
   }
 }
 

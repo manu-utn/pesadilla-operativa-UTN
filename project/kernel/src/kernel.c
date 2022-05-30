@@ -18,7 +18,7 @@ sem_t ASIGNAR_PID;
 int ULTIMO_PID = 0;
 
 int main() {
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "KERNEL");
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "kernel");
   config = iniciar_config(DIR_SERVIDOR_CFG);
   PCBS_PROCESOS_ENTRANTES = queue_create(); // TODO: evaluar cuando liberar recursos
   sem_init(&HAY_PROCESOS_ENTRANTES, 0, 0);

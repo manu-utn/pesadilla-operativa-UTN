@@ -9,7 +9,6 @@
 #include <commons/collections/queue.h>
 #include <commons/config.h>
 #include <libstatic.h>
-#include "dir.h"
 #include "kernel.h"
 
 #define MODULO "kernel"

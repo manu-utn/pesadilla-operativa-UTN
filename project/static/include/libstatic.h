@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "xlog.h"
 #include "timer.h"
+#include "dir.h"
 
 typedef enum {
   OPERACION_EXIT=0,
