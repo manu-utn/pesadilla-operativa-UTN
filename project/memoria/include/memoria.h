@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
-#include "dir.h"
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
