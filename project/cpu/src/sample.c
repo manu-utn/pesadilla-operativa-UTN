@@ -1,6 +1,5 @@
 #include "sample.h"
 #include "cpu.h"
-#include "dir.h"
 #include "serializado.h"
 #include "utils-cliente.h"
 #include <commons/collections/list.h>
@@ -24,7 +23,6 @@ int main() {
   struct arg_struct args_dispatch;
   struct arg_struct args_interrupt;*/
 
-
   // t_config* config = iniciar_config(DIR_SERVIDOR_CFG);
 
   // pthread_create(&th1, NULL, (void*)escuchar_interrupt, NULL);
@@ -32,7 +30,8 @@ int main() {
   socket_memoria = conectarse_a_memoria();
 
   // HANDSHAKE CON MEMORIA
-  /*t_mensaje_handshake_cpu_memoria* mensaje_hs = mensaje_handshake_create("MENSAJE PRUEBA");
+  /*t_mensaje_handshake_cpu_memoria* mensaje_hs =
+  mensaje_handshake_create("MENSAJE PRUEBA");
 
   t_paquete* paquete_con_mensaje = paquete_create();
 
@@ -40,8 +39,8 @@ int main() {
 
   enviar_mensaje_handshake(socket_memoria, paquete_con_mensaje);*/
 
-  t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje("Conexión aceptada por Kernel");
+  t_paquete *paquete = paquete_create();
+  t_buffer *mensaje = crear_mensaje("Conexión aceptada por Kernel");
   paquete_cambiar_mensaje(paquete, mensaje);
   enviar_mensaje(socket_memoria, paquete);
 
@@ -49,10 +48,10 @@ int main() {
 
   // paquete_destroy(paquete);
 
-
   pthread_t th, th2;
   pthread_create(&th, NULL, escuchar_dispatch, NULL), pthread_detach(th);
-  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
+  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL),
+      pthread_detach(th2);
 
   log_info(logger, "Servidor listo para recibir al cliente Kernel");
 
