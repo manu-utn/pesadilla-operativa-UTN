@@ -24,6 +24,7 @@ int SOCKET_CONEXION_DISPATCH;
 // sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
 sem_t HAY_PCB_DESALOJADO;     // semáforo binario
 sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
+sem_t MUTEX_BLOQUEO_SUSPENSION;
 time_t BEGIN;
 time_t END;
 int SE_ENVIO_INTERRUPCION = 0;
@@ -161,6 +162,7 @@ void iniciar_planificacion() {
   // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
   sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
+  sem_init(&MUTEX_BLOQUEO_SUSPENSION, 0, 1);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
   COLA_BLOCKED = cola_planificacion_create();
@@ -238,7 +240,7 @@ void ejecutar_proceso(t_pcb *pcb) {
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
-  pcb_destroy(pcb); // Luego sera recibido uno igual pero actualizado
+  // pcb_destroy(pcb); // Luego sera recibido uno igual pero actualizado
   // imprimir_pcb(pcb);
   BEGIN = time(NULL);
   timer_iniciar();
@@ -341,6 +343,7 @@ void *gestor_de_procesos_bloqueados() {
 
     // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
     // y cambiar el estado del pcb
+    sem_wait(&MUTEX_BLOQUEO_SUSPENSION);
     if (pcb->estado != BLOCKED) {
       xlog(COLOR_INFO, "Proceso suspendido-bloqueado pasa a SUSREADY (pid = %d)", pcb->pid);
       transicion_blocked_a_susready(pcb);
@@ -349,6 +352,7 @@ void *gestor_de_procesos_bloqueados() {
       xlog(COLOR_INFO, "Proceso bloqueado pasa a READY (pid = %d)", pcb->pid);
       transicion_blocked_a_ready(pcb);
     }
+    sem_post(&MUTEX_BLOQUEO_SUSPENSION);
   }
 }
 
@@ -647,7 +651,7 @@ bool hay_algun_proceso_ejecutando() {
 }
 
 void liberar_cpu() {
-  // pcb_destroy(PROCESO_EJECUTANDO); // Genera core dumped
+  pcb_destroy(PROCESO_EJECUTANDO); // Genera core dumped
   PROCESO_EJECUTANDO = NULL;
 }
 
@@ -686,9 +690,11 @@ void timer_suspension_proceso(t_pcb *pcb) {
   xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);
   // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
   // y cambiar el estado del pcb
+  sem_wait(&MUTEX_BLOQUEO_SUSPENSION);
   if (pcb->estado == BLOCKED) {
     pmp_suspender_proceso(pcb);
   }
+  sem_post(&MUTEX_BLOQUEO_SUSPENSION);
 
   pthread_exit(NULL);
 }

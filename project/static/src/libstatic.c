@@ -199,7 +199,7 @@ t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
   offset += size_valor;
   return mensaje;
 }
-
+/*
 t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
@@ -247,7 +247,7 @@ t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
 
   mensaje->size = offset;
 }
-
+*/
 
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion) {
   int identificador_longitud = strlen(instruccion->identificador) + 1;

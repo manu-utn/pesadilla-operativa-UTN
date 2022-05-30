@@ -4,6 +4,8 @@
 #include "utils-servidor.h"
 #include <libstatic.h> // <-- STATIC LIB
 int CONEXION_CPU_INTERRUPT;
+int HAY_PCB_PARA_EJECUTAR = 0;
+int HAY_INTERRUPCION = 0;
 // void* escuchar_dispatch(void* arguments) {
 
 void setear_algoritmo_reemplazo() {
@@ -57,11 +59,12 @@ void* manejar_nueva_conexion(void* args) {
         paquete_con_pcb = recibir_paquete(socket_cliente);
 
         t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-        pcb_deserializado->socket = socket_cliente;
+        // pcb_deserializado->socket = socket_cliente;
+        HAY_PCB_PARA_EJECUTAR = 1;
         ciclo_instruccion(pcb_deserializado, socket_cliente);
         imprimir_pcb(pcb_deserializado);
         paquete_destroy(paquete_con_pcb);
-        free(pcb_deserializado);
+        pcb_destroy(pcb_deserializado);
         // descomentar para validar el memcheck
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
@@ -125,12 +128,13 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
 
-  while (pcb->program_counter < list_size(pcb->instrucciones)) {
+  while (HAY_PCB_PARA_EJECUTAR && pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion));
     instruccion = fetch(pcb);
+    pcb->program_counter++;
     decode(instruccion, pcb, socket_cliente);
     // free(instruccion);
-    pcb->program_counter++;
+    check_interrupt(pcb, socket_cliente);
   }
 }
 
@@ -141,7 +145,10 @@ t_instruccion* fetch(t_pcb* pcb) {
 void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     log_info(logger, "Ejecutando NO_OP...");
-    execute_no_op();
+    char** params = string_split(instruccion->params, " ");
+    uint32_t cantidad_de_veces_no_op = atoi(params[0]);
+    xlog(COLOR_INFO, "NO_OP se ejecutara %d veces", cantidad_de_veces_no_op);
+    execute_no_op(cantidad_de_veces_no_op);
   }
 
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
@@ -168,9 +175,9 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
     int cant_entradas_por_tabla = 10;
     char** params = string_split(instruccion->params, " ");
-    uint32_t dir_logica = params[0];
+    uint32_t dir_logica = atoi(params[0]);
     void* valor = params[1];
-    int num_pagina = (float)atoi(dir_logica) / tam_pagina;
+    int num_pagina = (float)dir_logica / tam_pagina;
     // uint32_t dir_logica = atoi(instruccion->params);
     execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, valor);
 
@@ -181,9 +188,9 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
     int cant_entradas_por_tabla = 10;
     char** params = string_split(instruccion->params, " ");
-    uint32_t dir_logica_destino = params[0];
-    uint32_t dir_logica_origen = params[1];
-    int num_pagina = (float)atoi(dir_logica_origen) / tam_pagina;
+    // uint32_t dir_logica_destino = atoi(params[0]);
+    uint32_t dir_logica_origen = atoi(params[1]);
+    int num_pagina = (float)dir_logica_origen / tam_pagina;
     t_operacion_respuesta_fetch_operands* respuesta_fetch =
       fetch_operands(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen);
     execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen, respuesta_fetch->valor);
@@ -197,9 +204,10 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   }
 }
 
-void execute_no_op() {
+void execute_no_op(uint32_t cantidad_de_veces_no_op) {
   int retardo = config_get_int_value(config, "RETARDO_NOOP");
-  usleep(retardo);
+  xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
+  usleep(cantidad_de_veces_no_op * retardo * 1000);
 }
 
 void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
@@ -210,13 +218,19 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
   paquete_add_pcb(paquete, pcb);
   xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
 }
 void execute_exit(t_pcb* pcb, int socket_cliente) {
-  pcb->program_counter++;
+  // pcb->program_counter++;
   t_paquete* paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  enviar_pcb_con_operacion_exit(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
+  /*
   t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
   paquete_cambiar_mensaje(paquete, mensaje);
   enviar_pcb_actualizado(socket_cliente, paquete);
+  */
 }
 
 t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
@@ -540,6 +554,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
         case OPERACION_INTERRUPT: {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
+          /*
           t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
           paquete_con_pcb = recibir_paquete(socket_cliente);
           t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
@@ -549,7 +564,8 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, NULL);
           paquete_cambiar_mensaje(paquete_respuesta, mensaje);
           enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
-
+          */
+          HAY_INTERRUPCION = 1;
           paquete_destroy(paquete);
         } break;
         case OPERACION_MENSAJE: {
@@ -628,4 +644,19 @@ int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_paramet
   string_iterate_lines(parametros, (void*)free);
 
   return valor;
+}
+
+void check_interrupt(t_pcb* pcb, int socket_cliente) {
+  if (HAY_PCB_PARA_EJECUTAR) {
+    if (HAY_INTERRUPCION) {
+      t_paquete* paquete = paquete_create();
+      paquete_add_pcb(paquete, pcb);
+      enviar_pcb_desalojado(socket_cliente, paquete);
+      xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
+      HAY_PCB_PARA_EJECUTAR = 0;
+      HAY_INTERRUPCION = 0;
+    }
+  } else {
+    HAY_INTERRUPCION = 0; // Para el caso en el que no haya pcb pero se haya mandado una interrupcion
+  }
 }

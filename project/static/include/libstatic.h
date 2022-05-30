@@ -38,7 +38,9 @@ typedef enum {
   OPERACION_CONSOLA,
   OPERACION_PCB_CON_IO,
   OPERACION_PCB_CON_EXIT,
-  PAQUETE_INSTRUCCION
+  PAQUETE_INSTRUCCION,
+  OPERACION_RESPUESTA_SEGUNDA_TABLA,
+  OPERACION_ESCRIBIR_DATO
   } op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
@@ -182,7 +184,7 @@ t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
 
-t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
+// t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion);
 
 t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);
