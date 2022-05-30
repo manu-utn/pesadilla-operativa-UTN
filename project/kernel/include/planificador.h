@@ -19,13 +19,11 @@
 int ULTIMO_PID;
 t_queue* PCBS_PROCESOS_ENTRANTES;
 sem_t HAY_PROCESOS_ENTRANTES;
-pthread_mutex_t NO_HAY_PROCESOS_EN_SUSREADY;
+sem_t NO_HAY_PROCESOS_EN_SUSREADY;
 
 typedef struct {
   t_list *lista_pcbs;
   sem_t cantidad_procesos;
-  // TODO: evaluar si corresponde remover, se cambió por cantidad_procesos
-  // sem_t instancias_disponibles;
   pthread_mutex_t mutex;
 } t_cola_planificacion;
 
@@ -36,18 +34,22 @@ typedef enum {
 
 t_log *logger;
 
-sem_t GRADO_MULTIPROGRAMACION;
+// TODO: Revisar por mejor nombre
+sem_t PROCESOS_DISPONIBLES_EN_MEMORIA; // El maximo es el grado de multiprogramacion
 
 t_cola_planificacion *COLA_NEW;
 t_cola_planificacion *COLA_READY;
 t_cola_planificacion *COLA_BLOCKED;
 t_cola_planificacion *COLA_SUSREADY;
-t_cola_planificacion *COLA_SUSBLOCKED;
+t_cola_planificacion *COLA_FINISHED;
 
 void iniciar_planificacion();
 void *iniciar_corto_plazo();
 void *iniciar_largo_plazo();
 void *iniciar_mediano_plazo();
+
+void avisar_a_pcp_que_decida();
+void *plp_pcb_finished();
 
 int pcb_get_posicion(t_pcb *pcb, t_list *lista);
 
@@ -60,21 +62,20 @@ void enviar_pcb_de_cola_ready_a_cpu();
 void transicion_a_new(t_pcb* pcb);
 void transicion_new_a_ready(t_pcb *pcb);
 void transicion_blocked_a_ready(t_pcb *pcb);
+void transicion_blocked_a_susready(t_pcb *pcb);
 void transicion_susblocked_a_susready(t_pcb *pcb);
 void transicion_susready_a_ready(t_pcb *pcb);
 void transicion_running_a_blocked(t_pcb *pcb);
+void transicion_running_a_finished(t_pcb *pcb);
 
 t_cola_planificacion* cola_planificacion_create();
 void cola_destroy(t_cola_planificacion *cola);
 
 void inicializar_grado_multiprogramacion();
-int obtener_grado_multiprogramacion_actual();
-//int obtener_grado_multiprogramacion_por_config();
-void bajar_grado_multiprogramacion();
-void subir_grado_multiprogramacion();
-void controlar_grado_multiprogramacion();
-void actualizar_grado_multiprogramacion();
-void imprimir_grado_multiprogramacion_actual();
+int obtener_cantidad_procesos_disponibles_en_memoria();
+void controlar_procesos_disponibles_en_memoria(int llamado_por_plp);
+void liberar_espacio_en_memoria_para_proceso();
+void imprimir_cantidad_procesos_disponibles_en_memoria();
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
 t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);
@@ -92,7 +93,10 @@ void transicion_ready_a_running(t_pcb *pcb);
 char *obtener_algoritmo_cargado();
 void ejecutar_proceso(t_pcb*pcb);
 void imprimir_proceso_en_running();
+int calcular_estimacion_rafaga(t_pcb *pcb);
 
 void iniciar_conexion_cpu_dispatch();
 void *escuchar_conexion_cpu_dispatch();
+void *gestor_de_procesos_bloqueados();
+void timer_suspension_proceso(t_pcb *pcb);
 #endif

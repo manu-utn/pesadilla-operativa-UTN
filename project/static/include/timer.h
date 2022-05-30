@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <semaphore.h>
 #include "xlog.h"
 
 typedef enum { TIMER_ACTIVADO = 1, TIMER_DESACTIVADO = 0 } timer_estado;
@@ -21,6 +22,8 @@ void *timer_contar();
 void timer_iniciar();
 void timer_detener();
 void timer_imprimir();
-int microsegundos_humanizar(int microsegundos);
-void simular_bloqueo_en_segundos(int tiempo_microsegundos);
+// int microsegundos_humanizar(int microsegundos);
+// void simular_bloqueo_en_segundos(int tiempo_microsegundos);
+int milisegundos_a_microsegundos(int milisegundos);
+void bloquear_por_milisegundos(int tiempo_milisegundos);
 #endif

@@ -20,13 +20,17 @@ int SOCKET_CONEXION_DISPATCH;
 // TODO: Evaluar si esta variable global es necesaria
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
 
-sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
-sem_t HAY_PCB_DESALOJADO;           // semáforo binario
-sem_t EJECUTAR_ALGORITMO_PCP;       // semaforo binario
+// TODO: Evaluar si este semaforo es o no es necesario al final
+// sem_t CONEXION_DISPATCH_DISPONIBLE; // semáforo binario
+sem_t HAY_PCB_DESALOJADO;     // semáforo binario
+sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
 time_t BEGIN;
 time_t END;
+int SE_ENVIO_INTERRUPCION = 0;
+int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
 void avisar_a_pcp_que_decida() {
+  SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
   sem_post(&EJECUTAR_ALGORITMO_PCP);
 }
 
@@ -42,7 +46,12 @@ void *escuchar_conexion_cpu_dispatch() {
     int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
     END = time(NULL);
-    xlog(COLOR_INFO, "Tiempo que pcb estuvo en cpu: %f", difftime(END, BEGIN));
+    timer_detener();
+    timer_imprimir();
+
+    xlog(COLOR_INFO,
+         "Tiempo que pcb estuvo en cpu: %lf",
+         difftime(END, BEGIN)); // Timer en segundos para comparar aproximadamente con el de milisegundos
 
     switch (codigo_operacion) {
       case OPERACION_PCB_CON_IO: {
@@ -53,9 +62,19 @@ void *escuchar_conexion_cpu_dispatch() {
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación de I/O (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se bloquea un proceso (pid=%d, tiempo=%d)", pcb->pid, pcb->tiempo_de_bloqueado);
 
+        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
+
+        pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        pcb->tiempo_en_ejecucion = 0;
+
+
         // TODO: se debe bloquear el proceso, sin bloquear la escucha
         transicion_running_a_blocked(pcb);
-        avisar_a_pcp_que_decida(); // Le indico al pcb q debe realizar una eleccion ya q cpu esta vacia
+        if (SE_ENVIO_INTERRUPCION) {
+          sem_post(&HAY_PCB_DESALOJADO);
+        } else {
+          avisar_a_pcp_que_decida(); // Le indico al PCP q debe realizar una eleccion ya q cpu esta vacia
+        }
         imprimir_pcb(pcb);
       } break;
       case OPERACION_PCB_CON_EXIT: {
@@ -63,15 +82,23 @@ void *escuchar_conexion_cpu_dispatch() {
         t_pcb *pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
 
-        // TODO: sincronizar con plp para matar el proceso, y hacer transicion de estado/cola
-
         xlog(COLOR_PAQUETE, "Se recibió un pcb con operación EXIT (pid=%d)", pcb->pid);
         xlog(COLOR_INFO, "Se finaliza un proceso (pid=%d)", pcb->pid);
+
+        transicion_running_a_finished(pcb);
+        if (SE_ENVIO_INTERRUPCION) {
+          sem_post(&HAY_PCB_DESALOJADO);
+        } else {
+          avisar_a_pcp_que_decida(); // Le indico al PCP q debe realizar una eleccion ya q cpu esta vacia
+        }
+
       } break;
       case OPERACION_PCB_DESALOJADO: {
         t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_DISPATCH);
         t_pcb *pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
+
+        pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
 
         liberar_cpu();
         xlog(COLOR_PAQUETE, "Se recibió un pcb desalojado (pid=%d)", pcb->pid);
@@ -79,7 +106,7 @@ void *escuchar_conexion_cpu_dispatch() {
         imprimir_pcb(pcb);
         cambiar_estado_pcb(pcb, READY);
 
-        // imprimir_grado_multiprogramacion_actual();
+        // imprimir_cantidad_procesos_disponibles_en_memoria();
         agregar_pcb_a_cola(pcb, COLA_READY);
         /*
         pthread_mutex_lock(&(COLA_READY->mutex));
@@ -95,8 +122,8 @@ void *escuchar_conexion_cpu_dispatch() {
         xlog(COLOR_CONEXION, "Un proceso cliente se desconectó (socket=%d)", SOCKET_CONEXION_DISPATCH);
 
         // TODO: se debería actualizar el NEW
-        // bajar_grado_multiprogramacion();
-        actualizar_grado_multiprogramacion();
+        // TODO: Evaluar si es necesario aumentar el grado de multiprogramacion
+        // liberar_espacio_en_memoria_para_proceso();
 
         // centinela para detener el loop del hilo asociado a la conexión entrante
         estado_conexion = CONEXION_FINALIZADA;
@@ -123,30 +150,31 @@ void *escuchar_conexion_cpu_dispatch() {
 
 void iniciar_conexion_cpu_dispatch() {
   pthread_t th;
-  pthread_create(&th, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th);
+  pthread_create(&th, NULL, escuchar_conexion_cpu_dispatch, NULL);
+  pthread_detach(th);
 }
 
 void iniciar_planificacion() {
-  pthread_t th1, th2, th3;
+  pthread_t th1, th2, th3, th4;
 
   inicializar_grado_multiprogramacion();
-  sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
+  // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
+  sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   COLA_NEW = cola_planificacion_create();
   COLA_READY = cola_planificacion_create();
   COLA_BLOCKED = cola_planificacion_create();
-
-  // TODO: descomentar a medida que se vayan implementando los planificadores
-  /* COLA_BLOCKED = inicializar_cola(COLA_BLOCKED); */
   COLA_SUSREADY = cola_planificacion_create();
-  COLA_SUSBLOCKED = cola_planificacion_create();
+  COLA_FINISHED = cola_planificacion_create();
 
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
 
-  pthread_create(&th3, NULL, escuchar_conexion_cpu_dispatch, NULL), pthread_detach(th3);
-
-  // pthread_create(&th3, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th3);
+  // Se mantiene la conexion dispatch, especialmente porque se deben escuchar por mensajes de esta conexion ademas de
+  // enviar
+  iniciar_conexion_cpu_dispatch();
+  pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th3);
+  pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th4);
   // sleep(1);
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
@@ -165,20 +193,15 @@ void *iniciar_corto_plazo() {
   xlog(COLOR_INFO, "Planificador de Corto Plazo: Ejecutando...");
 
   sem_init(&EJECUTAR_ALGORITMO_PCP, 0, 0);
-  // TODO: evaluar si corresponde conectar/desconectar a cada rato, ó si solo mantenemos la conexión
-  // Decidi mantener la conexion, especialmente porque se deben escuchar por mensajes de esta conexion ademas de enviar
-  // pthread_t th;
-  // pthread_create(&th, NULL, iniciar_conexion_cpu_dispatch, NULL), pthread_detach(th);
 
   while (1) {
-    sem_wait(&EJECUTAR_ALGORITMO_PCP); // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo
-                                       // proceso a cpu
+    // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo proceso a cpu
+    sem_wait(&EJECUTAR_ALGORITMO_PCP);
+
     xlog(COLOR_INFO, "PCP: Realizar toma de decision");
-    sem_wait(&(COLA_READY->cantidad_procesos)); // pero si no hay pcbs en ready se queda bloqueado aca hasta q haya
+    sem_wait(&(COLA_READY->cantidad_procesos)); // Si no hay pcbs en ready se queda bloqueado aca hasta q haya
     // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso
     // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
-
-    // TODO: Si el semaforo EJECUTAR_ALGORITMO_PCP tiene valor 1, disminuirlo
 
     t_pcb *pcb_elegido_a_ejecutar = NULL;
 
@@ -187,11 +210,9 @@ void *iniciar_corto_plazo() {
       xlog(COLOR_ERROR, "No hay un algoritmo de planificación cargado ó dicho algoritmo no está implementado");
     } else {
       if (algoritmo_cargado_es("SJF") && hay_algun_proceso_ejecutando()) {
-        // TODO: validar en el foro, ya que si no se está realizando un handshake y no lo solicitan
-
         enviar_interrupcion();
-        // iniciar_conexion_cpu_dispatch(), enviar_interrupcion();
-        sem_wait(&HAY_PCB_DESALOJADO); // se bloquea hasta recibir el pcb de cpu
+        sem_wait(&HAY_PCB_DESALOJADO); // Se bloquea hasta recibir el pcb de cpu
+        SE_ENVIO_INTERRUPCION = 0;
       }
     }
 
@@ -203,6 +224,8 @@ void *iniciar_corto_plazo() {
          obtener_algoritmo_cargado());
 
     ejecutar_proceso(pcb_elegido_a_ejecutar);
+
+    SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
   }
 
   pthread_exit(NULL);
@@ -215,7 +238,10 @@ void ejecutar_proceso(t_pcb *pcb) {
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
+  pcb_destroy(pcb); // Luego sera recibido uno igual pero actualizado
+  // imprimir_pcb(pcb);
   BEGIN = time(NULL);
+  timer_iniciar();
   // TODO: validar en el foro si se permite el escuchar la conexión dispatch desde kernel,
   // caso contrario deberiamos optar por algo asi
   // TODO: esto genera problemas para el envío/recepción de los paquetes apesar que esté sincronizado con semáforos
@@ -229,10 +255,12 @@ void ejecutar_proceso(t_pcb *pcb) {
   /* close(socket_destino); */
 }
 
-// TODO: se deben cambiar de estado a EXIT y remover de la cola de READY...
-// cuando se desconecten ó cuando terminen sus hilos
 void *iniciar_largo_plazo() {
   xlog(COLOR_INFO, "Planificador de Largo Plazo: Ejecutando...");
+
+  pthread_t th;
+  pthread_create(&th, NULL, plp_pcb_finished, NULL);
+  pthread_detach(th);
 
   while (1) {
     sem_wait(&(COLA_NEW->cantidad_procesos));
@@ -240,16 +268,13 @@ void *iniciar_largo_plazo() {
 
     // xlog(COLOR_BLANCO, "Nuevo proceso Consola ingresar (pcbs=%d)", queue_size(PCBS_PROCESOS_ENTRANTES));
 
-    t_pcb *pcb = (t_pcb *)queue_pop(PCBS_PROCESOS_ENTRANTES);
-    transicion_a_new(pcb);
+    t_pcb *pcb = elegir_pcb_fifo(COLA_NEW);
 
-    // TODO: creo que no tengo que hacer bajar_grado...
-    // TODO: me parece que debo usar un wait_condition que compare el valor de  READY contra el grado de
-    // multiprogramacion?
-    // TODO: después tendrias que chequear SUSREADY+READY
+    // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
+    controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
 
-    // controlar_grado_multiprogramacion();
-    transicion_new_a_ready(pcb), imprimir_grado_multiprogramacion_actual();
+    transicion_new_a_ready(pcb);
+    imprimir_cantidad_procesos_disponibles_en_memoria();
 
     // TODO: enviar_solicitud_tabla_paginas(fd_memoria);
 
@@ -260,25 +285,71 @@ void *iniciar_largo_plazo() {
   pthread_exit(NULL);
 }
 
-// TODO: definir
+void *plp_pcb_finished() {
+  xlog(COLOR_INFO, "Planificador de Largo Plazo: Funcion transicion finished ejecutando...");
+
+  while (1) {
+    sem_wait(&(COLA_FINISHED->cantidad_procesos));
+
+    // TODO: Informar a memoria que termina el proceso y esperar respuesta
+    t_pcb *pcb = elegir_pcb_fifo(COLA_FINISHED);
+    remover_pcb_de_cola(pcb, COLA_FINISHED);
+    imprimir_pcb(pcb);
+    matar_proceso(pcb->socket); // Se avisa a la consola de la finalizacion
+    pcb_destroy(pcb);
+    imprimir_pcb(pcb);
+  }
+}
+
+// Se encarga de realizar la transacion de SUSREADY a READY
 void *iniciar_mediano_plazo() {
   xlog(COLOR_INFO, "Planificador de Mediano Plazo: Ejecutando...");
 
-  // TODO: Agregar logica transicion de blocked a susblocked
-
   while (1) {
-    // sem_wait(&(COLA_SUSREADY->instancias_disponibles));
-
+    sem_wait(&(COLA_SUSREADY->cantidad_procesos));
+    // sleep(10);
     t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
 
-    // controlar_grado_multiprogramacion();
+    // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
+    controlar_procesos_disponibles_en_memoria(0); // Llamado por PMP
     transicion_susready_a_ready(pcb);
+    imprimir_cantidad_procesos_disponibles_en_memoria();
 
     // TODO: contemplar cuando el proceso finaliza, por momento habrán memory leaks
     // pcb_destroy(pcb);
   }
 
   pthread_exit(NULL);
+}
+
+void pmp_suspender_proceso(t_pcb *pcb) {
+  pcb->estado = SUSBLOCKED;
+  // TODO: Informar a memoria de suspension
+  xlog(COLOR_INFO, "Se suspendio un proceso (pid = %d)", pcb->pid);
+  liberar_espacio_en_memoria_para_proceso();
+}
+
+void *gestor_de_procesos_bloqueados() {
+  while (1) {
+    sem_wait(&(COLA_BLOCKED->cantidad_procesos));
+
+    t_pcb *pcb = elegir_pcb_fifo(COLA_BLOCKED);
+    xlog(COLOR_INFO, "Se bloqueara el proceso con pid=%d por un tiempo de %d", pcb->pid, pcb->tiempo_de_bloqueado);
+    bloquear_por_milisegundos(pcb->tiempo_de_bloqueado);
+    xlog(COLOR_INFO, "Finalizo el bloqueo del pcb=%d", pcb->pid);
+    // TODO: Avisar a memoria fin de bloqueo y esperar respuesta
+
+    // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
+    // y cambiar el estado del pcb
+    if (pcb->estado != BLOCKED) {
+      xlog(COLOR_INFO, "Proceso suspendido-bloqueado pasa a SUSREADY (pid = %d)", pcb->pid);
+      transicion_blocked_a_susready(pcb);
+    } else {
+      pcb->estado = READY;
+      xlog(COLOR_INFO, "Proceso bloqueado pasa a READY (pid = %d)", pcb->pid);
+      transicion_blocked_a_ready(pcb);
+    }
+  }
 }
 
 int pcb_get_posicion(t_pcb *pcb, t_list *lista) {
@@ -294,7 +365,7 @@ void agregar_pcb_a_cola(t_pcb *pcb, t_cola_planificacion *cola) {
   pthread_mutex_lock(&(cola->mutex));
 
   list_add(cola->lista_pcbs, pcb);
-  sem_post(&(cola->cantidad_procesos)); // sem++
+  sem_post(&(cola->cantidad_procesos));
 
   pthread_mutex_unlock(&(cola->mutex));
 }
@@ -305,11 +376,13 @@ void remover_pcb_de_cola(t_pcb *pcb, t_cola_planificacion *cola) {
 
   if (posicion != -1) {
     list_remove(cola->lista_pcbs, posicion);
+    // TODO: Validad que antes de llamar a esta funcion se este haciendo el sem_wait de cantidad_procesos
+    // sem_wait(&(cola->cantidad_procesos));
+    // No es necesario ya que para hacer las transiciones (que es para lo que esto se usa) ya se tuvo que hacer un wait
   } else {
     log_error(logger, "No existe tal elemento en la cola");
   }
 
-  // sem_wait(&(cola->cantidad_procesos)); // sem--
   pthread_mutex_unlock(&(cola->mutex));
 }
 
@@ -329,7 +402,8 @@ void transicion_running_a_blocked(t_pcb *pcb) {
   agregar_pcb_a_cola(pcb, COLA_BLOCKED);
 
   liberar_cpu();
-
+  pthread_t th;
+  pthread_create(&th, NULL, (void *)timer_suspension_proceso, (void *)pcb), pthread_detach(th);
   xlog(COLOR_TAREA,
        "Transición de RUNNING a BLOCKED, el PCP atendió una operación de I/O (pid=%d, pcbs_en_blocked=%d, "
        "tiempo_bloqueo=%d)",
@@ -338,11 +412,21 @@ void transicion_running_a_blocked(t_pcb *pcb) {
        pcb->tiempo_de_bloqueado);
 }
 
-void transicion_a_new(t_pcb *pcb) {
-  agregar_pcb_a_cola(pcb, COLA_NEW);
+void transicion_running_a_finished(t_pcb *pcb) {
+  cambiar_estado_pcb(pcb, FINISHED);
+  agregar_pcb_a_cola(pcb, COLA_FINISHED);
 
-  // sem_post(&(COLA_NEW->instancias_disponibles));
-  sem_post(&(COLA_NEW->cantidad_procesos));
+  liberar_cpu();
+
+  xlog(COLOR_TAREA,
+       "Transición de RUNNING a FINISHED, el PCP atendió una operación de FINISHED (pid=%d, pcbs_en_finished=%d)",
+       pcb->pid,
+       list_size(COLA_FINISHED->lista_pcbs));
+}
+
+void transicion_a_new(t_pcb *pcb) {
+  cambiar_estado_pcb(pcb, NEW);
+  agregar_pcb_a_cola(pcb, COLA_NEW);
 
   xlog(COLOR_TAREA,
        "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)",
@@ -360,20 +444,13 @@ void transicion_new_a_ready(t_pcb *pcb) {
        pcb->pid,
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
-
-  if (!algoritmo_cargado_es("FIFO") ||
-      !hay_algun_proceso_ejecutando()) { // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-    sem_post(&EJECUTAR_ALGORITMO_PCP);
+  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
+    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      sem_post(&EJECUTAR_ALGORITMO_PCP);
+    }
   }
-
-  /*
-   *
-  liberar_una_instancia_de_recurso(COLA_NEW); // sem++
-  tomar_una_instancia_de_recurso(COLA_READY); // sem--
-
-  sem_wait(&(COLA_NEW->instancias_disponibles));
-  sem_post(&(COLA_READY->instancias_disponibles));
-   */
 }
 
 // TODO: Añadir un signal
@@ -381,8 +458,36 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
+  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
+    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      sem_post(&EJECUTAR_ALGORITMO_PCP);
+    }
+  }
 }
 
+// TODO: Añadir un signal
+void transicion_blocked_a_susready(t_pcb *pcb) {
+  remover_pcb_de_cola(pcb, COLA_BLOCKED);
+  cambiar_estado_pcb(pcb, SUSREADY);
+  agregar_pcb_a_cola(pcb, COLA_SUSREADY);
+
+  if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
+    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
+  }
+
+  xlog(COLOR_TAREA,
+       "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_SUSREADY->lista_pcbs));
+
+  /*
+  sem_post(&(COLA_SUSREADY->instancias_disponibles));
+   */
+}
+
+/*
 // TODO: Añadir un signal
 void transicion_susblocked_a_susready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSBLOCKED);
@@ -393,32 +498,22 @@ void transicion_susblocked_a_susready(t_pcb *pcb) {
            "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
            pcb->pid,
            list_size(COLA_SUSREADY->lista_pcbs));
-
-  /*
-  if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
-    pthread_mutex_lock(&NO_HAY_PROCESOS_EN_SUSREADY);
-  }
-
-  sem_post(&(COLA_SUSREADY->instancias_disponibles));
-   */
 }
+*/
 
 void transicion_susready_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSREADY);
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
 
-  log_info(logger,
-           "Se agregó un PCB (pid=%d) a la cola de READY (cantidad_pcbs=%d)",
-           pcb->pid,
-           list_size(COLA_READY->lista_pcbs));
-  /*
-  sem_post(&(COLA_READY->instancias_disponibles));
-
   if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
-    pthread_mutex_unlock(&NO_HAY_PROCESOS_EN_SUSREADY);
+    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
-   */
+
+  xlog(COLOR_TAREA,
+       "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
+       pcb->pid,
+       list_size(COLA_READY->lista_pcbs));
 }
 
 t_cola_planificacion *cola_planificacion_create() {
@@ -438,57 +533,42 @@ t_cola_planificacion *cola_planificacion_create() {
 
 void inicializar_grado_multiprogramacion() {
   int grado = atoi(config_get_string_value(config, "GRADO_MULTIPROGRAMACION"));
-  sem_init(&GRADO_MULTIPROGRAMACION, 0, grado);
+  sem_init(&PROCESOS_DISPONIBLES_EN_MEMORIA, 0, grado);
 }
 
-int obtener_grado_multiprogramacion_actual() {
+int obtener_cantidad_procesos_disponibles_en_memoria() {
   int grado;
-  // sem_getvalue(&GRADO_MULTIPROGRAMACION, &grado);
-
-  // TODO: se debe contemplar también el susready?
-  pthread_mutex_lock(&(COLA_READY->mutex));
-  // grado = list_size(COLA_READY->lista_pcbs);
-  sem_getvalue(&(COLA_READY->cantidad_procesos), &grado);
-  pthread_mutex_unlock(&(COLA_READY->mutex));
-
+  sem_getvalue(&PROCESOS_DISPONIBLES_EN_MEMORIA, &grado);
   return grado;
 }
 
-void imprimir_grado_multiprogramacion_actual() {
-  xlog(COLOR_TAREA, "El grado de multiprogramación actual es %d", obtener_grado_multiprogramacion_actual());
-}
-/*
-int obtener_grado_multiprogramacion_por_config() {
-  int grado = atoi(config_get_string_value(config, "GRADO_MULTIPROGRAMACION"));
-
-  return grado;
-}
-*/
-
-// TODO: evaluar si corresponde manejar esto, el valor es fijo y no deberíamos modificarlo
-void subir_grado_multiprogramacion() {
-  // sem_post(&GRADO_MULTIPROGRAMACION); // hace sem++
-  // xlog(COLOR_AMARILLO, "Subió el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+void imprimir_cantidad_procesos_disponibles_en_memoria() {
+  xlog(COLOR_TAREA,
+       "La cantidad de instancias de procesos disponibles para cargar en memoria actualmente es %d",
+       obtener_cantidad_procesos_disponibles_en_memoria());
 }
 
-// TODO: evaluar si corresponde manejar esto, el valor es fijo y no deberíamos modificarlo
-void bajar_grado_multiprogramacion() {
-  // sem_wait(&GRADO_MULTIPROGRAMACION);
-  // xlog(COLOR_AMARILLO, "Bajó el grado de multiprogramación (grado=%d)", obtener_grado_multiprogramacion());
+void liberar_espacio_en_memoria_para_proceso() {
+  sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+
+  xlog(COLOR_TAREA, "Se libero un espacio en memoria para un nuevo proceso");
+  imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
-void actualizar_grado_multiprogramacion() {
-  sem_post(&GRADO_MULTIPROGRAMACION);
+void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
+  imprimir_cantidad_procesos_disponibles_en_memoria();
+  xlog(COLOR_TAREA, "Controlamos contra el grado de multiprogramación antes de ingresar procesos al sistema");
 
-  xlog(COLOR_TAREA, "Se actualizó el grado de multiprogramación");
-  imprimir_grado_multiprogramacion_actual();
-}
+  sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+  while (llamado_por_plp && list_size(COLA_SUSREADY->lista_pcbs) != 0) {
+    xlog(COLOR_TAREA, "Se entro en el ciclo del while al controlar los procesos disponibles en memoria");
+    sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+    sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar espera activa
+    sem_post(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar posible deadlock si se entra en el ciclo otra vez
+    sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+  }
 
-void controlar_grado_multiprogramacion() {
-  sem_wait(&GRADO_MULTIPROGRAMACION);
-
-  xlog(COLOR_TAREA, "Controlamos el grado de multiprogramación antes de ingresar procesos al sistema");
-  imprimir_grado_multiprogramacion_actual();
+  imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
@@ -556,7 +636,7 @@ void enviar_interrupcion() {
 
     if (status != -1) {
       xlog(COLOR_CONEXION, "La interrupción fue enviada con éxito (socket_destino=%d)", socket_destino);
-
+      SE_ENVIO_INTERRUPCION = 1;
       close(socket_destino);
     }
   }
@@ -567,6 +647,7 @@ bool hay_algun_proceso_ejecutando() {
 }
 
 void liberar_cpu() {
+  // pcb_destroy(PROCESO_EJECUTANDO); // Genera core dumped
   PROCESO_EJECUTANDO = NULL;
 }
 
@@ -576,4 +657,38 @@ void imprimir_proceso_en_running() {
   } else {
     xlog(COLOR_INFO, "Hay algún proceso en running? NO");
   }
+}
+
+int calcular_estimacion_rafaga(t_pcb *pcb) {
+  double alfa = config_get_double_value(config, "ALFA");
+  xlog(COLOR_INFO, "El alfa es: %.2f", alfa);
+  int estimacion_proxima_rafaga = alfa * pcb->tiempo_en_ejecucion + (1 - alfa) * pcb->estimacion_rafaga;
+  return estimacion_proxima_rafaga;
+}
+
+int obtener_tiempo_maximo_bloqueado() {
+  int tiempo_maximo_bloqueado = config_get_int_value(config, "TIEMPO_MAXIMO_BLOQUEADO");
+  return tiempo_maximo_bloqueado;
+}
+
+void timer_suspension_proceso(t_pcb *pcb) {
+  xlog(COLOR_INFO, "Comenzando timer de suspension (pid = %d)...", pcb->pid);
+  pcb_timer_t timer_suspension;
+  int tiempo_maximo_bloqueado = obtener_tiempo_maximo_bloqueado();
+  timer_suspension.timer_inicio = clock();
+
+  do {
+    timer_suspension.timer_fin = clock();
+
+    timer_suspension.tiempo_total = (timer_suspension.timer_fin - timer_suspension.timer_inicio) / 1000;
+  } while (pcb->estado == BLOCKED && timer_suspension.tiempo_total < tiempo_maximo_bloqueado);
+
+  xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);
+  // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
+  // y cambiar el estado del pcb
+  if (pcb->estado == BLOCKED) {
+    pmp_suspender_proceso(pcb);
+  }
+
+  pthread_exit(NULL);
 }
