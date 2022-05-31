@@ -239,6 +239,34 @@ void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void notificar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_SUSPENDIDO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Se notificó a Memoria la suspensión de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+// TODO: en vez de enviar un mensaje, mandamos un paquete por si luego necesitamos manejar datos del pcb
+// (si no es necesario, cambiar paquete por un mensaje)
+void confirmar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Memoria confirmó con éxito a Kernel la suspensión de un proceso (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
 void matar_proceso(int socket_conexion_entrante) {
   t_paquete* paquete = paquete_create();
   paquete->codigo_operacion = OPERACION_EXIT;

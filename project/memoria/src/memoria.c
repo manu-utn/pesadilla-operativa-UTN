@@ -137,6 +137,12 @@ void* manejar_nueva_conexion(void* args) {
           enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
         break;
       }
+      case OPERACION_PROCESO_SUSPENDIDO: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        // TODO: resolver cuando se avance el módulo..
+
+        confirmar_suspension_de_proceso(socket_cliente, paquete);
+      } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");
         estado_conexion_con_cliente = false;
