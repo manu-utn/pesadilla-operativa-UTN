@@ -454,13 +454,7 @@ void transicion_new_a_ready(t_pcb *pcb) {
        pcb->pid,
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
-  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
-    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
-    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
-      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      avisar_a_pcp_que_decida();
-    }
-  }
+  evaluar_replanificacion_pcp();
 }
 
 // TODO: Añadir un signal
@@ -468,13 +462,7 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
-  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
-    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
-    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
-      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      avisar_a_pcp_que_decida();
-    }
-  }
+  evaluar_replanificacion_pcp();
 }
 
 // TODO: Añadir un signal
@@ -524,6 +512,17 @@ void transicion_susready_a_ready(t_pcb *pcb) {
        "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
        pcb->pid,
        list_size(COLA_READY->lista_pcbs));
+  evaluar_replanificacion_pcp();
+}
+
+void evaluar_replanificacion_pcp() {
+  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
+    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      avisar_a_pcp_que_decida();
+    }
+  }
 }
 
 t_cola_planificacion *cola_planificacion_create() {
