@@ -239,7 +239,7 @@ void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
   }
 }
 
-void notificar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
+void solicitar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PROCESO_SUSPENDIDO;
 
   int status = enviar(socket_destino, paquete);

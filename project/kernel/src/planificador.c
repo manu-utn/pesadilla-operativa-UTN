@@ -488,7 +488,7 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
   paquete_add_pcb(paquete, pcb);
 
   int socket_memoria = conectarse_a_memoria();
-  notificar_suspension_de_proceso(socket_memoria, paquete);
+  solicitar_suspension_de_proceso(socket_memoria, paquete);
 
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
