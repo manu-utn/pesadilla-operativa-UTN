@@ -1,6 +1,6 @@
 #include "cpu_1.h"
 
-int main() {
+uint32_t main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU");
   config = iniciar_config(DIR_CPU_CFG);
 
@@ -11,9 +11,9 @@ int main() {
 
   pthread_t th, th2;
   pthread_create(&th, NULL, escuchar_dispatch_, NULL), pthread_detach(th);
-  // pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
+  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
-  log_info(logger, "CPU - Servidor listo para recibir al cliente Kernel");
+  xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
 
   pthread_exit(0);
 }
@@ -26,7 +26,7 @@ void* escuchar_dispatch_() {
   socket_cpu_dispatch = iniciar_servidor(ip, puerto);
 
   while (estado_conexion_kernel) {
-    int cliente_fd = esperar_cliente(socket_cpu_dispatch);
+    uint32_t cliente_fd = esperar_cliente(socket_cpu_dispatch);
 
     pthread_t th;
     pthread_create(&th, NULL, manejar_nueva_conexion_, &cliente_fd), pthread_detach(th);
@@ -39,15 +39,16 @@ void* escuchar_dispatch_() {
 }
 
 void* manejar_nueva_conexion_(void* args) {
-  int socket_cliente = *(int*)args;
+  uint32_t socket_cliente = *(uint32_t*)args;
 
   estado_conexion_con_cliente = true;
 
   while (estado_conexion_con_cliente) {
-    int cod_op = recibir_operacion(socket_cliente);
+    uint32_t cod_op = recibir_operacion(socket_cliente);
 
     switch (cod_op) {
       case OPERACION_PCB: {
+        xlog(COLOR_PAQUETE, "CPU - Iniciando una nueva operacion pcb");
         t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
         paquete_con_pcb = recibir_paquete(socket_cliente);
 
@@ -70,13 +71,13 @@ void* manejar_nueva_conexion_(void* args) {
         break;
       }
       case -1: {
-        log_info(logger, "el cliente se desconecto");
+        xlog(COLOR_CONEXION, "el cliente se desconecto");
         // cliente_estado = CLIENTE_EXIT;
         estado_conexion_con_cliente = false;
         break;
       }
       default: {
-        xlog(COLOR_ERROR, "Operacion desconocida. No quieras meter la pata");
+        xlog(COLOR_ERROR, "Operacion desconocida.");
         break;
       }
     }
@@ -84,9 +85,8 @@ void* manejar_nueva_conexion_(void* args) {
   pthread_exit(NULL);
 }
 
-void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
-  log_info(logger, "Iniciando ciclo de instruccion");
-  log_info(logger, "leyendo instrucciones");
+void ciclo_instruccion(t_pcb* pcb, uint32_t socket_cliente) {
+  xlog(COLOR_INFO, "Iniciando ciclo de instruccion, pcbid: %d", pcb->pid);
 
   while (HAY_PCB_PARA_EJECUTAR_ && pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion));
@@ -96,49 +96,58 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
     uint32_t fetch_operands_necesaria = decode(instruccion);
 
     if (fetch_operands_necesaria == 0) {
-      // fetch_operands
+      fetch_operands();
     }
 
     execute(pcb, instruccion, socket_cliente);
 
     check_interrupt(pcb, socket_cliente);
   }
+
+  xlog(COLOR_INFO, "Finalizando ciclo de instruccion, pcbid: %d", pcb->pid);
 }
 
 t_instruccion* fetch(t_pcb* pcb) {
+  xlog(COLOR_INFO, "Realizando fetch pcb id: %d", pcb->pid);
   return list_get(pcb->instrucciones, pcb->program_counter);
 }
 
 uint32_t decode(t_instruccion* instruccion) {
+  xlog(COLOR_INFO, "Realizando decode instruccion: %s", instruccion->identificador);
   return (strcmp(instruccion->identificador, "COPY"));
 }
 
-void execute(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
+void fetch_operands() {
+}
+
+void execute(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente) {
+  xlog(COLOR_INFO, "Realizando execute pcb id: %d", pcb->pid);
+
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
-    log_info(logger, "Ejecutando NO_OP...");
+    xlog(COLOR_INFO, "Ejecutando NO_OP, pcb id: %d", pcb->pid);
     uint32_t cantidad_de_veces_no_op = instruccion_obtener_parametro(instruccion, 0);
     xlog(COLOR_INFO, "NO_OP se ejecutara %d veces", cantidad_de_veces_no_op);
 
     execute_no_op(cantidad_de_veces_no_op);
 
   } else if (strcmp(instruccion->identificador, "I/O") == 0) {
-    log_info(logger, "Ejecutando IO...");
-
+    xlog(COLOR_INFO, "Ejecutando I/O, pcb id: %d", pcb->pid);
     execute_io(pcb, instruccion, socket_cliente);
 
   } else if (strcmp(instruccion->identificador, "EXIT") == 0) {
-    xlog(COLOR_CONEXION, "Ejecutando EXIT");
+    xlog(COLOR_CONEXION, "Ejecutando EXIT, pcb id: %d", pcb->pid);
     execute_exit(pcb, socket_cliente);
   }
 }
 
-void check_interrupt(t_pcb* pcb, int socket_cliente) {
+void check_interrupt(t_pcb* pcb, uint32_t socket_cliente) {
   if (HAY_PCB_PARA_EJECUTAR_) {
+    xlog(COLOR_INFO, "Realizando check interrupt");
     if (HAY_INTERRUPCION_) {
       t_paquete* paquete = paquete_create();
       paquete_add_pcb(paquete, pcb);
       enviar_pcb_desalojado(socket_cliente, paquete);
-      xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
+      xlog(COLOR_TAREA, "Interrupcion - Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
       HAY_PCB_PARA_EJECUTAR_ = 0;
       HAY_INTERRUPCION_ = 0;
     }
@@ -153,7 +162,7 @@ void execute_no_op(uint32_t cant_no_op) {
   usleep(cant_no_op * retardo * 1000);
 }
 
-void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
+void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente) {
   uint32_t tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
   pcb->tiempo_de_bloqueado = tiempo_bloqueado;
 
@@ -164,14 +173,14 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
-void execute_exit(t_pcb* pcb, int socket_cliente) {
+void execute_exit(t_pcb* pcb, uint32_t socket_cliente) {
   t_paquete* paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb_con_operacion_exit(socket_cliente, paquete);
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
-uint32_t instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro) {
+uint32_t instruccion_obtener_parametro(t_instruccion* instruccion, uint32_t numero_parametro) {
   char** parametros = string_split(instruccion->params, " ");
   uint32_t valor = atoi(parametros[numero_parametro]);
 
@@ -199,11 +208,11 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
   CONEXION_ESTADO ESTADO_CONEXION_INTERRUPT = CONEXION_ESCUCHANDO;
 
   while (ESTADO_CONEXION_INTERRUPT) {
-    int socket_cliente = esperar_cliente(CONEXION_CPU_INTERRUPT);
+    uint32_t socket_cliente = esperar_cliente(CONEXION_CPU_INTERRUPT);
     estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
 
     while (estado_conexion_con_cliente) {
-      int codigo_operacion = recibir_operacion(socket_cliente);
+      uint32_t codigo_operacion = recibir_operacion(socket_cliente);
 
       switch (codigo_operacion) {
         case OPERACION_INTERRUPT: {
