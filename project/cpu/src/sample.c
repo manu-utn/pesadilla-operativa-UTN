@@ -50,8 +50,7 @@ int main() {
 
   pthread_t th, th2;
   pthread_create(&th, NULL, escuchar_dispatch, NULL), pthread_detach(th);
-  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL),
-      pthread_detach(th2);
+  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
   log_info(logger, "Servidor listo para recibir al cliente Kernel");
 

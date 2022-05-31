@@ -145,9 +145,7 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // sem_post(&CERRAR_PROCESO);
       } break;
-      default: {
-        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 
@@ -460,7 +458,7 @@ void transicion_new_a_ready(t_pcb *pcb) {
     xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
     if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
       // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      sem_post(&EJECUTAR_ALGORITMO_PCP);
+      avisar_a_pcp_que_decida();
     }
   }
 }
@@ -474,7 +472,7 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
     xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
     if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
       // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      sem_post(&EJECUTAR_ALGORITMO_PCP);
+      avisar_a_pcp_que_decida();
     }
   }
 }
@@ -580,7 +578,7 @@ void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   }
 
-  imprimir_cantidad_procesos_disponibles_en_memoria();
+  // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {

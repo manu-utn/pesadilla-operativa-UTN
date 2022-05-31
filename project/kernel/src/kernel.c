@@ -152,9 +152,7 @@ void* escuchar_nueva_conexion(void* args) {
 
         sem_post(&CERRAR_PROCESO);
       } break;
-      default: {
-        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 
