@@ -17,6 +17,7 @@
 t_pcb *PROCESO_EJECUTANDO = NULL;
 
 int SOCKET_CONEXION_DISPATCH;
+int SOCKET_CONEXION_MEMORIA;
 // TODO: Evaluar si esta variable global es necesaria
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
 
@@ -160,7 +161,7 @@ void iniciar_conexion_cpu_dispatch() {
 }
 
 void iniciar_planificacion() {
-  pthread_t th1, th2, th3, th4;
+  pthread_t th1, th2, th3, th4, th5;
 
   inicializar_grado_multiprogramacion();
   // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
@@ -181,6 +182,9 @@ void iniciar_planificacion() {
   iniciar_conexion_cpu_dispatch();
   pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th3);
   pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th4);
+
+  pthread_create(&th5, NULL, (void *)escuchar_conexion_con_memoria, NULL), pthread_detach(th5);
+
   // sleep(1);
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
@@ -401,10 +405,12 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 }
 
 void transicion_ready_a_running(t_pcb *pcb) {
-  cambiar_estado_pcb(pcb, RUNNING);
-  remover_pcb_de_cola(pcb, COLA_READY);
-
-  PROCESO_EJECUTANDO = pcb;
+  /* cambiar_estado_pcb(pcb, RUNNING); */
+  /* remover_pcb_de_cola(pcb, COLA_READY); */
+  /* PROCESO_EJECUTANDO = pcb; */
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
 }
 
 void transicion_running_a_blocked(t_pcb *pcb) {
@@ -479,6 +485,12 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
 
 // TODO: Añadir un signal
 void transicion_blocked_a_susready(t_pcb *pcb) {
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+
+  int socket_memoria = conectarse_a_memoria();
+  solicitar_suspension_de_proceso(socket_memoria, paquete);
+
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
@@ -702,5 +714,65 @@ void timer_suspension_proceso(t_pcb *pcb) {
   }
   sem_post(&MUTEX_BLOQUEO_SUSPENSION);
 
+  pthread_exit(NULL);
+}
+
+int conectarse_a_memoria() {
+  char *ip = config_get_string_value(config, "IP_MEMORIA");
+  char *puerto = config_get_string_value(config, "PUERTO_MEMORIA");
+  int fd_servidor = conectar_a_servidor(ip, puerto);
+
+  if (fd_servidor == -1) {
+    xlog(COLOR_ERROR,
+         "No se pudo establecer la conexión con Memoria, inicie el servidor con %s e intente nuevamente",
+         puerto);
+
+    return -1;
+  } else {
+    xlog(COLOR_CONEXION, "Se conectó con éxito a Memoria a través de la conexión %s", puerto);
+  }
+
+  return fd_servidor;
+}
+
+
+void escuchar_conexion_con_memoria() {
+  SOCKET_CONEXION_MEMORIA = conectarse_a_memoria();
+  CONEXION_ESTADO estado_conexion_con_servidor = CONEXION_ESCUCHANDO;
+
+  while (estado_conexion_con_servidor) {
+    xlog(COLOR_PAQUETE, "Esperando código de operación de la conexión con Memoria...");
+    int codigo_operacion = recibir_operacion(SOCKET_CONEXION_MEMORIA);
+
+    switch (codigo_operacion) {
+      case OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO: {
+        xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria para suspender proceso");
+
+        // TODO: sincronizar con semáforos donde corresponda
+      } break;
+      case OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO: {
+        xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
+
+        // TODO: sincronizar con semáforos donde corresponda
+      } break;
+      case OPERACION_MENSAJE: {
+        recibir_mensaje(SOCKET_CONEXION_MEMORIA);
+      } break;
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Finalizando ejecución...");
+
+        // matar_proceso(socket_servidor);
+        // liberar_conexion(socket_servidor), log_destroy(logger);
+        terminar_programa(SOCKET_CONEXION_MEMORIA, logger, config);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
+      } break;
+      case -1: {
+        xlog(COLOR_CONEXION, "el servidor se desconecto (socket=%d)", SOCKET_CONEXION_MEMORIA);
+
+        liberar_conexion(SOCKET_CONEXION_MEMORIA);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
+      } break;
+    }
+  }
   pthread_exit(NULL);
 }
