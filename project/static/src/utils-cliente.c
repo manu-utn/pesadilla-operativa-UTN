@@ -246,9 +246,23 @@ void solicitar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
 
   if (status != -1) {
     log_info(logger,
-             "Se notificó a Memoria la suspensión de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+             "Se solicitó a Memoria la suspensión de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
+  }
+}
+
+void solicitar_inicializar_estructuras_en_memoria(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_INICIALIZAR_ESTRUCTURAS;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(
+      logger,
+      "Se solicitó a Memoria inicializar las estructuras de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+      socket_destino,
+      paquete->buffer->size);
   }
 }
 
@@ -262,6 +276,20 @@ void confirmar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
   if (status != -1) {
     log_info(logger,
              "Memoria confirmó con éxito a Kernel la suspensión de un proceso (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void confirmar_estructuras_en_memoria(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Memoria confirmó con éxito a Kernel sobre estructuras inicializadas de un proceso (socket_destino=%d, "
+             "buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
   }

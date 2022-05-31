@@ -407,9 +407,12 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 }
 
 void transicion_ready_a_running(t_pcb *pcb) {
-  cambiar_estado_pcb(pcb, RUNNING);
-  remover_pcb_de_cola(pcb, COLA_READY);
-  PROCESO_EJECUTANDO = pcb;
+  /* cambiar_estado_pcb(pcb, RUNNING); */
+  /* remover_pcb_de_cola(pcb, COLA_READY); */
+  /* PROCESO_EJECUTANDO = pcb; */
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
 }
 
 void transicion_running_a_blocked(t_pcb *pcb) {
@@ -747,6 +750,12 @@ void escuchar_conexion_con_memoria() {
       case OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO: {
         xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria para suspender proceso");
 
+        // TODO: sincronizar con semáforos donde corresponda
+      } break;
+      case OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO: {
+        xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
+
+        // TODO: sincronizar con semáforos donde corresponda
       } break;
       case OPERACION_MENSAJE: {
         recibir_mensaje(SOCKET_CONEXION_MEMORIA);

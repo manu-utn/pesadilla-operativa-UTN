@@ -141,7 +141,17 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         // TODO: resolver cuando se avance el módulo..
 
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
+      } break;
+      case OPERACION_INICIALIZAR_ESTRUCTURAS: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        // TODO: resolver cuando se avance el módulo..
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
+
+        // TODO: deberia agregar al pcb el valor de la tabla de paginas
+        confirmar_estructuras_en_memoria(socket_cliente, paquete);
       } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");
