@@ -68,7 +68,10 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
         pcb->tiempo_en_ejecucion += tiempo_en_ejecucion;
-        pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        // FIX Basico para no calcular la estimacion en caso de FIFO
+        if (algoritmo_cargado_es("SJF")) {
+          pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        }
         pcb->tiempo_en_ejecucion = 0;
 
 
