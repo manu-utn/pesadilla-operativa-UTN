@@ -114,7 +114,7 @@ void* escuchar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         asignar_pid(pcb);
         // FIX Basico para no asignar la estimacion en caso de FIFO
-        if (algoritmo_cargado_es("SJF")) {
+        if (algoritmo_cargado_es("SRT")) {
           asignar_estimacion_rafaga_inicial(pcb);
         }
         pcb->socket = socket_cliente;

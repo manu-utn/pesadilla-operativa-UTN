@@ -75,7 +75,7 @@ void *escuchar_conexion_cpu_dispatch() {
         // pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
         pcb->tiempo_en_ejecucion += tiempo_en_ejecucion;
         // FIX Basico para no calcular la estimacion en caso de FIFO
-        if (algoritmo_cargado_es("SJF")) {
+        if (algoritmo_cargado_es("SRT")) {
           pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
         }
         pcb->tiempo_en_ejecucion = 0;
@@ -227,10 +227,10 @@ void *iniciar_corto_plazo() {
     t_pcb *pcb_elegido_a_ejecutar = NULL;
 
     imprimir_proceso_en_running();
-    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SJF")) {
+    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SRT")) {
       xlog(COLOR_ERROR, "No hay un algoritmo de planificación cargado ó dicho algoritmo no está implementado");
     } else {
-      if (algoritmo_cargado_es("SJF") && hay_algun_proceso_ejecutando()) {
+      if (algoritmo_cargado_es("SRT") && hay_algun_proceso_ejecutando()) {
         enviar_interrupcion();
         sem_wait(&HAY_PCB_DESALOJADO); // Se bloquea hasta recibir el pcb de cpu
         SE_ENVIO_INTERRUPCION = 0;
@@ -621,7 +621,7 @@ t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
   return pcb;
 }
 
-t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola) {
+t_pcb *elegir_pcb_srt(t_cola_planificacion *cola) {
   t_pcb *pcb = NULL;
 
   pthread_mutex_lock(&(cola->mutex));
@@ -647,8 +647,8 @@ t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
     pcb = elegir_pcb_fifo(cola);
   }
 
-  else if (algoritmo_cargado_es("SJF")) {
-    pcb = elegir_pcb_sjf(cola);
+  else if (algoritmo_cargado_es("SRT")) {
+    pcb = elegir_pcb_srt(cola);
   } else {
     xlog(COLOR_ERROR, "El algoritmo elegido no está cargado en el archivo de configuración");
   }

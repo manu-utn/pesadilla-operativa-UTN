@@ -77,7 +77,7 @@ void liberar_espacio_en_memoria_para_proceso();
 void imprimir_cantidad_procesos_disponibles_en_memoria();
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola);
-t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola);
+t_pcb *elegir_pcb_srt(t_cola_planificacion *cola);
 
 t_pcb *pcb_menor_tiempo_restante_de_ejecucion_entre(t_pcb *pcb1, t_pcb *pcb2);
 int pcb_tiempo_restante_de_ejecucion(t_pcb *pcb);
