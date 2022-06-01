@@ -45,4 +45,5 @@ int configValida(t_config* fd_configuracion);
 void* escuchar_conexiones();
 void* reservar_memoria_inicial(int size_memoria_total);
 void* manejar_nueva_conexion(void* args);
+void liberar_estructuras_en_swap();
 #endif /* MEMORIA_H */

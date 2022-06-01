@@ -36,6 +36,14 @@ void* escuchar_conexiones() {
   free(puerto);
   pthread_exit(NULL);
 }
+
+
+// TODO: esto debería estar en swap.c
+// por el momento sólo escuchamos las entradas de memoria,
+void liberar_estructuras_en_swap() {
+  xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
+}
+
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   estado_conexion_con_cliente = true;
@@ -152,6 +160,14 @@ void* manejar_nueva_conexion(void* args) {
 
         // TODO: deberia agregar al pcb el valor de la tabla de paginas
         confirmar_estructuras_en_memoria(socket_cliente, paquete);
+      } break;
+      case OPERACION_PROCESO_FINALIZADO: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        // TODO: resolver cuando se avance el módulo de memoria
+        liberar_estructuras_en_swap();
+
+        xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
+
       } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");

@@ -266,6 +266,22 @@ void solicitar_inicializar_estructuras_en_memoria(int socket_destino, t_paquete*
   }
 }
 
+// sinónimo de finalización de proceso, kernel solicita a swap liberar los recursos
+// (en este tp memoria y swap están integrados)
+void solicitar_liberar_recursos_en_memoria_swap(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_FINALIZADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(
+      logger,
+      "Se solicitó a Memoria y Swap liberar los recursos de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+      socket_destino,
+      paquete->buffer->size);
+  }
+}
+
 // TODO: en vez de enviar un mensaje, mandamos un paquete por si luego necesitamos manejar datos del pcb
 // (si no es necesario, cambiar paquete por un mensaje)
 void confirmar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
