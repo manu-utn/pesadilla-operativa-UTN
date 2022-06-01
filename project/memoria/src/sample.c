@@ -12,6 +12,12 @@ int main() {
   char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA");
   uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
   memoria_principal = reservar_memoria_inicial(size_memoria);
+  size_memoria_principal = config_get_int_value(config, "TAM_MEMORIA");
+  diccionario_paginas = dictionary_create();
+  tabla_marcos = list_create();
+  lista_tablas_segundo_nivel = list_create();
+  inicializar_proceso(0, 4);
+  xlog(COLOR_CONEXION, "Tamanio tabla de marcos: %d:", inicializar_tabla_marcos());
   pthread_t th;
   pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 

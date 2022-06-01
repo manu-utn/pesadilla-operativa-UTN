@@ -307,7 +307,7 @@ void execute_read_write(t_pcb* pcb,
     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
     t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
     respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
-    printf("Tabla segundo nivel: %d", respuesta_operacion->num_tabla_segundo_nivel);
+    printf("Tabla segundo nivel: %d\n", respuesta_operacion->num_tabla_segundo_nivel);
 
     // ACCESO PARA OBTENER MARCO
     t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
@@ -320,7 +320,7 @@ void execute_read_write(t_pcb* pcb,
     t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
     t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
     respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
-    printf("Num marco: %d", respuesta_operacion_marco->num_marco);
+    printf("Num marco: %d\n", respuesta_operacion_marco->num_marco);
 
     if (valor == NULL) {
       // ACCESO PARA OBTENER DATO FISICO
@@ -334,6 +334,7 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+      printf("VALOR BUSCADO: %s\n", respuesta_operacion_dato->dato_buscado);
 
     } else {
       t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
@@ -346,6 +347,7 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_escritura_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
+      printf("RESULTADO WRITE: %s\n", respuesta_operacion_dato->resultado);
     }
 
 
@@ -365,6 +367,7 @@ void execute_read_write(t_pcb* pcb,
     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
     t_respuesta_dato_fisico* respuesta_operacion = malloc(sizeof(t_respuesta_dato_fisico));
     respuesta_operacion = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta);
+    printf("VALOR BUSCADO: %s\n", respuesta_operacion->dato_buscado);
   }
 }
 

@@ -173,7 +173,7 @@ t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
 
   memcpy(mensaje->stream + offset, &(read->size_dato), sizeof(int));
   offset += sizeof(int);
-  memcpy(mensaje->stream + offset, &(read->dato_buscado), mensaje_longitud);
+  memcpy(mensaje->stream + offset, read->dato_buscado, mensaje_longitud);
   offset += sizeof(int);
   return mensaje;
 }

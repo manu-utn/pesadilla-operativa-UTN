@@ -149,3 +149,73 @@ void* manejar_nueva_conexion(void* args) {
   }
   pthread_exit(NULL);
 }
+
+int inicializar_tabla_marcos() {
+  xlog(COLOR_CONEXION, "Inicializando tabla de marcos");
+  int tam_tabla = 0;
+
+  cant_marcos = (size_memoria_principal * 1024) / 256;
+
+  while (tam_tabla < cant_marcos) {
+    t_marco* marco = malloc(sizeof(t_marco));
+    marco->num_marco = tam_tabla;
+    marco->direccion = 0;
+    marco->pid = 0;
+    list_add(tabla_marcos, marco);
+    tam_tabla++;
+  }
+  return tam_tabla;
+}
+
+void inicializar_proceso(int pid, int entradas_por_tabla) {
+  xlog(COLOR_CONEXION, "Inicializando proceso");
+
+  t_list* tabla_primer_nivel = list_create();
+  t_list* tabla_segundo_nivel = list_create();
+
+  for (int i = 0; i < entradas_por_tabla; i++) {
+    t_pagina_primer_nivel* tabla_primer_nivel = malloc(sizeof(t_pagina_primer_nivel));
+    tabla_primer_nivel->entrada_primer_nivel = i;
+    for (int j = 0; j < entradas_por_tabla; j++) {
+      t_pagina_segundo_nivel* tabla_segundo_nivel = malloc(sizeof(t_pagina_segundo_nivel));
+      tabla_segundo_nivel->entrada_segundo_nivel = j;
+      tabla_segundo_nivel->num_tabla = generar_numero_tabla();
+      tabla_segundo_nivel->num_marco = buscar_marco_libre();
+      tabla_segundo_nivel->bit_uso = 0;
+      tabla_segundo_nivel->bit_modif = 0;
+      tabla_segundo_nivel->bit_presencia = 0;
+      tabla_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
+      list_add(lista_tablas_segundo_nivel, tabla_segundo_nivel);
+    }
+  }
+  dictionary_put(diccionario_paginas, string_itoa(pid), tabla_primer_nivel);
+}
+
+int generar_numero_tabla() {
+  srand(time(NULL));
+  int r = rand();
+  return r;
+}
+
+int buscar_marco_libre() {
+  int buscar_primer_libre(t_marco * marco) {
+    return marco->pid == 0;
+  }
+
+  int marco_libre = (int)list_find(tabla_marcos, (void*)buscar_primer_libre);
+
+  return marco_libre;
+}
+
+
+void mostrar_tabla_marcos() {
+  xlog(COLOR_CONEXION, "########TABLA MARCOS################");
+
+
+  for (int i = 0; i < list_size(tabla_marcos); i++) {
+    t_marco* marco = (t_marco*)list_get(tabla_marcos, i);
+    printf("Num Marco: %d\n", marco->num_marco);
+    printf("Direccion: %d\n", marco->direccion);
+    printf("PID: %d\n", marco->pid);
+  }
+}

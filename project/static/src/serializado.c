@@ -443,7 +443,7 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
   memcpy(&(respuesta_dato->size_dato), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
-  memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, 6);
+  memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);
   offset += respuesta_dato->size_dato;
   return respuesta_dato;
 }
