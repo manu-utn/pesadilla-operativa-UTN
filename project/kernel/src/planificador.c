@@ -407,14 +407,9 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 }
 
 void transicion_ready_a_running(t_pcb *pcb) {
-  /* cambiar_estado_pcb(pcb, RUNNING); */
-  /* remover_pcb_de_cola(pcb, COLA_READY); */
-  /* PROCESO_EJECUTANDO = pcb; */
-
-  t_paquete *paquete = paquete_create();
-  paquete_add_pcb(paquete, pcb);
-  solicitar_liberar_recursos_en_memoria_swap(SOCKET_CONEXION_MEMORIA, paquete);
-  // solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
+  cambiar_estado_pcb(pcb, RUNNING);
+  remover_pcb_de_cola(pcb, COLA_READY);
+  PROCESO_EJECUTANDO = pcb;
 }
 
 void transicion_running_a_blocked(t_pcb *pcb) {
