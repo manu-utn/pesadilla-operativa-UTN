@@ -17,6 +17,7 @@
 t_pcb *PROCESO_EJECUTANDO = NULL;
 
 int SOCKET_CONEXION_DISPATCH;
+int SOCKET_CONEXION_MEMORIA;
 // TODO: Evaluar si esta variable global es necesaria
 // CONEXION_ESTADO ESTADO_CONEXION_DISPATCH;
 
@@ -25,12 +26,17 @@ int SOCKET_CONEXION_DISPATCH;
 sem_t HAY_PCB_DESALOJADO;     // semáforo binario
 sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
 sem_t MUTEX_BLOQUEO_SUSPENSION;
+sem_t SUSPENSION_EXITOSA;
+sem_t INICIALIZACION_ESTRUCTURAS_EXITOSA;
+sem_t LIBERACION_RECURSOS_EXITOSA;
 // time_t BEGIN;
 // time_t END;
 struct timespec BEGIN;
 struct timespec END;
 int SE_ENVIO_INTERRUPCION = 0;
 int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
+// t_pcb *PCB_CON_REFERENCIA_A_TABLA_PAGINAS = NULL;
+int REFERENCIA_TABLA_RECIBIDA;
 
 void avisar_a_pcp_que_decida() {
   SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
@@ -163,11 +169,14 @@ void iniciar_conexion_cpu_dispatch() {
 }
 
 void iniciar_planificacion() {
-  pthread_t th1, th2, th3, th4;
+  pthread_t th1, th2, th3, th4, th5;
 
   inicializar_grado_multiprogramacion();
   // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
+  sem_init(&SUSPENSION_EXITOSA, 0, 0);
+  sem_init(&INICIALIZACION_ESTRUCTURAS_EXITOSA, 0, 0);
+  sem_init(&LIBERACION_RECURSOS_EXITOSA, 0, 0);
   sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   sem_init(&MUTEX_BLOQUEO_SUSPENSION, 0, 1);
   COLA_NEW = cola_planificacion_create();
@@ -184,6 +193,9 @@ void iniciar_planificacion() {
   iniciar_conexion_cpu_dispatch();
   pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th3);
   pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th4);
+
+  pthread_create(&th5, NULL, (void *)escuchar_conexion_con_memoria, NULL), pthread_detach(th5);
+
   // sleep(1);
 
   // TODO: validar cuando debemos liberar los recursos asignados a las colas de planificación
@@ -284,6 +296,12 @@ void *iniciar_largo_plazo() {
     // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
     controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
 
+    t_paquete *paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
+    sem_wait(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
+    pcb->tabla_primer_nivel = REFERENCIA_TABLA_RECIBIDA;
+
     transicion_new_a_ready(pcb);
     imprimir_cantidad_procesos_disponibles_en_memoria();
 
@@ -304,6 +322,11 @@ void *plp_pcb_finished() {
 
     // TODO: Informar a memoria que termina el proceso y esperar respuesta
     t_pcb *pcb = elegir_pcb_fifo(COLA_FINISHED);
+
+    t_paquete *paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    solicitar_liberar_recursos_en_memoria_swap(SOCKET_CONEXION_MEMORIA, paquete);
+
     remover_pcb_de_cola(pcb, COLA_FINISHED);
     imprimir_pcb(pcb);
     matar_proceso(pcb->socket); // Se avisa a la consola de la finalizacion
@@ -334,8 +357,14 @@ void *iniciar_mediano_plazo() {
 }
 
 void pmp_suspender_proceso(t_pcb *pcb) {
-  pcb->estado = SUSBLOCKED;
   // TODO: Informar a memoria de suspension
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  // int socket_memoria = conectarse_a_memoria();
+  solicitar_suspension_de_proceso(SOCKET_CONEXION_MEMORIA, paquete);
+  sem_wait(&SUSPENSION_EXITOSA);
+
+  pcb->estado = SUSBLOCKED;
   xlog(COLOR_INFO, "Se suspendio un proceso (pid = %d)", pcb->pid);
   liberar_espacio_en_memoria_para_proceso();
 }
@@ -406,7 +435,6 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 void transicion_ready_a_running(t_pcb *pcb) {
   cambiar_estado_pcb(pcb, RUNNING);
   remover_pcb_de_cola(pcb, COLA_READY);
-
   PROCESO_EJECUTANDO = pcb;
 }
 
@@ -704,5 +732,74 @@ void timer_suspension_proceso(t_pcb *pcb) {
   }
   sem_post(&MUTEX_BLOQUEO_SUSPENSION);
 
+  pthread_exit(NULL);
+}
+
+int conectarse_a_memoria() {
+  char *ip = config_get_string_value(config, "IP_MEMORIA");
+  char *puerto = config_get_string_value(config, "PUERTO_MEMORIA");
+  int fd_servidor = conectar_a_servidor(ip, puerto);
+
+  if (fd_servidor == -1) {
+    xlog(COLOR_ERROR,
+         "No se pudo establecer la conexión con Memoria, inicie el servidor con %s e intente nuevamente",
+         puerto);
+
+    return -1;
+  } else {
+    xlog(COLOR_CONEXION, "Se conectó con éxito a Memoria a través de la conexión %s", puerto);
+  }
+
+  return fd_servidor;
+}
+
+
+void escuchar_conexion_con_memoria() {
+  SOCKET_CONEXION_MEMORIA = conectarse_a_memoria();
+  CONEXION_ESTADO estado_conexion_con_servidor = CONEXION_ESCUCHANDO;
+
+  while (estado_conexion_con_servidor) {
+    xlog(COLOR_PAQUETE, "Esperando código de operación de la conexión con Memoria...");
+    int codigo_operacion = recibir_operacion(SOCKET_CONEXION_MEMORIA);
+
+    switch (codigo_operacion) {
+      case OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_MEMORIA);
+        paquete_destroy(paquete);
+        xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria para suspender proceso");
+
+        // TODO: sincronizar con semáforos donde corresponda
+        sem_post(&SUSPENSION_EXITOSA);
+      } break;
+      case OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_MEMORIA);
+        t_pcb *pcb = paquete_obtener_pcb(paquete);
+        REFERENCIA_TABLA_RECIBIDA = pcb->tabla_primer_nivel;
+        paquete_destroy(paquete);
+
+        xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
+
+        // TODO: sincronizar con semáforos donde corresponda
+        sem_post(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
+      } break;
+      case OPERACION_MENSAJE: {
+        recibir_mensaje(SOCKET_CONEXION_MEMORIA);
+      } break;
+      case OPERACION_EXIT: {
+        xlog(COLOR_CONEXION, "Finalizando ejecución...");
+
+        // matar_proceso(socket_servidor);
+        // liberar_conexion(socket_servidor), log_destroy(logger);
+        terminar_programa(SOCKET_CONEXION_MEMORIA, logger, config);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
+      } break;
+      case -1: {
+        xlog(COLOR_CONEXION, "el servidor se desconecto (socket=%d)", SOCKET_CONEXION_MEMORIA);
+
+        liberar_conexion(SOCKET_CONEXION_MEMORIA);
+        estado_conexion_con_servidor = CONEXION_FINALIZADA;
+      } break;
+    }
+  }
   pthread_exit(NULL);
 }

@@ -384,16 +384,17 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf(
-    "socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d\n",
-    pcb->socket,
-    pcb->pid,
-    pcb->tamanio,
-    pcb->estimacion_rafaga,
-    pcb->tiempo_en_ejecucion,
-    pcb->tiempo_de_bloqueado,
-    pcb->program_counter,
-    pcb->estado);
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d, "
+         "tabla=%d\n",
+         pcb->socket,
+         pcb->pid,
+         pcb->tamanio,
+         pcb->estimacion_rafaga,
+         pcb->tiempo_en_ejecucion,
+         pcb->tiempo_de_bloqueado,
+         pcb->program_counter,
+         pcb->estado,
+         pcb->tabla_primer_nivel);
 
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
