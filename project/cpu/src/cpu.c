@@ -145,10 +145,7 @@ t_instruccion* fetch(t_pcb* pcb) {
 void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     log_info(logger, "Ejecutando NO_OP...");
-    char** params = string_split(instruccion->params, " ");
-    uint32_t cantidad_de_veces_no_op = atoi(params[0]);
-    xlog(COLOR_INFO, "NO_OP se ejecutara %d veces", cantidad_de_veces_no_op);
-    execute_no_op(cantidad_de_veces_no_op);
+    execute_no_op();
   }
 
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
@@ -204,10 +201,10 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   }
 }
 
-void execute_no_op(uint32_t cantidad_de_veces_no_op) {
+void execute_no_op() {
   int retardo = config_get_int_value(config, "RETARDO_NOOP");
   xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
-  usleep(cantidad_de_veces_no_op * retardo * 1000);
+  usleep(retardo * 1000);
 }
 
 void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {

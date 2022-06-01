@@ -113,7 +113,10 @@ void* escuchar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         asignar_pid(pcb);
-        asignar_estimacion_rafaga_inicial(pcb);
+        // FIX Basico para no asignar la estimacion en caso de FIFO
+        if (algoritmo_cargado_es("SJF")) {
+          asignar_estimacion_rafaga_inicial(pcb);
+        }
         pcb->socket = socket_cliente;
         // queue_push(PCBS_PROCESOS_ENTRANTES, pcb);
 
@@ -152,9 +155,7 @@ void* escuchar_nueva_conexion(void* args) {
 
         sem_post(&CERRAR_PROCESO);
       } break;
-      default: {
-        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 

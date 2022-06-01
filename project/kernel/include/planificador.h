@@ -100,4 +100,6 @@ void *gestor_de_procesos_bloqueados();
 void timer_suspension_proceso(t_pcb *pcb);
 int conectarse_a_memoria();
 void escuchar_conexion_con_memoria();
+
+void evaluar_replanificacion_pcp();
 #endif

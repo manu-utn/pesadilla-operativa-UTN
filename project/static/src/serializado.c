@@ -42,7 +42,7 @@ t_list* deserializar_paquete(t_paquete* paquete_serializado) {
 
 void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   int offset;
-  int cantidad_columnas_tipo_int = 7; // {socket, tamanio, estimacion_rafaga, ...}
+  int cantidad_columnas_tipo_int = 8; // {socket, tamanio, estimacion_rafaga, ...}
   int paquete_size = sizeof(int) * cantidad_columnas_tipo_int + sizeof(t_pcb_estado);
 
   paquete->buffer->stream = malloc(paquete_size);
@@ -62,6 +62,8 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(int));
 
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
+
+  offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(int));
 
   offset += sizeof(t_pcb_estado);
 
@@ -184,6 +186,10 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
   xlog(COLOR_DESERIALIZADO, "pcb->estado = %d", pcb->estado);
 
   offset += sizeof(t_pcb_estado);
+  memcpy(&(pcb->tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
+  xlog(COLOR_DESERIALIZADO, "pcb->tabla_primer_nivel = %d", pcb->tabla_primer_nivel);
+
+  offset += sizeof(int);
 
   int instrucciones_size = paquete_serializado->buffer->size - offset;
   t_paquete* paquete_con_instrucciones = paquete_instruccion_create(instrucciones_size);
