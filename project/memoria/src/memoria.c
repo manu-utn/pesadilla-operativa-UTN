@@ -151,6 +151,7 @@ void* manejar_nueva_conexion(void* args) {
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
+        paquete_destroy(paquete);
       } break;
       case OPERACION_INICIALIZAR_ESTRUCTURAS: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
@@ -168,6 +169,7 @@ void* manejar_nueva_conexion(void* args) {
 
         // TODO: deberia agregar al pcb el valor de la tabla de paginas
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
+        paquete_destroy(paquete_con_pcb_actualizado);
       } break;
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
@@ -175,7 +177,7 @@ void* manejar_nueva_conexion(void* args) {
         liberar_estructuras_en_swap();
 
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
-
+        paquete_destroy(paquete);
       } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");
