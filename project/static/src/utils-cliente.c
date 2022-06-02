@@ -154,10 +154,10 @@ void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_PAQUETE,
+         "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 

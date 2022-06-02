@@ -207,12 +207,9 @@ t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* pa
 
   t_mensaje_handshake_cpu_memoria* mensaje = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
 
-  memcpy(&(mensaje->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
-  offset += sizeof(int);
-  memcpy(&(mensaje->size_mensaje), paquete_serializado->buffer->stream + offset, sizeof(int));
-  offset += sizeof(int);
-  memcpy(&(mensaje->mensaje_handshake), paquete_serializado->buffer->stream + offset, mensaje->size_mensaje);
-  offset += mensaje->size_mensaje;
+  memcpy(&(mensaje->entradas_por_tabla), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  memcpy(&(mensaje->tamanio_pagina), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
 
   return mensaje;
 }
@@ -220,20 +217,16 @@ t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* pa
 void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_handshake_cpu_memoria* mensaje_handshake) {
   int offset = 0;
 
-  int size_paquete = sizeof(int) + strlen(mensaje_handshake->mensaje_handshake) + 1;
+  int size_paquete = sizeof(uint32_t) * 2;
   paquete_serializado->buffer->stream = malloc(size_paquete);
-  mensaje_handshake->size_mensaje = strlen(mensaje_handshake->mensaje_handshake);
 
-  memcpy(paquete_serializado->buffer->stream, &(mensaje_handshake->size_mensaje), sizeof(int));
+  memcpy(paquete_serializado->buffer->stream, &(mensaje_handshake->entradas_por_tabla), sizeof(uint32_t));
 
-  offset += sizeof(int);
-  memcpy(paquete_serializado->buffer->stream + offset,
-         mensaje_handshake->mensaje_handshake,
-         strlen(mensaje_handshake->mensaje_handshake));
+  offset += sizeof(uint32_t);
+  memcpy(paquete_serializado->buffer->stream + offset, &(mensaje_handshake->tamanio_pagina), sizeof(uint32_t));
 
   paquete_serializado->buffer->size = size_paquete;
-
-  offset += strlen(mensaje_handshake->mensaje_handshake);
+  offset += sizeof(uint32_t);
 }
 
 

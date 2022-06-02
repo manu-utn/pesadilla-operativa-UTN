@@ -93,9 +93,8 @@ typedef struct {
 } t_pcb;
 
 typedef struct{
-  int socket;
-  int size_mensaje;
-  char* mensaje_handshake;
+  uint32_t entradas_por_tabla;
+  uint32_t tamanio_pagina;
 }t_mensaje_handshake_cpu_memoria;
 
 typedef struct{
@@ -183,7 +182,7 @@ void imprimir_instruccion(t_instruccion* instruccion);
 void imprimir_pcb(t_pcb* pcb);
 void pcb_destroy(t_pcb* pcb);
 
-t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
+t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(uint32_t entradas_por_tabla, uint32_t tamanio_pagina);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
 

@@ -351,12 +351,12 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   return pcb;
 }
 
-t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje) {
+t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(uint32_t entradas_por_tabla, uint32_t tamanio_pagina) {
   t_mensaje_handshake_cpu_memoria* mensaje_handshake = NULL;
   mensaje_handshake = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
 
-  mensaje_handshake->mensaje_handshake = mensaje;
-  mensaje_handshake->size_mensaje = strlen(mensaje);
+  mensaje_handshake->entradas_por_tabla = entradas_por_tabla;
+  mensaje_handshake->tamanio_pagina = tamanio_pagina;
 
   return mensaje_handshake;
 }

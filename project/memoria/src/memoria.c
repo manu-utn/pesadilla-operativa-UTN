@@ -43,6 +43,22 @@ void* manejar_nueva_conexion(void* args) {
     int codigo_operacion = recibir_operacion(socket_cliente);
 
     switch (codigo_operacion) {
+      case MENSAJE_HANDSHAKE: {
+        xlog(COLOR_CONEXION, "Handshake cpu - Se recibio solicitud handshake");
+        // t_paquete* paquete = recibir_paquete(socket_cliente);
+        // paquete_destroy(paquete);
+
+        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "ENTRADAS_POR_TABLA");
+        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
+        t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
+
+        t_paquete* paquete_con_respuesta = paquete_create();
+        paquete_add_mensaje_handshake(paquete_con_respuesta, mensaje_handshake);
+        enviar_mensaje_handshake(socket_cliente, paquete_con_respuesta);
+        paquete_destroy(paquete_con_respuesta);
+
+        break;
+      }
       case OPERACION_MENSAJE: {
         recibir_mensaje(socket_cliente);
 
