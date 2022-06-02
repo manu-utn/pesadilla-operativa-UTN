@@ -594,10 +594,10 @@ void imprimir_cantidad_procesos_disponibles_en_memoria() {
 }
 
 void liberar_espacio_en_memoria_para_proceso() {
-  sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
-
   xlog(COLOR_TAREA, "Se libero un espacio en memoria para un nuevo proceso");
-  imprimir_cantidad_procesos_disponibles_en_memoria();
+
+  sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+  // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
 void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
@@ -613,6 +613,7 @@ void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   }
 
+  xlog(COLOR_TAREA, "Se acepto a un proceso en memoria");
   // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
