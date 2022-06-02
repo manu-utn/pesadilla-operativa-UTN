@@ -81,14 +81,14 @@ typedef enum {
 
 // TODO: definir atributos: instrucciones y tabla de paginas
 typedef struct {
-  int socket;
-  int pid;
-  int tamanio;
-  int estimacion_rafaga;
-  int tiempo_en_ejecucion;
-  int tiempo_de_bloqueado;
-  int program_counter;
-  int tabla_primer_nivel;
+  uint32_t socket;
+  uint32_t pid;
+  uint32_t tamanio;
+  uint32_t estimacion_rafaga;
+  uint32_t tiempo_en_ejecucion;
+  uint32_t tiempo_de_bloqueado;
+  uint32_t program_counter;
+  uint32_t tabla_primer_nivel;
   t_pcb_estado estado;
   t_list* instrucciones;
 } t_pcb;
