@@ -719,15 +719,22 @@ int obtener_tiempo_maximo_bloqueado() {
 
 void timer_suspension_proceso(t_pcb *pcb) {
   xlog(COLOR_INFO, "Comenzando timer de suspension (pid = %d)...", pcb->pid);
-  pcb_timer_t timer_suspension;
+  struct timespec timer_suspension_inicio;
+  struct timespec timer_suspension_fin;
+  int tiempo_timer_suspension;
+  // pcb_timer_t timer_suspension;
   int tiempo_maximo_bloqueado = obtener_tiempo_maximo_bloqueado();
-  timer_suspension.timer_inicio = clock();
+  // timer_suspension.timer_inicio = clock();
+  clock_gettime(CLOCK_REALTIME, &timer_suspension_inicio);
 
   do {
-    timer_suspension.timer_fin = clock();
+    // timer_suspension.timer_fin = clock();
+    clock_gettime(CLOCK_REALTIME, &timer_suspension_fin);
 
-    timer_suspension.tiempo_total = (timer_suspension.timer_fin - timer_suspension.timer_inicio) / 1000;
-  } while (pcb->estado == BLOCKED && timer_suspension.tiempo_total < tiempo_maximo_bloqueado);
+    // timer_suspension.tiempo_total = (timer_suspension.timer_fin - timer_suspension.timer_inicio) / 1000;
+    tiempo_timer_suspension = (timer_suspension_fin.tv_sec - timer_suspension_inicio.tv_sec) * 1000 +
+                              (timer_suspension_fin.tv_nsec - timer_suspension_inicio.tv_nsec) / 1000000;
+  } while (pcb->estado == BLOCKED && tiempo_timer_suspension < tiempo_maximo_bloqueado);
 
   xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);
   // TODO: Evaluar si se necesita un semaforo para evitar la condicion de carrera al enviar mensajes a memoria
