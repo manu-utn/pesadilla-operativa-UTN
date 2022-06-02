@@ -5,10 +5,11 @@ int main() {
   config = iniciar_config(DIR_CPU_CFG);
 
   // estado_conexion_con_cliente = false;
-  realizar_handshake_memoria();
+  // realizar_handshake_memoria();
 
-  pthread_t th, th2;
+  pthread_t th, th1, th2;
   pthread_create(&th, NULL, escuchar_dispatch_, NULL), pthread_detach(th);
+  pthread_create(&th1, NULL, realizar_handshake_memoria, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
   xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
@@ -20,6 +21,8 @@ void realizar_handshake_memoria() {
   xlog(COLOR_INFO, "Inicio handshake con memoria");
 
   t_paquete* paquete = paquete_create();
+  t_buffer* buffer = crear_mensaje("Handshake CPU - MEMORIA");
+  paquete->buffer = buffer;
 
   int socket_memoria = conectarse_a_memoria();
   enviar_mensaje_handshake(socket_memoria, paquete);
@@ -54,6 +57,8 @@ void realizar_handshake_memoria() {
   }
 
   paquete_destroy(paquete);
+
+  pthread_exit(NULL);
 }
 
 int conectarse_a_memoria() {
@@ -66,6 +71,8 @@ int conectarse_a_memoria() {
       logger, "No se pudo establecer la conexión con MEMORIA, inicie el servidor con %s e intente nuevamente", puerto);
 
     return -1;
+  } else {
+    xlog(COLOR_CONEXION, "Se conectó con éxito a Memoria a través de la conexión %s", puerto);
   }
 
   free(ip);

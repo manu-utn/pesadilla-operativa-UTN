@@ -53,8 +53,8 @@ void* manejar_nueva_conexion(void* args) {
     switch (codigo_operacion) {
       case MENSAJE_HANDSHAKE: {
         xlog(COLOR_CONEXION, "Handshake cpu - Se recibio solicitud handshake");
-        // t_paquete* paquete = recibir_paquete(socket_cliente);
-        // paquete_destroy(paquete);
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        paquete_destroy(paquete);
 
         uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "ENTRADAS_POR_TABLA");
         uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
