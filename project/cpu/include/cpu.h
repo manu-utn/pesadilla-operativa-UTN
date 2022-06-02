@@ -41,7 +41,7 @@ t_instruccion   *   fetch                                       (t_pcb          
 uint32_t            decode                                      (t_instruccion  *   instruccion);
 void                fetch_operands                              (void);
 void                execute                                     (t_pcb          *   pcb,            t_instruccion   *   instruccion,        uint32_t    socket_cliente);
-void                execute_no_op                               (uint32_t           cant_no_op);
+void                execute_no_op                               (void);
 void                execute_io                                  (t_pcb          *   pcb,            t_instruccion   *   instruccion,        uint32_t    socket_cliente);  
 void                execute_exit                                (t_pcb          *   pcb,            uint32_t            socket_cliente);
 uint32_t            instruccion_obtener_parametro               (t_instruccion  *   instruccion,    uint32_t            numero_parametro);

@@ -111,10 +111,20 @@ t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
     char** instruccion_texto = string_n_split(buffer, 2, " ");
     char* identificador = instruccion_texto[0];
     char* params = instruccion_texto[1] ? instruccion_texto[1] : "";
-    t_instruccion* instruccion = instruccion_create(identificador, params);
-    // string_array_destroy(instruccion_texto);
+    t_instruccion* instruccion;
+    if (strcmp(identificador, "NO_OP") == 0) {
+      char** texto_cantidad_no_op = string_split(params, " ");
+      int cantidad_de_veces_no_op = atoi(texto_cantidad_no_op[0]);
+      for (int i = 0; i < cantidad_de_veces_no_op; i++) {
+        instruccion = instruccion_create(identificador, "");
+        list_add(lista_instrucciones, instruccion);
+      }
+    } else {
+      instruccion = instruccion_create(identificador, params);
+      list_add(lista_instrucciones, instruccion);
+    }
 
-    list_add(lista_instrucciones, instruccion);
+    // string_array_destroy(instruccion_texto);
   }
 
   fclose(archivo_con_instrucciones);

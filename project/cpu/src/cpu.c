@@ -4,7 +4,7 @@ int main() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU");
   config = iniciar_config(DIR_CPU_CFG);
 
-  estado_conexion_con_cliente = false;
+  // estado_conexion_con_cliente = false;
   realizar_handshake_memoria();
 
   pthread_t th, th2;
@@ -184,7 +184,7 @@ void execute(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente) {
     uint32_t cantidad_de_veces_no_op = instruccion_obtener_parametro(instruccion, 0);
     xlog(COLOR_INFO, "NO_OP se ejecutara %d veces", cantidad_de_veces_no_op);
 
-    execute_no_op(cantidad_de_veces_no_op);
+    execute_no_op();
 
   } else if (strcmp(instruccion->identificador, "I/O") == 0) {
     xlog(COLOR_INFO, "Ejecutando I/O, pcb id: %d", pcb->pid);
@@ -212,10 +212,10 @@ void check_interrupt(t_pcb* pcb, uint32_t socket_cliente) {
   }
 }
 
-void execute_no_op(uint32_t cant_no_op) {
-  uint32_t retardo = config_get_int_value(config, "RETARDO_NOOP");
+void execute_no_op() {
+  int retardo = config_get_int_value(config, "RETARDO_NOOP");
   xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
-  usleep(cant_no_op * retardo * 1000);
+  usleep(retardo * 1000);
 }
 
 void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente) {

@@ -26,12 +26,17 @@ int SOCKET_CONEXION_MEMORIA;
 sem_t HAY_PCB_DESALOJADO;     // semáforo binario
 sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
 sem_t MUTEX_BLOQUEO_SUSPENSION;
+sem_t SUSPENSION_EXITOSA;
+sem_t INICIALIZACION_ESTRUCTURAS_EXITOSA;
+sem_t LIBERACION_RECURSOS_EXITOSA;
 // time_t BEGIN;
 // time_t END;
 struct timespec BEGIN;
 struct timespec END;
 int SE_ENVIO_INTERRUPCION = 0;
 int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
+// t_pcb *PCB_CON_REFERENCIA_A_TABLA_PAGINAS = NULL;
+int REFERENCIA_TABLA_RECIBIDA;
 
 void avisar_a_pcp_que_decida() {
   SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
@@ -69,7 +74,10 @@ void *escuchar_conexion_cpu_dispatch() {
 
         // pcb->tiempo_en_ejecucion += TIMER.tiempo_total; // en milisegundos
         pcb->tiempo_en_ejecucion += tiempo_en_ejecucion;
-        pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        // FIX Basico para no calcular la estimacion en caso de FIFO
+        if (algoritmo_cargado_es("SRT")) {
+          pcb->estimacion_rafaga = calcular_estimacion_rafaga(pcb);
+        }
         pcb->tiempo_en_ejecucion = 0;
 
 
@@ -166,6 +174,9 @@ void iniciar_planificacion() {
   inicializar_grado_multiprogramacion();
   // sem_init(&CONEXION_DISPATCH_DISPONIBLE, 0, 0);
   sem_init(&HAY_PCB_DESALOJADO, 0, 0);
+  sem_init(&SUSPENSION_EXITOSA, 0, 0);
+  sem_init(&INICIALIZACION_ESTRUCTURAS_EXITOSA, 0, 0);
+  sem_init(&LIBERACION_RECURSOS_EXITOSA, 0, 0);
   sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   sem_init(&MUTEX_BLOQUEO_SUSPENSION, 0, 1);
   COLA_NEW = cola_planificacion_create();
@@ -216,10 +227,10 @@ void *iniciar_corto_plazo() {
     t_pcb *pcb_elegido_a_ejecutar = NULL;
 
     imprimir_proceso_en_running();
-    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SJF")) {
+    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SRT")) {
       xlog(COLOR_ERROR, "No hay un algoritmo de planificación cargado ó dicho algoritmo no está implementado");
     } else {
-      if (algoritmo_cargado_es("SJF") && hay_algun_proceso_ejecutando()) {
+      if (algoritmo_cargado_es("SRT") && hay_algun_proceso_ejecutando()) {
         enviar_interrupcion();
         sem_wait(&HAY_PCB_DESALOJADO); // Se bloquea hasta recibir el pcb de cpu
         SE_ENVIO_INTERRUPCION = 0;
@@ -285,6 +296,12 @@ void *iniciar_largo_plazo() {
     // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
     controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
 
+    t_paquete *paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
+    sem_wait(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
+    pcb->tabla_primer_nivel = REFERENCIA_TABLA_RECIBIDA;
+
     transicion_new_a_ready(pcb);
     imprimir_cantidad_procesos_disponibles_en_memoria();
 
@@ -305,6 +322,11 @@ void *plp_pcb_finished() {
 
     // TODO: Informar a memoria que termina el proceso y esperar respuesta
     t_pcb *pcb = elegir_pcb_fifo(COLA_FINISHED);
+
+    t_paquete *paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    solicitar_liberar_recursos_en_memoria_swap(SOCKET_CONEXION_MEMORIA, paquete);
+
     remover_pcb_de_cola(pcb, COLA_FINISHED);
     imprimir_pcb(pcb);
     matar_proceso(pcb->socket); // Se avisa a la consola de la finalizacion
@@ -335,8 +357,14 @@ void *iniciar_mediano_plazo() {
 }
 
 void pmp_suspender_proceso(t_pcb *pcb) {
-  pcb->estado = SUSBLOCKED;
   // TODO: Informar a memoria de suspension
+  t_paquete *paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  // int socket_memoria = conectarse_a_memoria();
+  solicitar_suspension_de_proceso(SOCKET_CONEXION_MEMORIA, paquete);
+  sem_wait(&SUSPENSION_EXITOSA);
+
+  pcb->estado = SUSBLOCKED;
   xlog(COLOR_INFO, "Se suspendio un proceso (pid = %d)", pcb->pid);
   liberar_espacio_en_memoria_para_proceso();
 }
@@ -405,12 +433,9 @@ void cambiar_estado_pcb(t_pcb *pcb, t_pcb_estado nuevoEstado) {
 }
 
 void transicion_ready_a_running(t_pcb *pcb) {
-  /* cambiar_estado_pcb(pcb, RUNNING); */
-  /* remover_pcb_de_cola(pcb, COLA_READY); */
-  /* PROCESO_EJECUTANDO = pcb; */
-  t_paquete *paquete = paquete_create();
-  paquete_add_pcb(paquete, pcb);
-  solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
+  cambiar_estado_pcb(pcb, RUNNING);
+  remover_pcb_de_cola(pcb, COLA_READY);
+  PROCESO_EJECUTANDO = pcb;
 }
 
 void transicion_running_a_blocked(t_pcb *pcb) {
@@ -460,13 +485,7 @@ void transicion_new_a_ready(t_pcb *pcb) {
        pcb->pid,
        list_size(COLA_NEW->lista_pcbs),
        list_size(COLA_READY->lista_pcbs));
-  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
-    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
-    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
-      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      sem_post(&EJECUTAR_ALGORITMO_PCP);
-    }
-  }
+  evaluar_replanificacion_pcp();
 }
 
 // TODO: Añadir un signal
@@ -474,23 +493,11 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
-  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
-    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
-    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
-      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
-      sem_post(&EJECUTAR_ALGORITMO_PCP);
-    }
-  }
+  evaluar_replanificacion_pcp();
 }
 
 // TODO: Añadir un signal
 void transicion_blocked_a_susready(t_pcb *pcb) {
-  t_paquete *paquete = paquete_create();
-  paquete_add_pcb(paquete, pcb);
-
-  int socket_memoria = conectarse_a_memoria();
-  solicitar_suspension_de_proceso(socket_memoria, paquete);
-
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
@@ -536,6 +543,17 @@ void transicion_susready_a_ready(t_pcb *pcb) {
        "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
        pcb->pid,
        list_size(COLA_READY->lista_pcbs));
+  evaluar_replanificacion_pcp();
+}
+
+void evaluar_replanificacion_pcp() {
+  if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
+    xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+    if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      avisar_a_pcp_que_decida();
+    }
+  }
 }
 
 t_cola_planificacion *cola_planificacion_create() {
@@ -590,7 +608,7 @@ void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   }
 
-  imprimir_cantidad_procesos_disponibles_en_memoria();
+  // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
 t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
@@ -603,7 +621,7 @@ t_pcb *elegir_pcb_fifo(t_cola_planificacion *cola) {
   return pcb;
 }
 
-t_pcb *elegir_pcb_sjf(t_cola_planificacion *cola) {
+t_pcb *elegir_pcb_srt(t_cola_planificacion *cola) {
   t_pcb *pcb = NULL;
 
   pthread_mutex_lock(&(cola->mutex));
@@ -629,8 +647,8 @@ t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
     pcb = elegir_pcb_fifo(cola);
   }
 
-  else if (algoritmo_cargado_es("SJF")) {
-    pcb = elegir_pcb_sjf(cola);
+  else if (algoritmo_cargado_es("SRT")) {
+    pcb = elegir_pcb_srt(cola);
   } else {
     xlog(COLOR_ERROR, "El algoritmo elegido no está cargado en el archivo de configuración");
   }
@@ -746,14 +764,23 @@ void escuchar_conexion_con_memoria() {
 
     switch (codigo_operacion) {
       case OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_MEMORIA);
+        paquete_destroy(paquete);
         xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria para suspender proceso");
 
         // TODO: sincronizar con semáforos donde corresponda
+        sem_post(&SUSPENSION_EXITOSA);
       } break;
       case OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO: {
+        t_paquete *paquete = recibir_paquete(SOCKET_CONEXION_MEMORIA);
+        t_pcb *pcb = paquete_obtener_pcb(paquete);
+        REFERENCIA_TABLA_RECIBIDA = pcb->tabla_primer_nivel;
+        paquete_destroy(paquete);
+
         xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
 
         // TODO: sincronizar con semáforos donde corresponda
+        sem_post(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
       } break;
       case OPERACION_MENSAJE: {
         recibir_mensaje(SOCKET_CONEXION_MEMORIA);
