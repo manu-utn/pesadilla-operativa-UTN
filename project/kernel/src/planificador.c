@@ -29,6 +29,7 @@ sem_t MUTEX_BLOQUEO_SUSPENSION;
 sem_t SUSPENSION_EXITOSA;
 sem_t INICIALIZACION_ESTRUCTURAS_EXITOSA;
 sem_t LIBERACION_RECURSOS_EXITOSA;
+sem_t HAY_PCB_FINISH;
 // time_t BEGIN;
 // time_t END;
 struct timespec BEGIN;
@@ -58,7 +59,7 @@ void *escuchar_conexion_cpu_dispatch() {
     clock_gettime(CLOCK_REALTIME, &END);
     // timer_detener();
     // timer_imprimir();
-    int tiempo_en_ejecucion = (END.tv_sec - BEGIN.tv_sec) * 1000 + (END.tv_nsec - BEGIN.tv_nsec) / 1000000;
+    uint32_t tiempo_en_ejecucion = (END.tv_sec - BEGIN.tv_sec) * 1000 + (END.tv_nsec - BEGIN.tv_nsec) / 1000000;
     xlog(COLOR_INFO,
          "[TIMER]: Tiempo que pcb estuvo en cpu: %d milisegundos",
          tiempo_en_ejecucion); // Timer en segundos para comparar aproximadamente con el de milisegundos
@@ -177,6 +178,7 @@ void iniciar_planificacion() {
   sem_init(&SUSPENSION_EXITOSA, 0, 0);
   sem_init(&INICIALIZACION_ESTRUCTURAS_EXITOSA, 0, 0);
   sem_init(&LIBERACION_RECURSOS_EXITOSA, 0, 0);
+  sem_init(&HAY_PCB_FINISH, 0, 0);
   sem_init(&NO_HAY_PROCESOS_EN_SUSREADY, 0, 1);
   sem_init(&MUTEX_BLOQUEO_SUSPENSION, 0, 1);
   COLA_NEW = cola_planificacion_create();
@@ -318,6 +320,7 @@ void *plp_pcb_finished() {
   xlog(COLOR_INFO, "Planificador de Largo Plazo: Funcion transicion finished ejecutando...");
 
   while (1) {
+    sem_wait(&HAY_PCB_FINISH);
     sem_wait(&(COLA_FINISHED->cantidad_procesos));
 
     // TODO: Informar a memoria que termina el proceso y esperar respuesta
@@ -463,6 +466,8 @@ void transicion_running_a_finished(t_pcb *pcb) {
        "Transición de RUNNING a FINISHED, el PCP atendió una operación de FINISHED (pid=%d, pcbs_en_finished=%d)",
        pcb->pid,
        list_size(COLA_FINISHED->lista_pcbs));
+
+  sem_post(&HAY_PCB_FINISH);
 }
 
 void transicion_a_new(t_pcb *pcb) {
@@ -637,7 +642,7 @@ t_pcb *pcb_menor_tiempo_restante_de_ejecucion_entre(t_pcb *pcb1, t_pcb *pcb2) {
 }
 
 int pcb_tiempo_restante_de_ejecucion(t_pcb *pcb) {
-  return pcb->estimacion_rafaga - pcb->tiempo_en_ejecucion;
+  return (int)pcb->estimacion_rafaga - (int)pcb->tiempo_en_ejecucion;
 }
 
 t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
