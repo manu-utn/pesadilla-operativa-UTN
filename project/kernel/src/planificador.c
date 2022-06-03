@@ -791,7 +791,9 @@ void escuchar_conexion_con_memoria() {
         paquete_destroy(paquete);
 
         xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
-
+        
+        pcb_destroy(pcb);
+        
         // TODO: sincronizar con semáforos donde corresponda
         sem_post(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
       } break;
