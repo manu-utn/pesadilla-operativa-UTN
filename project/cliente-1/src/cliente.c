@@ -10,28 +10,39 @@
 
 t_config* config;
 
-int main() {
+int main(int argc, char* argv[]) {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "Cliente-1");
   config = iniciar_config(DIR_CLIENTE_CFG);
 
+  char path_archivo_instrucciones[100];
+  int tamanio_proceso = 0;
+
+  if (!argv[1]) {
+    log_error(logger, "se requieren dos parámetros por la consola (ruta archivo de instrucciones + tamanio archivo)");
+  } else {
+    if (!argv[2]) {
+      log_error(logger, "se requiere un segundo parámetro, el tamanio archivo)");
+    }
+
+    strcpy(path_archivo_instrucciones, argv[1]);
+
+    tamanio_proceso = atoi(argv[2]);
+  }
+
+  // t_list* lista_instrucciones = obtener_instrucciones_de_archivo(DIR_CONFIG "/instrucciones.txt");
+  t_list* lista_instrucciones = obtener_instrucciones_de_archivo(path_archivo_instrucciones);
+  t_pcb* pcb = pcb_fake();
+  pcb->tamanio = tamanio_proceso; // TODO: debe ser información recibida por la terminal
+  pcb->instrucciones = lista_instrucciones;
+
+  t_paquete* paquete_con_pcb = paquete_create();
+  paquete_add_pcb(paquete_con_pcb, pcb);
+
   int fd_kernel = conectarse_a_kernel();
+  enviar_pcb(fd_kernel, paquete_con_pcb);
 
-  t_paquete* paquete = paquete_create();
-  t_instruccion* instruccion1 = instruccion_create("NO_OP", "3000");
-  t_instruccion* instruccion2 = instruccion_create("WRITE", "4 42");
-  t_instruccion* instruccion3 = instruccion_create("READ", "9");
-
-  // serializamos
-  paquete_add_instruccion(paquete, instruccion1);
-  paquete_add_instruccion(paquete, instruccion2);
-  paquete_add_instruccion(paquete, instruccion3);
-
-  enviar_instrucciones(fd_kernel, paquete);
-
-  instruccion_destroy(instruccion1);
-  instruccion_destroy(instruccion2);
-  instruccion_destroy(instruccion3);
-  paquete_destroy(paquete);
+  pcb_destroy(pcb);
+  paquete_destroy(paquete_con_pcb);
 
   terminar_cliente(fd_kernel, logger, config);
 
@@ -44,4 +55,27 @@ int conectarse_a_kernel() {
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   return fd_servidor;
+}
+
+t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
+  int buffer_tamanio = 255;
+  char buffer[buffer_tamanio];
+  FILE* archivo_con_instrucciones = fopen(ruta_archivo, "r");
+  t_list* lista_instrucciones = list_create();
+
+  while (fgets(buffer, buffer_tamanio, archivo_con_instrucciones)) {
+    buffer[strcspn(buffer, "\n")] = 0; // removemos los saltos de linea
+
+    char** instruccion_texto = string_n_split(buffer, 2, " ");
+    char* identificador = instruccion_texto[0];
+    char* params = instruccion_texto[1] ? instruccion_texto[1] : "";
+    t_instruccion* instruccion = instruccion_create(identificador, params);
+    string_array_destroy(instruccion_texto);
+
+    list_add(lista_instrucciones, instruccion);
+  }
+
+  fclose(archivo_con_instrucciones);
+
+  return lista_instrucciones;
 }
