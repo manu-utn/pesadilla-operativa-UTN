@@ -1,1 +1,3 @@
-make exec-consola ARCHIVO=/home/utnso/Documentos/tp-2022-1c-Sisop-Oh-Yeah/project/consola/config/SUSPE_2.txt TAMANIO=500
+#! usr/bin/bash
+source ./path_pruebas.sh
+make exec-consola ARCHIVO=${PATH_TP}/${PATH_CONSOLA_CONFIG}/SUSPE_2.txt TAMANIO=500
