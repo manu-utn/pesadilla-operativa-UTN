@@ -5,7 +5,7 @@
    (los roles definidos quizás no respetan el concepto de casos de uso)
    #+END_QUOTE
 
-   [[doc/diagrama-casos-de-uso.png]]
+   [[doc/diagrama-casos-de-uso2.png]]
 ** Diagrama de Secuencia
    #+BEGIN_QUOTE
    Para tener una idea general de las interacciones entre los módulos
