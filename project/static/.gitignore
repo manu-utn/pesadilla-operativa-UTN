@@ -1,5 +1,11 @@
-.dep
-.obj
-bin
-logs/*.txt
-logs/*.log
+!.dep/.gitkeep
+!.obj/.gitkeep
+!.bin/.gitkeep
+!.logs/.gitkeep
+dir.h
+
+.dep/*
+.obj/*
+bin/*
+logs/*
+compile_commands.json
