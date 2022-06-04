@@ -1,3 +1,18 @@
+* Diagramas para comunicar
+** Diagrama de Casos de Uso
+   #+BEGIN_QUOTE
+   Para tener una idea general de los requisitos funcionales al interactuar con el sistema
+   (los roles definidos quizás no respetan el concepto de casos de uso)
+   #+END_QUOTE
+
+   [[doc/diagrama-casos-de-uso.png]]
+** Diagrama de Secuencia
+   #+BEGIN_QUOTE
+   Para tener una idea general de las interacciones entre los módulos
+   (es posible que falten algunas interacciones por el momento)
+   #+END_QUOTE
+
+   [[doc/diagrama-de-secuencia2.png]]
 * Comandos de Entorno
    - ~make install~ para instalar y configurar entorno ~make i~  
 * Comandos Desarrollo
