@@ -57,7 +57,7 @@ t_log * logger;
 uint32_t size_memoria_principal;
 void* memoria_principal;
 int cant_marcos;
-t_list* tabla_marcos;
+int tam_marcos;
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
 int socket_memoria;
@@ -69,7 +69,7 @@ void* reservar_memoria_inicial(int size_memoria_total);
 void* manejar_nueva_conexion(void* args);
 
 //Estructura admin de paginas y marcos
-t_list* lista_marcos;
+t_list* tabla_marcos;
 t_dictionary* diccionario_paginas;
 t_list* lista_tablas_segundo_nivel;
 
@@ -78,4 +78,5 @@ int generar_numero_tabla();
 void inicializar_proceso(int pid, int entradas_por_tabla);
 int inicializar_tabla_marcos();
 void mostrar_tabla_marcos();
+void* buscar_dato_en_memoria(uint32_t dir_fisica);
 #endif /* MEMORIA_H */

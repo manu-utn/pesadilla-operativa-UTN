@@ -168,12 +168,13 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
     int cant_entradas_por_tabla = 10;
     char** params = string_split(instruccion->params, " ");
-    uint32_t dir_logica = params[0];
+    uint32_t dir_logica = atoi(params[0]);
     void* valor = params[1];
-    int num_pagina = (float)atoi(dir_logica) / tam_pagina;
+    int num_pagina = (float)dir_logica / tam_pagina;
     // uint32_t dir_logica = atoi(instruccion->params);
     execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, valor);
-
+    free(params);
+    free(valor);
   }
 
   else if (strcmp(instruccion->identificador, "COPY") == 0) {
@@ -181,9 +182,9 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
     int cant_entradas_por_tabla = 10;
     char** params = string_split(instruccion->params, " ");
-    uint32_t dir_logica_destino = params[0];
-    uint32_t dir_logica_origen = params[1];
-    int num_pagina = (float)atoi(dir_logica_origen) / tam_pagina;
+    uint32_t dir_logica_destino = atoi(params[0]);
+    uint32_t dir_logica_origen = atoi(params[1]);
+    int num_pagina = (float)dir_logica_origen / tam_pagina;
     t_operacion_respuesta_fetch_operands* respuesta_fetch =
       fetch_operands(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen);
     execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen, respuesta_fetch->valor);
@@ -214,7 +215,7 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
 void execute_exit(t_pcb* pcb, int socket_cliente) {
   pcb->program_counter++;
   t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
+  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, 0);
   paquete_cambiar_mensaje(paquete, mensaje);
   enviar_pcb_actualizado(socket_cliente, paquete);
 }
@@ -240,7 +241,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
   respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
-
+  printf("Tabla segundo nivel: %d\n", respuesta_operacion->num_tabla_segundo_nivel);
 
   // ACCESO PARA OBTENER MARCO
   t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
@@ -248,12 +249,12 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
   free(read_marco);
 
   // RECIBO RESPUESTA DE MEMORIA
-  xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  xlog(COLOR_INFO, "Recibiendo marco nivel desde Memoria ");
   cod_op = recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
   respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
-
+  printf("Num marco: %d\n", respuesta_operacion_marco->num_marco);
 
   // ACCESO PARA OBTENER DATO FISICO
   t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
@@ -261,7 +262,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
   free(read_marco);
 
   // RECIBO RESPUESTA DE MEMORIA
-  xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+  xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
   cod_op = recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
   t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
@@ -322,7 +323,7 @@ void execute_read_write(t_pcb* pcb,
     respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
     printf("Num marco: %d\n", respuesta_operacion_marco->num_marco);
 
-    if (valor == NULL) {
+    if (valor == NULL) { // LECTURA DE DATO
       // ACCESO PARA OBTENER DATO FISICO
       t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
       obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
@@ -334,12 +335,11 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
-      printf("VALOR BUSCADO: %s\n", respuesta_operacion_dato->dato_buscado);
 
-    } else {
+    } else { // ESCRITURA DE DATO
       t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
       escribir_dato_fisico(write_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica, valor);
-      free(read_marco);
+      free(write_dato);
 
       // RECIBO RESPUESTA DE MEMORIA
       xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
@@ -347,7 +347,6 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_escritura_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
-      printf("RESULTADO WRITE: %s\n", respuesta_operacion_dato->resultado);
     }
 
 
@@ -549,7 +548,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 
           pcb_deserializado->program_counter++;
           t_paquete* paquete_respuesta = paquete_create();
-          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, NULL);
+          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, 0);
           paquete_cambiar_mensaje(paquete_respuesta, mensaje);
           enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
 
