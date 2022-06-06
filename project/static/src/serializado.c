@@ -184,6 +184,10 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
   xlog(COLOR_DESERIALIZADO, "pcb->estado = %d", pcb->estado);
 
   offset += sizeof(t_pcb_estado);
+  memcpy(&(pcb->tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+  xlog(COLOR_DESERIALIZADO, "pcb->tabla_primer_nivel = %d", pcb->tabla_primer_nivel);
+
+  offset += sizeof(t_pcb_estado);
 
   int instrucciones_size = paquete_serializado->buffer->size - offset;
   t_paquete* paquete_con_instrucciones = paquete_instruccion_create(instrucciones_size);

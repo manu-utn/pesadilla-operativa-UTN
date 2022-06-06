@@ -185,4 +185,6 @@ t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read);
 t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read);
 t_buffer* crear_mensaje_respuesta_marco(t_respuesta_solicitud_marco* read);
 t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read);
+
+t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read);
 #endif

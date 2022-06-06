@@ -86,14 +86,15 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* req = malloc(sizeof(t_solicitud_segunda_tabla));
 
-        // req = obtener_solicitud_tabla_segundo_nivel(paquete);
+        req = obtener_solicitud_tabla_segundo_nivel(paquete);
 
         /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+        int numero_tabla = buscar_tabla_segundo_nivel(req->num_tabla_primer_nivel, req->entrada_primer_nivel);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_solicitud_segunda_tabla* resp = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
         resp->socket = socket_cliente;
-        resp->num_tabla_segundo_nivel = 200;
+        resp->num_tabla_segundo_nivel = numero_tabla;
         t_buffer* mensaje = crear_mensaje_respuesta_segunda_tabla(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje),
           enviar_operacion_respuesta_segunda_tabla(socket_cliente, paquete_respuesta);
@@ -113,10 +114,12 @@ void* manejar_nueva_conexion(void* args) {
 
         // mem_hexdump(memoria_principal, size_memoria_principal);
 
+        int num_marco = obtener_marco(req->num_tabla_segundo_nivel, req->entrada_segundo_nivel);
+
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_solicitud_marco* resp = malloc(sizeof(t_respuesta_solicitud_marco));
-        resp->num_marco = 10;
+        resp->num_marco = num_marco;
         t_buffer* mensaje = crear_mensaje_respuesta_marco(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje),
           enviar_operacion_obtener_marco(socket_cliente, paquete_respuesta);
@@ -189,6 +192,18 @@ void* manejar_nueva_conexion(void* args) {
   pthread_exit(NULL);
 }
 
+int obtener_marco(int num_tabla_segundo_nivel, int entrada_segundo_nivel) {
+  t_tabla_segundo_nivel* tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, num_tabla_segundo_nivel);
+  t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas, entrada_segundo_nivel);
+  return entrada->num_marco;
+}
+
+int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel, int entrada_tabla) {
+  t_tabla_primer_nivel* tabla_buscada = dictionary_get(diccionario_paginas, string_itoa(num_tabla_primer_nivel));
+  t_entrada_pagina_primer_nivel* entrada_primer_nivel = list_get(tabla_buscada->entradas, entrada_tabla);
+  return entrada_primer_nivel->num_tabla_segundo_nivel;
+}
+
 void* buscar_dato_en_memoria(uint32_t dir_fisica) {
   xlog(COLOR_CONEXION, "Buscando en memoria la dir fisica: %d", dir_fisica);
 
@@ -226,25 +241,38 @@ int inicializar_tabla_marcos() {
 void inicializar_proceso(int pid, int entradas_por_tabla) {
   xlog(COLOR_CONEXION, "Inicializando proceso");
 
-  t_list* tabla_primer_nivel = list_create();
-  t_list* tabla_segundo_nivel = list_create();
-
+  t_tabla_primer_nivel* tabla_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
+  // tabla_primer_nivel->num_tabla = generar_numero_tabla();
+  tabla_primer_nivel->num_tabla = 1; // COMENTAR ESTO Y DESCOMENTAR LA DE ARRIBA: SOLO PARA PRUEBAS
+  tabla_primer_nivel->entradas = list_create();
   for (int i = 0; i < entradas_por_tabla; i++) {
-    t_pagina_primer_nivel* tabla_primer_nivel = malloc(sizeof(t_pagina_primer_nivel));
-    tabla_primer_nivel->entrada_primer_nivel = i;
+    t_entrada_pagina_primer_nivel* entrada_primer_nivel = malloc(sizeof(t_entrada_pagina_primer_nivel));
+    entrada_primer_nivel->entrada_primer_nivel = i;
+
+    t_list* tablas_segundo_nivel = list_create();
+    t_tabla_segundo_nivel* tabla_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
+    // tabla_segundo_nivel->num_tabla = generar_numero_tabla();
+    tabla_segundo_nivel->num_tabla = 2; // COMENTAR ESTO Y DESCOMENTAR LA DE ARRIBA: SOLO PARA PRUEBAS
+    tabla_segundo_nivel->entradas = list_create();
     for (int j = 0; j < entradas_por_tabla; j++) {
-      t_pagina_segundo_nivel* tabla_segundo_nivel = malloc(sizeof(t_pagina_segundo_nivel));
-      tabla_segundo_nivel->entrada_segundo_nivel = j;
-      tabla_segundo_nivel->num_tabla = generar_numero_tabla();
-      tabla_segundo_nivel->num_marco = buscar_marco_libre();
-      tabla_segundo_nivel->bit_uso = 0;
-      tabla_segundo_nivel->bit_modif = 0;
-      tabla_segundo_nivel->bit_presencia = 0;
-      tabla_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
-      list_add(lista_tablas_segundo_nivel, tabla_segundo_nivel);
+      t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+      entrada_tabla_segundo_nivel->entrada_segundo_nivel = j;
+      // entrada_tabla_segundo_nivel->num_tabla = generar_numero_tabla();
+      entrada_tabla_segundo_nivel->num_marco = buscar_marco_libre();
+      entrada_tabla_segundo_nivel->bit_uso = 0;
+      entrada_tabla_segundo_nivel->bit_modif = 0;
+      entrada_tabla_segundo_nivel->bit_presencia = 0;
+      // tabla_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
+      list_add(tabla_segundo_nivel->entradas, entrada_tabla_segundo_nivel);
     }
+    entrada_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
+    list_add(tabla_primer_nivel->entradas, entrada_primer_nivel);
+    list_add(tablas_segundo_nivel, tabla_segundo_nivel);
+    list_add(lista_tablas_segundo_nivel, tablas_segundo_nivel);
   }
-  dictionary_put(diccionario_paginas, string_itoa(pid), tabla_primer_nivel);
+  // dictionary_put(diccionario_paginas, string_itoa(pid), tabla_primer_nivel);
+  dictionary_put(diccionario_paginas, "1", tabla_primer_nivel);
+  // COMENTAR ESTO Y DESCOMENTAR LA DE ARRIBA: SOLO PARA PRUEBAS
 }
 
 int generar_numero_tabla() {

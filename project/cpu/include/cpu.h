@@ -124,4 +124,8 @@ t_list* marcos;
 t_list* paginas_en_memoria;
 t_operacion_respuesta_fetch_operands* fetch_operands();
 
+void execute_no_op();
+void execute_io();
+void execute_read_write();
+void execute_exit();
 #endif /* CPU_H_ */

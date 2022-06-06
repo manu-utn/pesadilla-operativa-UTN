@@ -39,18 +39,28 @@ typedef struct{
 
 
 typedef struct{
+    int num_tabla;
+    t_list* entradas;
+}t_tabla_primer_nivel;
+
+
+typedef struct{
     int entrada_primer_nivel;
     int num_tabla_segundo_nivel;
-}t_pagina_primer_nivel;
+}t_entrada_pagina_primer_nivel;
 
 typedef struct{
     int num_tabla;
+    t_list* entradas;
+}t_tabla_segundo_nivel;
+
+typedef struct{
     int entrada_segundo_nivel;
     int num_marco;
     int bit_uso;
     int bit_modif;
     int bit_presencia;
-}t_pagina_segundo_nivel;
+}t_entrada_tabla_segundo_nivel;
 
 t_config * config;
 t_log * logger;
@@ -79,4 +89,7 @@ void inicializar_proceso(int pid, int entradas_por_tabla);
 int inicializar_tabla_marcos();
 void mostrar_tabla_marcos();
 void* buscar_dato_en_memoria(uint32_t dir_fisica);
+int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel,int entrada_primer_nivel);
+int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
+
 #endif /* MEMORIA_H */

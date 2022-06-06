@@ -160,6 +160,10 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     int num_pagina = (float)atoi(instruccion->params) / tam_pagina;
     uint32_t dir_logica = atoi(instruccion->params);
 
+    // int tabla_primer_nivel = *pcb->tabla_primer_nivel;
+
+    // pcb->tabla_primer_nivel = tabla_primer_nivel;
+
     execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, NULL);
   }
 
