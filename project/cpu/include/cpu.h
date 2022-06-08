@@ -27,10 +27,11 @@ uint32_t        socket_memoria;
 bool            estado_conexion_kernel;
 bool            estado_conexion_con_cliente;    
 uint32_t        socket_cpu_dispatch;
-uint32_t        HAY_PCB_PARA_EJECUTAR_          = 0;
-uint32_t        HAY_INTERRUPCION_               = 0;
+uint32_t        HAY_PCB_PARA_EJECUTAR_;     //     = 0;
+uint32_t        HAY_INTERRUPCION_; //              = 0;
 uint32_t        CONEXION_CPU_INTERRUPT;
-
+uint32_t        tamanio_pagina;
+uint32_t        entradas_por_tabla;
 
 void                realizar_handshake_memoria                  (void);
 int                 conectarse_a_memoria                        (void);
@@ -43,7 +44,7 @@ void                fetch_operands                              (void);
 void                execute                                     (t_pcb          *   pcb,            t_instruccion   *   instruccion,        uint32_t    socket_cliente);
 void                execute_no_op                               (void);
 void                execute_io                                  (t_pcb          *   pcb,            t_instruccion   *   instruccion,        uint32_t    socket_cliente);  
-void                execute_exit                                (t_pcb          *   pcb,            uint32_t            socket_cliente);
+void                execute_exit                                (t_pcb          *   pcb,            int                 socket_cliente);
 uint32_t            instruccion_obtener_parametro               (t_instruccion  *   instruccion,    uint32_t            numero_parametro);
 void                check_interrupt                             (t_pcb          *   pcb,            uint32_t            socket_cliente);
 void            *   iniciar_conexion_interrupt                  (void);

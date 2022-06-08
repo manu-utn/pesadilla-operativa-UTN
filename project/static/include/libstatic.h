@@ -193,5 +193,7 @@ void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* i
 t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);
 t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read);
 t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read);
-
+t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read);
+t_buffer* crear_mensaje_respuesta_marco(t_respuesta_solicitud_marco* read);
+t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read);
 #endif

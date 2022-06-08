@@ -226,6 +226,7 @@ void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete) {
   }
 }
 
+
 void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_ESCRIBIR_DATO;
 

@@ -37,4 +37,5 @@ void solicitar_inicializar_estructuras_en_memoria(int socket_destino, t_paquete 
 void confirmar_suspension_de_proceso(int socket_destino, t_paquete *paquete);
 void confirmar_estructuras_en_memoria(int socket_destino, t_paquete *paquete);
 void solicitar_liberar_recursos_en_memoria_swap(int socket_destino, t_paquete *paquete);
+void enviar_operacion_respuesta_segunda_tabla(int socket_destino, t_paquete* paquete);
 #endif

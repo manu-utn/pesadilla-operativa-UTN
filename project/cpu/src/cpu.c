@@ -1,6 +1,10 @@
 #include "cpu.h"
+#include "mmu.h"
 
 int main() {
+  HAY_PCB_PARA_EJECUTAR_ = 0;
+  HAY_INTERRUPCION_ = 0;
+
   logger = iniciar_logger(DIR_LOG_MESSAGES, "CPU");
   config = iniciar_config(DIR_CPU_CFG);
 
@@ -37,6 +41,8 @@ void realizar_handshake_memoria() {
       t_paquete* paquete_respuesta = malloc(sizeof(t_paquete) + 1);
       paquete_respuesta = recibir_paquete(socket_memoria);
       t_mensaje_handshake_cpu_memoria* handshake_deserializado = paquete_obtener_mensaje_handshake(paquete_respuesta);
+      tamanio_pagina = handshake_deserializado->tamanio_pagina;
+      entradas_por_tabla = handshake_deserializado->entradas_por_tabla;
       xlog(COLOR_INFO,
            "Handshake memoria - respuesta -> entradas por tabla: %d, tamanio pagina: %d",
            handshake_deserializado->entradas_por_tabla,
@@ -186,6 +192,33 @@ void fetch_operands() {
 void execute(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente) {
   xlog(COLOR_INFO, "Realizando execute pcb id: %d", pcb->pid);
 
+  // else if (strcmp(instruccion->identificador, "WRITE") == 0) {
+  //   log_info(logger, "Ejecutando WRITE...");
+  //   int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+  //   int cant_entradas_por_tabla = 10;
+  //   char** params = string_split(instruccion->params, " ");
+  //   uint32_t dir_logica = atoi(params[0]);
+  //   void* valor = params[1];
+  //   int num_pagina = (float)dir_logica / tam_pagina;
+  //   // uint32_t dir_logica = atoi(instruccion->params);
+  //   execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica, valor);
+  //   free(params);
+  //   free(valor);
+  // }
+
+  // else if (strcmp(instruccion->identificador, "COPY") == 0) {
+  //   xlog(COLOR_CONEXION, "Ejecutando COPY");
+  //   int tam_pagina = 64; // TODO: ESTE NUMERO LO TIENE QUE TRAER DE MEMORIA. USAR SOLO PARA PRUEBAS
+  //   int cant_entradas_por_tabla = 10;
+  //   char** params = string_split(instruccion->params, " ");
+  //   uint32_t dir_logica_destino = atoi(params[0]);
+  //   uint32_t dir_logica_origen = atoi(params[1]);
+  //   int num_pagina = (float)dir_logica_origen / tam_pagina;
+  //   t_operacion_respuesta_fetch_operands* respuesta_fetch =
+  //     fetch_operands(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen);
+  //   execute_read_write(pcb, tam_pagina, cant_entradas_por_tabla, num_pagina, dir_logica_origen,
+  //   respuesta_fetch->valor);
+  // }
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     xlog(COLOR_INFO, "Ejecutando NO_OP, pcb id: %d", pcb->pid);
     uint32_t cantidad_de_veces_no_op = instruccion_obtener_parametro(instruccion, 0);
@@ -233,15 +266,195 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente)
   paquete_add_pcb(paquete, pcb);
   xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
-  HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
-void execute_exit(t_pcb* pcb, uint32_t socket_cliente) {
+void execute_exit(t_pcb* pcb, int socket_cliente) {
   t_paquete* paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb_con_operacion_exit(socket_cliente, paquete);
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
+
+// t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
+//                                                      int tam_pagina,
+//                                                      int cant_entradas_por_tabla,
+//                                                      int num_pagina,
+//                                                      uint32_t dir_logica) {
+//   log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+//   int cod_op = 0;
+
+//   // ACCESOS A MEMORIA PARA OBTENER EL MARCO
+//   // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+//   t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+//   obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
+//   free(read);
+
+
+//   // RECIBO RESPUESTA DE MEMORIA
+//   xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+//   cod_op = recibir_operacion(socket_memoria);
+//   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+//   t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+//   respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
+//   printf("Tabla segundo nivel: %d\n", respuesta_operacion->num_tabla_segundo_nivel);
+
+//   // ACCESO PARA OBTENER MARCO
+//   t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
+//   obtener_numero_marco(read_marco, num_pagina, cant_entradas_por_tabla,
+//   respuesta_operacion->num_tabla_segundo_nivel);
+//   free(read_marco);
+
+//   // RECIBO RESPUESTA DE MEMORIA
+//   xlog(COLOR_INFO, "Recibiendo marco nivel desde Memoria ");
+//   cod_op = recibir_operacion(socket_memoria);
+//   t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
+//   t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
+//   respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
+//   printf("Num marco: %d\n", respuesta_operacion_marco->num_marco);
+
+//   // ACCESO PARA OBTENER DATO FISICO
+//   t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+//   obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
+//   free(read_marco);
+
+//   // RECIBO RESPUESTA DE MEMORIA
+//   xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
+//   cod_op = recibir_operacion(socket_memoria);
+//   t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+//   t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
+//   respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+
+//   t_operacion_respuesta_fetch_operands* respuesta_fetch = malloc(sizeof(t_operacion_respuesta_fetch_operands));
+
+//   respuesta_fetch->valor = respuesta_operacion_dato->dato_buscado;
+
+//   return respuesta_fetch;
+// }
+
+
+// void execute_read_write(t_pcb* pcb,
+//                         int tam_pagina,
+//                         int cant_entradas_por_tabla,
+//                         int num_pagina,
+//                         uint32_t dir_logica,
+//                         void* valor) {
+//   log_info(logger, "Leyendo de TLB");
+//   bool acierto_tlb = esta_en_tlb(num_pagina);
+//   int cod_op = 0;
+//   if (acierto_tlb == false) {
+//     // SE BUSCA EN MEMORIA LA PAGINA, PARA ELLO SE REALIZAN 3 ACCESOS:
+//     // ENVIO EL NUM DE TABLA DE 1er NIVEL JUNTO CON LA ENTRADA A DICHA TABLA
+//     // MEMORIA ME DEVUELVE EL NUM DE TABLA DE 2DO NIVEL
+//     // LUEGO ENVIO LA ENTRADA DE LA TABLA DE SEGUNDO NIVEL JUNTO CON EL NUM DE TABLA DE 2DO NIVEL
+//     // MEMORIA ME DEVUELVE EL NUM DE MARCO
+//     // CON ESTO ARMO LA DIRECCION FISICA Y ENVIO A MEMORIA PARA LEER EL DATO (DF= MARCO*TAM MARCO + DESPLAZAMIENTO)
+
+//     log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+
+//     // ACCESOS A MEMORIA PARA OBTENER EL MARCO
+//     // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+//     t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+//     obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
+//     free(read);
+
+
+//     // RECIBO RESPUESTA DE MEMORIA
+//     xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+//     cod_op = recibir_operacion(socket_memoria);
+//     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+//     t_respuesta_solicitud_segunda_tabla* respuesta_operacion = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
+//     respuesta_operacion = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
+//     printf("Tabla segundo nivel: %d\n", respuesta_operacion->num_tabla_segundo_nivel);
+
+//     // ACCESO PARA OBTENER MARCO
+//     t_solicitud_marco* read_marco = malloc(sizeof(t_solicitud_marco));
+//     obtener_numero_marco(read_marco, num_pagina, cant_entradas_por_tabla,
+//     respuesta_operacion->num_tabla_segundo_nivel);
+//     free(read_marco);
+
+//     // RECIBO RESPUESTA DE MEMORIA
+//     xlog(COLOR_INFO, "Recibiendo marco nivel desde Memoria ");
+//     cod_op = recibir_operacion(socket_memoria);
+//     t_paquete* paquete_respuesta_marco = recibir_paquete(socket_memoria);
+//     t_respuesta_solicitud_marco* respuesta_operacion_marco = malloc(sizeof(t_respuesta_solicitud_marco));
+//     respuesta_operacion_marco = obtener_respuesta_solicitud_marco(paquete_respuesta_marco);
+//     printf("Num marco: %d\n", respuesta_operacion_marco->num_marco);
+
+//     if (valor == NULL) { // LECTURA DE DATO
+//       // ACCESO PARA OBTENER DATO FISICO
+//       t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+//       obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
+//       free(read_marco);
+
+//       // RECIBO RESPUESTA DE MEMORIA
+//       xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
+//       cod_op = recibir_operacion(socket_memoria);
+//       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+//       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
+//       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+
+//     } else { // ESCRITURA DE DATO
+//       t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
+//       escribir_dato_fisico(write_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica,
+//       valor);
+//       free(write_dato);
+
+//       // RECIBO RESPUESTA DE MEMORIA
+//       xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
+//       cod_op = recibir_operacion(socket_memoria);
+//       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
+//       t_respuesta_escritura_dato_fisico* respuesta_operacion_dato =
+//       malloc(sizeof(t_respuesta_escritura_dato_fisico));
+//       respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
+//     }
+
+
+//   } else { // Busco el valor en la TLB
+//     xlog(COLOR_INFO, "Buscando valor en TLB ");
+
+//     int num_marco = buscar_marco_en_tlb(num_pagina);
+
+//     // ACCESO PARA OBTENER DATO FISICO
+//     t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
+//     obtener_dato_fisico(read_dato, num_marco, num_pagina, tam_pagina, dir_logica);
+//     free(read_dato);
+
+//     // RECIBO RESPUESTA DE MEMORIA
+//     xlog(COLOR_INFO, "Recibiendo respuesta de tabla de segundo nivel desde Memoria ");
+//     cod_op = recibir_operacion(socket_memoria);
+//     t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
+//     t_respuesta_dato_fisico* respuesta_operacion = malloc(sizeof(t_respuesta_dato_fisico));
+//     respuesta_operacion = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta);
+//     printf("VALOR BUSCADO: %s\n", respuesta_operacion->dato_buscado);
+//   }
+// }
+
+// int buscar_marco_en_tlb(int num_pagina) {
+//   bool encontrar_entrada(t_entrada_tlb * entrada) {
+//     return num_pagina == entrada->pagina;
+//   }
+//   t_entrada_tlb* entrada_buscada = list_find(tlb, (void*)encontrar_entrada);
+//   int marco_buscado = entrada_buscada->marco;
+//   free(entrada_buscada);
+//   return marco_buscado;
+// }
+
+// void obtener_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+//                          int num_marco,
+//                          int num_pagina,
+//                          int tam_pagina,
+//                          uint32_t dir_logica) {
+//   armar_solicitud_dato_fisico(solicitud_dato_fisico, num_marco, num_pagina, tam_pagina, dir_logica);
+//   solicitud_dato_fisico->socket = socket_memoria;
+//   /*t_paquete* paquete_con_direccion_a_leer = paquete_create();
+//   paquete_add_solicitud_dato_fisico(paquete_con_direccion_a_leer, solicitud_dato_fisico);
+//   enviar_operacion_obtener_dato(socket_memoria, paquete_con_direccion_a_leer);
+//   paquete_destroy(paquete_con_direccion_a_leer);*/
+//   t_paquete* paquete = paquete_create();
+//   t_buffer* mensaje = crear_mensaje_obtener_dato_fisico(solicitud_dato_fisico);
+//   paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_dato(socket_memoria, paquete);
+// }
+
 
 uint32_t instruccion_obtener_parametro(t_instruccion* instruccion, uint32_t numero_parametro) {
   char** parametros = string_split(instruccion->params, " ");
@@ -288,7 +501,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 
           pcb_deserializado->program_counter++;
           t_paquete* paquete_respuesta = paquete_create();
-          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, NULL);
+          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, 0);
           paquete_cambiar_mensaje(paquete_respuesta, mensaje);
           enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
           */
