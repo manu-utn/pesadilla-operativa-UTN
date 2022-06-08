@@ -4,6 +4,8 @@
 #include "utils-servidor.h"
 #include <libstatic.h> // <-- STATIC LIB
 int CONEXION_CPU_INTERRUPT;
+int HAY_PCB_PARA_EJECUTAR = 0;
+int HAY_INTERRUPCION = 0;
 // void* escuchar_dispatch(void* arguments) {
 
 void setear_algoritmo_reemplazo() {
@@ -201,7 +203,7 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
     execute_exit(pcb, socket_cliente);
   }
 }
-
+/*
 void execute_no_op() {
   int retardo = config_get_int_value(config, "RETARDO_NOOP");
   usleep(retardo);
@@ -222,6 +224,35 @@ void execute_exit(t_pcb* pcb, int socket_cliente) {
   t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, 0);
   paquete_cambiar_mensaje(paquete, mensaje);
   enviar_pcb_actualizado(socket_cliente, paquete);
+}*/
+
+void execute_no_op() {
+  int retardo = config_get_int_value(config, "RETARDO_NOOP");
+  xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
+  usleep(retardo * 1000);
+}
+
+void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
+  int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
+  pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
+  t_paquete* paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
+  enviar_pcb_con_operacion_io(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
+}
+void execute_exit(t_pcb* pcb, int socket_cliente) {
+  // pcb->program_counter++;
+  t_paquete* paquete = paquete_create();
+  paquete_add_pcb(paquete, pcb);
+  enviar_pcb_con_operacion_exit(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
+  /*
+  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
+  paquete_cambiar_mensaje(paquete, mensaje);
+  enviar_pcb_actualizado(socket_cliente, paquete);
+  */
 }
 
 t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
@@ -634,4 +665,19 @@ int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_paramet
   string_iterate_lines(parametros, (void*)free);
 
   return valor;
+}
+
+void check_interrupt(t_pcb* pcb, int socket_cliente) {
+  if (HAY_PCB_PARA_EJECUTAR) {
+    if (HAY_INTERRUPCION) {
+      t_paquete* paquete = paquete_create();
+      paquete_add_pcb(paquete, pcb);
+      enviar_pcb_desalojado(socket_cliente, paquete);
+      xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
+      HAY_PCB_PARA_EJECUTAR = 0;
+      HAY_INTERRUPCION = 0;
+    }
+  } else {
+    HAY_INTERRUPCION = 0; // Para el caso en el que no haya pcb pero se haya mandado una interrupcion
+  }
 }

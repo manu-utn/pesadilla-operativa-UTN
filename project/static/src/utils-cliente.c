@@ -96,6 +96,19 @@ void enviar_pcb_con_operacion_io(int socket_destino, t_paquete* paquete) {
   }
 }
 
+void enviar_pcb_con_operacion_exit(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PCB_CON_EXIT;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    xlog(COLOR_PAQUETE,
+         "El PCB fue actualizado con una operación EXIT y fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
+  }
+}
+
 void enviar_pcb(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PCB;
 
@@ -222,6 +235,76 @@ void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
   if (status != -1) {
     log_info(logger,
              "La operacion ESCRIBIR_DATO fue enviada con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void solicitar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_SUSPENDIDO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Se solicitó a Memoria la suspensión de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void solicitar_inicializar_estructuras_en_memoria(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_INICIALIZAR_ESTRUCTURAS;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(
+      logger,
+      "Se solicitó a Memoria inicializar las estructuras de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+      socket_destino,
+      paquete->buffer->size);
+  }
+}
+
+void solicitar_liberar_recursos_en_memoria_swap(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_FINALIZADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(
+      logger,
+      "Se solicitó a Memoria y Swap liberar los recursos de un proceso con éxito (socket_destino=%d, buffer_bytes=%d)",
+      socket_destino,
+      paquete->buffer->size);
+  }
+}
+
+// TODO: en vez de enviar un mensaje, mandamos un paquete por si luego necesitamos manejar datos del pcb
+// (si no es necesario, cambiar paquete por un mensaje)
+void confirmar_suspension_de_proceso(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Memoria confirmó con éxito a Kernel la suspensión de un proceso (socket_destino=%d, buffer_bytes=%d)",
+             socket_destino,
+             paquete->buffer->size);
+  }
+}
+
+void confirmar_estructuras_en_memoria(int socket_destino, t_paquete* paquete) {
+  paquete->codigo_operacion = OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO;
+
+  int status = enviar(socket_destino, paquete);
+
+  if (status != -1) {
+    log_info(logger,
+             "Memoria confirmó con éxito a Kernel sobre estructuras inicializadas de un proceso (socket_destino=%d, "
+             "buffer_bytes=%d)",
              socket_destino,
              paquete->buffer->size);
   }

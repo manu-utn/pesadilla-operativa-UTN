@@ -41,3 +41,13 @@ int microsegundos_humanizar(int microsegundos) {
 void simular_bloqueo_en_segundos(int tiempo_microsegundos) {
   usleep(microsegundos_humanizar(tiempo_microsegundos));
 }
+
+int milisegundos_a_microsegundos(int milisegundos) {
+  // usleep: usa microsegundos (1.000.000 microsegundos = 1 segundo)
+  // clock: usa milisegundos (1.000 milisegundos = 1 segundo) (1 milisegundo = 1000 microsegundos)
+  return milisegundos * 1000;
+}
+
+void bloquear_por_milisegundos(int tiempo_milisegundos) {
+  usleep(milisegundos_a_microsegundos(tiempo_milisegundos));
+}
