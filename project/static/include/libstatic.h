@@ -144,6 +144,7 @@ typedef struct{
 typedef struct{
 	int socket;
 	uint32_t dir_fisica;
+  int size_valor;
   void* valor;
 }t_escritura_dato_fisico;
 

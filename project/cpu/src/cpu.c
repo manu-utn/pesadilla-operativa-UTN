@@ -143,7 +143,7 @@ t_instruccion* fetch(t_pcb* pcb) {
 void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     log_info(logger, "Ejecutando NO_OP...");
-    execute_no_op();
+    // execute_no_op();
   }
 
   else if (strcmp(instruccion->identificador, "I/O") == 0) {
@@ -266,6 +266,7 @@ t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
   // ACCESOS A MEMORIA PARA OBTENER EL MARCO
   // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
   t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
+  pcb->tabla_primer_nivel = 1;
   obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
   free(read);
 
@@ -330,8 +331,8 @@ void execute_read_write(t_pcb* pcb,
 
     log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
 
-    // ACCESOS A MEMORIA PARA OBTENER EL MARCO
     // ACCESO PARA OBTENER TABLA SEGUNDO NIVEL
+    pcb->tabla_primer_nivel = 1;
     t_solicitud_segunda_tabla* read = malloc(sizeof(t_solicitud_segunda_tabla));
     obtener_numero_tabla_segundo_nivel(read, pcb, num_pagina, cant_entradas_por_tabla);
     free(read);
@@ -370,6 +371,9 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
+      char* dato = malloc(4);
+      memcpy(dato, respuesta_operacion_dato->dato_buscado, 4);
+      printf("DATO: %s\n", dato);
 
     } else { // ESCRITURA DE DATO
       t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
@@ -382,6 +386,7 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_escritura_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_escritura_dato_fisico(paquete_respuesta_dato);
+      printf("RESULTADO: %d\n", respuesta_operacion_dato->resultado);
     }
 
 
@@ -459,7 +464,7 @@ void obtener_numero_marco(t_solicitud_marco* solicitud_marco,
   enviar_operacion_obtener_marco(socket_memoria, paquete_con_direccion_a_leer);
   paquete_destroy(paquete_con_direccion_a_leer);*/
   t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje_obtener_marco(read);
+  t_buffer* mensaje = crear_mensaje_obtener_marco(solicitud_marco);
   paquete_cambiar_mensaje(paquete, mensaje), enviar_operacion_obtener_marco(socket_memoria, paquete);
 }
 
@@ -486,6 +491,7 @@ void armar_solicitud_tabla_segundo_nivel(t_solicitud_segunda_tabla* solicitud_ta
                                          int cant_entradas_por_tabla) {
   solicitud_tabla_segundo_nivel->num_tabla_primer_nivel = num_tabla_primer_nivel;
   solicitud_tabla_segundo_nivel->entrada_primer_nivel = (float)num_pagina / (float)cant_entradas_por_tabla;
+  xlog(COLOR_INFO, "Entrada Tabla 1er nivel: %d", solicitud_tabla_segundo_nivel->entrada_primer_nivel);
 }
 
 void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
@@ -494,6 +500,7 @@ void armar_solicitud_marco(t_solicitud_marco* solicitud_marco,
                            int numero_tabla_segundo_nivel) {
   solicitud_marco->num_tabla_segundo_nivel = numero_tabla_segundo_nivel;
   solicitud_marco->entrada_segundo_nivel = num_pagina % cant_entradas_por_tabla;
+  xlog(COLOR_INFO, "SOLICITUD MARCO: TABLA SEGUNDO NIVEL: %d", solicitud_marco->entrada_segundo_nivel);
 }
 
 void armar_operacion_read(t_operacion_read* read, t_instruccion* instruccion) {
@@ -517,6 +524,7 @@ void armar_escritura_dato_fisico(t_escritura_dato_fisico* escritura_dato_fisico,
                                  void* valor) {
   int desplazamiento = dir_logica - (num_pagina * tam_pagina);
   escritura_dato_fisico->dir_fisica = num_marco * tam_pagina + desplazamiento;
+  escritura_dato_fisico->size_valor = strlen(valor) + 1;
   escritura_dato_fisico->valor = valor;
 }
 

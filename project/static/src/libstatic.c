@@ -161,8 +161,8 @@ t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read) {
 }
 
 t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
-  int mensaje_longitud = strlen(read->dato_buscado) + 1;            // sumamos el '\0' que indica fin de cadena
-  int mensaje_size = sizeof(char) * mensaje_longitud + sizeof(int); // 5 Bytes
+  int mensaje_longitud = strlen(read->dato_buscado) + 1;              // sumamos el '\0' que indica fin de cadena
+  int mensaje_size = (sizeof(char) * mensaje_longitud) + sizeof(int); // 5 Bytes
   // int mensaje_size = sizeof(int);
   int offset = 0;
 
@@ -171,10 +171,10 @@ t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   mensaje->size = mensaje_size;
 
-  memcpy(mensaje->stream + offset, &(read->size_dato), sizeof(int));
+  memcpy(mensaje->stream + offset, &mensaje_longitud, sizeof(int));
   offset += sizeof(int);
   memcpy(mensaje->stream + offset, read->dato_buscado, mensaje_longitud);
-  offset += sizeof(int);
+  offset += mensaje_longitud;
   return mensaje;
 }
 
@@ -182,7 +182,7 @@ t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
 t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int) * 2;
+  int mensaje_size = sizeof(int) * 3;
   int offset = 0;
   int size_valor = ((sizeof(char)) * (strlen(read->valor))) + 1;
 
@@ -195,7 +195,9 @@ t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
   offset += sizeof(int);
   memcpy(mensaje->stream + offset, &(read->dir_fisica), sizeof(int));
   offset += sizeof(int);
-  memcpy(mensaje->stream + offset, &(read->valor), size_valor);
+  memcpy(mensaje->stream + offset, &size_valor, sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, read->valor, size_valor);
   offset += size_valor;
   return mensaje;
 }

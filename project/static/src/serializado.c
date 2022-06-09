@@ -63,7 +63,9 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
 
   offset += sizeof(int), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
 
-  offset += sizeof(t_pcb_estado);
+  offset += sizeof(t_pcb_estado), memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(int));
+
+  offset += sizeof(int);
 
   paquete->buffer->size = offset;
   for (int i = 0; i < list_size(pcb->instrucciones); i++) {
@@ -421,8 +423,11 @@ t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_ser
   offset += sizeof(int);
   memcpy(&(read->dir_fisica), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
-  memcpy(&(read->valor), paquete_serializado->buffer->stream + offset, sizeof(int));
+  int size_valor = 0;
+  memcpy(&size_valor, paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
+  memcpy(read->valor, paquete_serializado->buffer->stream + offset, size_valor);
+  offset += size_valor;
 
   return read;
 }
@@ -471,7 +476,7 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   int offset = 0;
 
   t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
-  respuesta_dato->dato_buscado = malloc(100);
+  respuesta_dato->dato_buscado = malloc(20);
   memcpy(&(respuesta_dato->size_dato), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
   memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);

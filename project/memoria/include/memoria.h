@@ -35,6 +35,7 @@ typedef struct{
     int num_marco;
     uint32_t direccion;
     int pid;
+    int ocupado;
 }t_marco;
 
 
@@ -91,5 +92,5 @@ void mostrar_tabla_marcos();
 void* buscar_dato_en_memoria(uint32_t dir_fisica);
 int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel,int entrada_primer_nivel);
 int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
-
+void llenar_memoria_mock();
 #endif /* MEMORIA_H */

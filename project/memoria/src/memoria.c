@@ -70,6 +70,24 @@ void* manejar_nueva_conexion(void* args) {
         free(respuesta_read);*/
         break;
       }
+      case OPERACION_INICIALIZAR_ESTRUCTURAS: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
+        paquete_destroy(paquete);
+
+        // TODO: resolver cuando se avance el módulo..
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
+
+        pcb->tabla_primer_nivel = 1;
+        t_paquete* paquete_con_pcb_actualizado = paquete_create();
+        paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
+
+
+        // TODO: deberia agregar al pcb el valor de la tabla de paginas
+        confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
+        paquete_destroy(paquete_con_pcb_actualizado);
+      } break;
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -90,6 +108,8 @@ void* manejar_nueva_conexion(void* args) {
 
         /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
         int numero_tabla = buscar_tabla_segundo_nivel(req->num_tabla_primer_nivel, req->entrada_primer_nivel);
+
+        xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_tabla);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_solicitud_segunda_tabla* resp = malloc(sizeof(t_respuesta_solicitud_segunda_tabla));
@@ -112,9 +132,9 @@ void* manejar_nueva_conexion(void* args) {
 
         req = obtener_solicitud_marco(paquete);
 
-        // mem_hexdump(memoria_principal, size_memoria_principal);
 
         int num_marco = obtener_marco(req->num_tabla_segundo_nivel, req->entrada_segundo_nivel);
+        xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
 
         t_paquete* paquete_respuesta = paquete_create();
@@ -140,6 +160,7 @@ void* manejar_nueva_conexion(void* args) {
 
         void* dato_buscado = malloc(100);
         dato_buscado = buscar_dato_en_memoria(direccion_fisica);
+        xlog(COLOR_INFO, "DATO BUSCADO: %s", dato_buscado);
 
         /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
 
@@ -193,15 +214,26 @@ void* manejar_nueva_conexion(void* args) {
 }
 
 int obtener_marco(int num_tabla_segundo_nivel, int entrada_segundo_nivel) {
-  t_tabla_segundo_nivel* tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, num_tabla_segundo_nivel);
-  t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas, entrada_segundo_nivel);
-  return entrada->num_marco;
+  int es_la_tabla(t_tabla_segundo_nivel * tabla_actual) {
+    return tabla_actual->num_tabla == num_tabla_segundo_nivel;
+  }
+
+  t_tabla_segundo_nivel* tabla_segundo_nivel = list_find(lista_tablas_segundo_nivel, (void*)es_la_tabla);
+  // t_tabla_segundo_nivel* tabla_segundo_nivel =
+  //  (t_tabla_segundo_nivel*)list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel_buscada);
+  t_entrada_tabla_segundo_nivel* entrada =
+    (t_entrada_tabla_segundo_nivel*)list_get(tabla_segundo_nivel->entradas, entrada_segundo_nivel);
+  int marco = entrada->num_marco;
+  return marco;
 }
 
 int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel, int entrada_tabla) {
-  t_tabla_primer_nivel* tabla_buscada = dictionary_get(diccionario_paginas, string_itoa(num_tabla_primer_nivel));
-  t_entrada_pagina_primer_nivel* entrada_primer_nivel = list_get(tabla_buscada->entradas, entrada_tabla);
-  return entrada_primer_nivel->num_tabla_segundo_nivel;
+  char* num_tabla = string_itoa(num_tabla_primer_nivel);
+  t_tabla_primer_nivel* tabla_buscada = (t_tabla_primer_nivel*)dictionary_get(diccionario_paginas, num_tabla);
+  t_entrada_pagina_primer_nivel* entrada_primer_nivel =
+    (t_entrada_pagina_primer_nivel*)list_get(tabla_buscada->entradas, entrada_tabla);
+  int num_tabla_segundo_nivel = entrada_primer_nivel->num_tabla_segundo_nivel;
+  return num_tabla_segundo_nivel;
 }
 
 void* buscar_dato_en_memoria(uint32_t dir_fisica) {
@@ -232,6 +264,7 @@ int inicializar_tabla_marcos() {
     marco->num_marco = tam_tabla;
     marco->direccion = 0;
     marco->pid = 0;
+    marco->ocupado = 0;
     list_add(tabla_marcos, marco);
     tam_tabla++;
   }
@@ -267,11 +300,11 @@ void inicializar_proceso(int pid, int entradas_por_tabla) {
     }
     entrada_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
     list_add(tabla_primer_nivel->entradas, entrada_primer_nivel);
-    list_add(tablas_segundo_nivel, tabla_segundo_nivel);
-    list_add(lista_tablas_segundo_nivel, tablas_segundo_nivel);
+    // list_add(tablas_segundo_nivel, tabla_segundo_nivel);
+    list_add(lista_tablas_segundo_nivel, tabla_segundo_nivel);
   }
   // dictionary_put(diccionario_paginas, string_itoa(pid), tabla_primer_nivel);
-  dictionary_put(diccionario_paginas, "1", tabla_primer_nivel);
+  dictionary_put(diccionario_paginas, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
   // COMENTAR ESTO Y DESCOMENTAR LA DE ARRIBA: SOLO PARA PRUEBAS
 }
 
@@ -283,12 +316,12 @@ int generar_numero_tabla() {
 
 int buscar_marco_libre() {
   int buscar_primer_libre(t_marco * marco) {
-    return marco->pid == 0;
+    return marco->ocupado == 0;
   }
 
-  int marco_libre = (int)list_find(tabla_marcos, (void*)buscar_primer_libre);
-
-  return marco_libre;
+  t_marco* marco_libre = (t_marco*)list_find(tabla_marcos, (void*)buscar_primer_libre);
+  marco_libre->ocupado = 1;
+  return marco_libre->num_marco;
 }
 
 
@@ -301,5 +334,16 @@ void mostrar_tabla_marcos() {
     printf("Num Marco: %d ", marco->num_marco);
     printf("Direccion: %d ", marco->direccion);
     printf("PID: %d\n", marco->pid);
+  }
+}
+
+
+void llenar_memoria_mock() {
+  int offset = 0;
+  int num_marco = 0;
+  while (offset < size_memoria_principal) {
+    memset(memoria_principal + offset, "HOLA", 4);
+    offset = offset + 64;
+    num_marco += 1;
   }
 }
