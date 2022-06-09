@@ -1,7 +1,6 @@
 #ifndef __CONSOLA__H
 #define __CONSOLA__H
 
-#include "dir.h"
 #include "utils-cliente.h"
 #include "utils-servidor.h"
 #include <commons/config.h>

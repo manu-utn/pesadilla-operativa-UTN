@@ -59,11 +59,12 @@ void* manejar_nueva_conexion(void* args) {
         paquete_con_pcb = recibir_paquete(socket_cliente);
 
         t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
-        pcb_deserializado->socket = socket_cliente;
+        // pcb_deserializado->socket = socket_cliente;
+        HAY_PCB_PARA_EJECUTAR = 1;
         ciclo_instruccion(pcb_deserializado, socket_cliente);
         imprimir_pcb(pcb_deserializado);
         paquete_destroy(paquete_con_pcb);
-        free(pcb_deserializado);
+        pcb_destroy(pcb_deserializado);
         // descomentar para validar el memcheck
         // terminar_servidor(socket_cpu_dispatch, logger, config);
         // return 0;
@@ -127,12 +128,13 @@ void ciclo_instruccion(t_pcb* pcb, int socket_cliente) {
   log_info(logger, "Iniciando ciclo de instruccion");
   log_info(logger, "leyendo instrucciones");
 
-  while (pcb->program_counter < list_size(pcb->instrucciones)) {
+  while (HAY_PCB_PARA_EJECUTAR && pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion));
     instruccion = fetch(pcb);
+    pcb->program_counter++;
     decode(instruccion, pcb, socket_cliente);
     // free(instruccion);
-    pcb->program_counter++;
+    check_interrupt(pcb, socket_cliente);
   }
 }
 
@@ -206,7 +208,8 @@ void decode(t_instruccion* instruccion, t_pcb* pcb, int socket_cliente) {
 /*
 void execute_no_op() {
   int retardo = config_get_int_value(config, "RETARDO_NOOP");
-  usleep(retardo);
+  xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
+  usleep(retardo * 1000);
 }
 
 void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
@@ -217,9 +220,10 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
   paquete_add_pcb(paquete, pcb);
   xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR = 0;
 }
 void execute_exit(t_pcb* pcb, int socket_cliente) {
-  pcb->program_counter++;
+  // pcb->program_counter++;
   t_paquete* paquete = paquete_create();
   t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, 0);
   paquete_cambiar_mensaje(paquete, mensaje);
@@ -577,6 +581,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
         case OPERACION_INTERRUPT: {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
+          /*
           t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
           paquete_con_pcb = recibir_paquete(socket_cliente);
           t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
@@ -586,7 +591,8 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, 0);
           paquete_cambiar_mensaje(paquete_respuesta, mensaje);
           enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
-
+          */
+          HAY_INTERRUPCION = 1;
           paquete_destroy(paquete);
         } break;
         case OPERACION_MENSAJE: {

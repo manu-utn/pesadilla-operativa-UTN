@@ -1,12 +1,11 @@
 #include "cpu.h"
-#include "dir.h"
 #include "sample.h"
 
 void mock_datos_tlb() {
-  t_entrada_tlb* entrada1 = malloc(sizeof(t_entrada_tlb));
-  t_entrada_tlb* entrada2 = malloc(sizeof(t_entrada_tlb));
-  t_entrada_tlb* entrada3 = malloc(sizeof(t_entrada_tlb));
-  t_entrada_tlb* entrada4 = malloc(sizeof(t_entrada_tlb));
+  t_entrada_tlb *entrada1 = malloc(sizeof(t_entrada_tlb));
+  t_entrada_tlb *entrada2 = malloc(sizeof(t_entrada_tlb));
+  t_entrada_tlb *entrada3 = malloc(sizeof(t_entrada_tlb));
+  t_entrada_tlb *entrada4 = malloc(sizeof(t_entrada_tlb));
 
   entrada1->proceso = 1;
   entrada1->pagina = 1;

@@ -18,6 +18,7 @@ int main() {
   xlog(COLOR_CONEXION, "Tamanio tabla de marcos: %d:", inicializar_tabla_marcos());
   // mostrar_tabla_marcos();
   inicializar_proceso(0, 4);
+
   pthread_t th;
   pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 

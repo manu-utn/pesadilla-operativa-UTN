@@ -12,33 +12,42 @@
 #include <unistd.h>
 #include "xlog.h"
 #include "timer.h"
+#include "dir.h"
 
 typedef enum {
-  OPERACION_EXIT=0,
+  OPERACION_EXIT = 0,
   MENSAJE = 1,
   PAQUETE = 2,
   CONSOLA = 3,
   PCB = 4,
   INTERRUPT = 5,
-  MENSAJE_HANDSHAKE= 6,
-  PCB_ACTUALIZADO2=7,
-  READ=8,
-  FETCH=9,
-
+  MENSAJE_HANDSHAKE = 6,
+  PCB_ACTUALIZADO2 = 7,
+  READ = 8,
+  FETCH = 9,
   // TODO: el resto deben ser removidos
-  OPERACION_MENSAJE, OPERACION_PAQUETE, OPERACION_PCB, OPERACION_PCB_DESALOJADO,
-  OPERACION_IO,OPERACION_OBTENER_SEGUNDA_TABLA,OPERACION_RESPUESTA_SEGUNDA_TABLA,
-  OPERACION_OBTENER_MARCO,OPERACION_RESPUESTA_MARCO,
-  OPERACION_OBTENER_DATO,OPERACION_ESCRIBIR_DATO,OPERACION_BUSQUEDA_EN_MEMORIA_OK,
-  OPERACION_INTERRUPT, OPERACION_CONSOLA,
-  OPERACION_PCB_CON_IO, OPERACION_PCB_CON_EXIT,
+  
+  OPERACION_MENSAJE,
+  OPERACION_PAQUETE,
+  OPERACION_PCB,
+  OPERACION_PCB_DESALOJADO,
+  OPERACION_IO,
+  OPERACION_OBTENER_SEGUNDA_TABLA,
+  OPERACION_OBTENER_MARCO,
+  OPERACION_OBTENER_DATO,
+  OPERACION_BUSQUEDA_EN_MEMORIA_OK,
+  OPERACION_INTERRUPT,
+  OPERACION_CONSOLA,
+  OPERACION_PCB_CON_IO,
+  OPERACION_PCB_CON_EXIT,
   PAQUETE_INSTRUCCION,
-  OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO,
-  OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO,
-  OPERACION_PROCESO_SUSPENDIDO,
-  OPERACION_INICIALIZAR_ESTRUCTURAS,
-  OPERACION_PROCESO_FINALIZADO
-  } op_code;
+  OPERACION_RESPUESTA_SEGUNDA_TABLA,
+  OPERACION_RESPUESTA_MARCO,
+  OPERACION_ESCRIBIR_DATO,
+  OPERACION_PROCESO_SUSPENDIDO, OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO,
+  OPERACION_PROCESO_FINALIZADO,
+  OPERACION_INICIALIZAR_ESTRUCTURAS, OPERACION_ESTRUCTURAS_EN_MEMORIA_CONFIRMADO
+} op_code;
 
 typedef enum { CONEXION_FINALIZADA = 0, CONEXION_ESCUCHANDO = 1 } CONEXION_ESTADO;
 
@@ -74,14 +83,14 @@ typedef enum {
 
 // TODO: definir atributos: instrucciones y tabla de paginas
 typedef struct {
-  int socket;
-  int pid;
-  int tamanio;
-  int estimacion_rafaga;
-  int tiempo_en_ejecucion;
-  int tiempo_de_bloqueado;
-  int program_counter;
-  int tabla_primer_nivel;
+  uint32_t socket;
+  uint32_t pid;
+  uint32_t tamanio;
+  uint32_t estimacion_rafaga;
+  uint32_t tiempo_en_ejecucion;
+  uint32_t tiempo_de_bloqueado;
+  uint32_t program_counter;
+  uint32_t tabla_primer_nivel;
   t_pcb_estado estado;
   t_list* instrucciones;
 } t_pcb;
@@ -181,7 +190,7 @@ t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
 
-t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
+// t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo);
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion);
 
 t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);

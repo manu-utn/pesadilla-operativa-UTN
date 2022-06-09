@@ -7,7 +7,6 @@
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "dir.h"
 #include "utils-cliente.h"
 
 t_log *logger;

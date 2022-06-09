@@ -217,6 +217,7 @@ t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_da
   return mensaje;
 }
 
+/*
 t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
@@ -266,7 +267,7 @@ t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
 
   return mensaje;
 }
-
+*/
 
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion) {
   int identificador_longitud = strlen(instruccion->identificador) + 1;
@@ -351,7 +352,7 @@ void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete) {
 }
 
 void terminar_programa(int conexion, t_log* logger, t_config* config) {
-  log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
+  liberar_conexion(conexion), log_destroy(logger), config_destroy(config);
 }
 
 t_pcb* pcb_create(int socket, int pid, int tamanio) {
@@ -403,16 +404,17 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf(
-    "socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d\n",
-    pcb->socket,
-    pcb->pid,
-    pcb->tamanio,
-    pcb->estimacion_rafaga,
-    pcb->tiempo_en_ejecucion,
-    pcb->tiempo_de_bloqueado,
-    pcb->program_counter,
-    pcb->estado);
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d, "
+         "tabla=%d\n",
+         pcb->socket,
+         pcb->pid,
+         pcb->tamanio,
+         pcb->estimacion_rafaga,
+         pcb->tiempo_en_ejecucion,
+         pcb->tiempo_de_bloqueado,
+         pcb->program_counter,
+         pcb->estado,
+         pcb->tabla_primer_nivel);
 
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
