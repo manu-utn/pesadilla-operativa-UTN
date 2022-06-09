@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dir.h"
 
 t_log *logger;
 t_config *config;

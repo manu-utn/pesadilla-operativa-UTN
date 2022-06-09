@@ -20,6 +20,7 @@ int main() {
   // mostrar_tabla_marcos();
   mem_hexdump(memoria_principal, size_memoria_principal);
   inicializar_proceso(0, 4);
+
   pthread_t th;
   pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 

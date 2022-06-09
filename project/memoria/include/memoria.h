@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
-#include "dir.h"
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -93,4 +92,6 @@ void* buscar_dato_en_memoria(uint32_t dir_fisica);
 int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel,int entrada_primer_nivel);
 int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
 void llenar_memoria_mock();
+
+void liberar_estructuras_en_swap();
 #endif /* MEMORIA_H */
