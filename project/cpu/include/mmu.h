@@ -28,7 +28,8 @@ void                realizar_reemplazo_fifo     (t_entrada_tlb  *   entrada_tlb)
 void                realizar_reemplazo_lru      (t_entrada_tlb  *   entrada_tlb);
 int                 existe_pagina_en_tlb        (uint32_t           pagina);
 int                 busco_index_oldest          (void);
-
+uint32_t            obtener_marco_tlb           (int                indice);
+uint32_t            obtener_direccion_fisica    (uint32_t           desplazamiento,     uint32_t marco);
 
 //PARA PRUEBAS -> despues borrar
 void                prueba_datos_tlb            (void);

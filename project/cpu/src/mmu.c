@@ -30,6 +30,17 @@ uint32_t obtener_desplazamiento(uint32_t direccion_logica, uint32_t numero_pagin
   return (direccion_logica - (numero_pagina * tamanio_pagina));
 }
 
+uint32_t obtener_direccion_fisica(uint32_t desplazamiento, uint32_t marco) {
+  return (marco * tamanio_pagina + desplazamiento);
+}
+
+uint32_t obtener_marco_tlb(int indice) {
+  t_entrada_tlb* entrada_tlb = list_get(tlb, indice);
+  uint32_t marco = entrada_tlb->marco;
+  free(entrada_tlb);
+  return marco;
+}
+
 t_entrada_tlb* obtener_entrada_tlb(uint32_t pagina, uint32_t marco) {
   t_entrada_tlb* retorno = malloc(sizeof(t_entrada_tlb));
 
@@ -108,34 +119,6 @@ int busco_index_oldest() {
 
   return index_buscado;
 }
-
-// void reemplazo_fifo(t_entrada_tlb* entrada_reemplazo) {
-//   while (puntero_reemplazo < list_size(tlb) - 1) {
-//     t_entrada_tlb* entrada_actual = list_get(tlb, puntero_reemplazo);
-//     list_replace(tlb, puntero_reemplazo, entrada_actual);
-//     puntero_reemplazo++;
-//   }
-
-//   if (puntero_reemplazo == list_size(tlb) - 1) {
-//     puntero_reemplazo = 0;
-//   }
-// }
-
-// void reemplazo_lru() {
-//   t_entrada_tlb* entrada_buscada = malloc(sizeof(t_entrada_tlb));
-//   uint64_t aux_timestamp = UINT64_MAX;
-
-//   void search_oldest(void* elemento) {
-//     t_entrada_tlb* entrada = (t_entrada_tlb*)elemento;
-
-//     if (entrada->timestamp < aux_timestamp) {
-//       aux_timestamp = entrada->timestamp;
-//       entrada_buscada = entrada;
-//     }
-//   }
-
-//   list_iterate(tlb, search_oldest);
-// }
 
 void prueba_datos_tlb() {
   t_entrada_tlb* entrada1 = malloc(sizeof(t_entrada_tlb));

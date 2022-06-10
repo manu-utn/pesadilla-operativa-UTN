@@ -118,8 +118,8 @@ typedef struct{
 
 typedef struct{
 	int socket;
-	int num_tabla_primer_nivel;
-	int entrada_primer_nivel;
+	uint32_t num_tabla_primer_nivel;
+	uint32_t entrada_primer_nivel;
 }t_solicitud_segunda_tabla;
 
 typedef struct{
@@ -143,14 +143,18 @@ typedef struct{
 }t_solicitud_dato_fisico;
 
 typedef struct{
-  int size_dato;
-  void* dato_buscado;
+  uint32_t dato_buscado;
 }t_respuesta_dato_fisico;
+
+// typedef struct{
+//   int size_dato;
+//   uint32_t dato_buscado;
+// }t_respuesta_dato_fisico;
 
 typedef struct{
 	int socket;
 	uint32_t dir_fisica;
-  void* valor;
+  uint32_t valor;
 }t_escritura_dato_fisico;
 
 typedef struct{
