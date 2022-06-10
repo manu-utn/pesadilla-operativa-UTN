@@ -426,6 +426,7 @@ t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_ser
   int size_valor = 0;
   memcpy(&size_valor, paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
+  read->valor = malloc(size_valor);
   memcpy(read->valor, paquete_serializado->buffer->stream + offset, size_valor);
   offset += size_valor;
 

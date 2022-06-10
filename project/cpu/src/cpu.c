@@ -363,7 +363,7 @@ void execute_read_write(t_pcb* pcb,
       // ACCESO PARA OBTENER DATO FISICO
       t_solicitud_dato_fisico* read_dato = malloc(sizeof(t_solicitud_dato_fisico));
       obtener_dato_fisico(read_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica);
-      free(read_marco);
+      free(read_dato);
 
       // RECIBO RESPUESTA DE MEMORIA
       xlog(COLOR_INFO, "Recibiendo valor desde Memoria ");
@@ -371,13 +371,13 @@ void execute_read_write(t_pcb* pcb,
       t_paquete* paquete_respuesta_dato = recibir_paquete(socket_memoria);
       t_respuesta_dato_fisico* respuesta_operacion_dato = malloc(sizeof(t_respuesta_dato_fisico));
       respuesta_operacion_dato = obtener_respuesta_solicitud_dato_fisico(paquete_respuesta_dato);
-      char* dato = malloc(4);
-      memcpy(dato, respuesta_operacion_dato->dato_buscado, 4);
-      printf("DATO: %s\n", dato);
+      printf("DATO: %s\n", respuesta_operacion_dato->dato_buscado);
 
     } else { // ESCRITURA DE DATO
       t_escritura_dato_fisico* write_dato = malloc(sizeof(t_escritura_dato_fisico));
-      escribir_dato_fisico(write_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica, valor);
+      void* v = malloc(5);
+      memcpy(v, "HOLA", 4);
+      escribir_dato_fisico(write_dato, respuesta_operacion_marco->num_marco, num_pagina, tam_pagina, dir_logica, v);
       free(write_dato);
 
       // RECIBO RESPUESTA DE MEMORIA
