@@ -1,3 +1,18 @@
+* Diagramas para comunicar
+** Diagrama de Casos de Uso
+   #+BEGIN_QUOTE
+   Para tener una idea general de los requisitos funcionales al interactuar con el sistema
+   (los roles definidos quizás no respetan el concepto de casos de uso)
+   #+END_QUOTE
+
+   [[doc/diagrama-casos-de-uso.png]]
+** Diagrama de Secuencia
+   #+BEGIN_QUOTE
+   Para tener una idea general de las interacciones entre los módulos
+   (es posible que falten algunas interacciones por el momento)
+   #+END_QUOTE
+
+   [[doc/diagrama-de-secuencia2.png]]
 * Comandos de Entorno
    - ~make install~ para instalar y configurar entorno ~make i~  
 * Comandos Desarrollo
@@ -29,35 +44,69 @@
   Las configuraciones aparecen en el archivo ~project.cfg~ que esta en la raiz del proyecto
   #+END_QUOTE
 
+  #+BEGIN_SRC C
+    // Agregar esta macro en el archivo dir.h en esta ruta project/static/include/dir.h
+    //
+    #define DIR_BASE "/home/jelou/Documents/git/tp-2022-1c-Sisop-Oh-Yeah/project/"
+  #+END_SRC
+
   #+BEGIN_SRC makefile
-  DIR_PROJECT=project
-  DIR_MODULOS=modulo-1 modulo-2 modulo-3
-  DIR_LIBRARIES=shared static
+     # agregar esta configuración en el archivo project.cfg en la raíz del proyecto
+     export DOCKER_RUNNING
 
-  # - habilitar si queremos guardar los mensajes de gcc en logs/
-  GCC_REDIRECT_LOGS=true
+     DIR_PROJECT=project
+     DIR_MODULOS=cpu-fake cliente-1 consola kernel cpu memoria
+     DIR_LIBRARIES=shared static
 
-  # - habilitar si queremos ver los logs del compilador gcc por pantalla
-  # - requiere tener habilitado `GCC_REDIRECT_LOGS`
-  GCC_PRINT_LOGS=true
+     # - habilitar si queremos guardar los mensajes de gcc en logs/
+     GCC_REDIRECT_LOGS=true
 
-  # - habilitar si queremos ver algunos de los comandos que ejecuta GNU Make por detras
-  GNU_MAKE_PRINT_RECIPE=false
+     # - habilitar si queremos ver los logs del compilador gcc por pantalla
+     # - requiere tener habilitado `GCC_REDIRECT_LOGS`
+     GCC_PRINT_LOGS=true
 
-  # - no habilitar si ya existe un usuario `utnso` creado
-  USER_UTNSO_IS_REQUIRED=false
+     # - habilitar si queremos ver algunos de los comandos que ejecuta GNU Make por detras
+     GNU_MAKE_PRINT_RECIPE=false
 
-  # - habilitar solo si usamos linux y ya tenemos un usuario creado llamado `jelou`
-  # y no queremos cambiar al usuario `utnso`
-  # - se requiere cambiar la ruta de `DIR_BASE_FAKE` (solo si habilitas la opcion anterior mencionada)
-  LINUX_MANY_USERS=true
-  DIR_BASE_FAKE=/home/jelou/Documents/git/manu-cproject
+     # - no habilitar si ya existe un usuario `utnso` creado
+     USER_UTNSO_IS_REQUIRED=false
 
-  # elegir false si tu BIOS no soporta VT-x y se instalara la version 6.0
-  VBOX_LATEST=true
+     # - habilitar solo si usamos linux y ya tenemos un usuario creado llamado `jelou`
+     # y no queremos cambiar al usuario `utnso`
+     # - se requiere cambiar la ruta de `DIR_BASE_FAKE` (solo si habilitas la opcion anterior mencionada)
+     LINUX_MANY_USERS=true
+     DIR_BASE_FAKE=/home/jelou/Documents/git/tp-2022-1c-Sisop-Oh-Yeah
 
-  # - no habilitar si ya estas dentro de una virtual box
-  VBOX_IS_REQUIRED=false
+     # elegir false si tu BIOS no soporta VT-x y se instalara la version 6.0
+     VBOX_LATEST=true
+
+     # - no habilitar si ya estas dentro de una virtual box
+     VBOX_IS_REQUIRED=false
+
+     DEBUGGER:=nemiver
+
+     # valores por defecto que no deberiamos modificar
+     ifeq ($(DOCKER_RUNNING), true)
+     DIR_BASE=/home/utnso/Documentos/tp-2022-1c-Sisop-Oh-Yeah
+     else
+     ifeq ($(LINUX_MANY_USERS), true)
+     DIR_BASE=$(DIR_BASE_FAKE)
+     else
+     DIR_BASE=/home/utnso/Documentos/tp-2022-1c-Sisop-Oh-Yeah
+     endif
+     endif
+
+     # para la so-commons y cspec
+     DIR_LIBS=/home/utnso
+
+     DIR_COMPILE_LOGS=$(DIR_BASE)/logs
+
+     # datos para el servidor remoto
+     SSH_USER=utnso
+     SSH_IP=192.168.10.0
+     SSH_PATH_DEST=/home/utnso
+
+     DIR_CONFIGS=$(DIR_BASE)/.config/
   #+END_SRC
 * Contributors
   - [[https://github.com/RaniAgus][RaniAgus]] - Fue la inspiracion detras de todo esto con [[https://github.com/RaniAgus/so-project-template][so-template-project]], ademas de su ayuda constante ^_^
