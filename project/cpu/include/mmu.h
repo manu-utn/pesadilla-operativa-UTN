@@ -8,6 +8,7 @@ typedef struct{
     uint32_t    pagina;
     uint32_t    marco;
     uint64_t    time;
+    uint64_t    time_nano;
 }t_entrada_tlb;
 
 
@@ -32,6 +33,6 @@ uint32_t            obtener_marco_tlb           (int                indice);
 uint32_t            obtener_direccion_fisica    (uint32_t           desplazamiento,     uint32_t marco);
 
 //PARA PRUEBAS -> despues borrar
-void                prueba_datos_tlb            (void);
-
+t_list          *   prueba_crear_datos_tlb      (void);
+void                realizar_pruebas_tlb        (t_list         *   tlb_prueba);
 #endif /* MMU_H_ */
