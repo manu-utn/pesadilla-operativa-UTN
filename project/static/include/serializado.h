@@ -37,4 +37,7 @@ t_solicitud_segunda_tabla* obtener_solicitud_tabla_segundo_nivel(t_paquete* paqu
 t_solicitud_marco* obtener_solicitud_marco(t_paquete* paquete_serializado);
 t_solicitud_dato_fisico* obtener_solicitud_dato(t_paquete* paquete_serializado);
 t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_serializado);
+t_respuesta_escritura_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado);
+
+t_respuesta_solicitud_segunda_tabla* obtener_respuesta_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado);
 #endif

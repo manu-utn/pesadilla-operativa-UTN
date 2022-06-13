@@ -97,7 +97,7 @@ typedef struct{
 }t_operacion_fetch_operands;
 
 typedef struct{
-  void* valor;
+  uint32_t valor;
 }t_operacion_respuesta_fetch_operands;
 
 typedef struct{
@@ -125,6 +125,7 @@ typedef struct{
 	int socket;
 	int num_tabla_segundo_nivel;
 	int entrada_segundo_nivel;
+  int operacion;// 1: lectura, 2: escritura
 }t_solicitud_marco;
 
 typedef struct{
@@ -138,14 +139,13 @@ typedef struct{
 
 typedef struct{
   int size_dato;
-  void* dato_buscado;
+  uint32_t dato_buscado;
 }t_respuesta_dato_fisico;
 
 typedef struct{
 	int socket;
 	uint32_t dir_fisica;
-  int size_valor;
-  void* valor;
+  uint32_t valor;
 }t_escritura_dato_fisico;
 
 typedef struct{
@@ -193,4 +193,6 @@ t_buffer* crear_mensaje_respuesta_marco(t_respuesta_solicitud_marco* read);
 t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read);
 
 t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read);
+
+t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read);
 #endif

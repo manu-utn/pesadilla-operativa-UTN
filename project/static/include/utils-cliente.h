@@ -35,4 +35,6 @@ void enviar_operacion_obtener_marco(int socket_destino, t_paquete* paquete);
 void enviar_operacion_respuesta_segunda_tabla(int socket_destino, t_paquete* paquete);
 void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete);
 void enviar_pcb_actualizado(int socket_destino, t_paquete* paquete);
+
+void enviar_pcb_con_operacion_exit(int socket_destino, t_paquete* paquete);
 #endif

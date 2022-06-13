@@ -2,26 +2,27 @@
 #include "memoria.h"
 #include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
+#include <utils.h>
 
 int main() {
   // función de la biblioteca static
-  estado_conexion_memoria = true;
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
-  config = iniciar_config(DIR_MEMORIA_CFG);
-  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
-  memoria_principal = reservar_memoria_inicial(size_memoria);
-  size_memoria_principal = config_get_int_value(config, "TAM_MEMORIA");
-  llenar_memoria_mock();
-  tam_marcos = config_get_int_value(config, "TAM_PAGINA");
-  diccionario_paginas = dictionary_create();
-  tabla_marcos = list_create();
-  lista_tablas_segundo_nivel = list_create();
-  xlog(COLOR_CONEXION, "Tamanio tabla de marcos: %d:", inicializar_tabla_marcos());
-  // mostrar_tabla_marcos();
-  mem_hexdump(memoria_principal, size_memoria_principal);
-  inicializar_proceso(0, 4);
+  inicializar_estructuras();
   pthread_t th;
   pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
+
+  /* PARA TESTEAR ALGORITMOS DE REEMPLAZO
+   reservar_marcos_mock();
+
+    t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+
+    entrada->entrada_segundo_nivel = 5;
+    entrada->num_marco = NULL;
+    entrada->bit_uso = 0;
+    entrada->bit_modif = 0;
+    entrada->bit_presencia = 0;
+
+    int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
+  */
 
   pthread_exit(0);
 }
