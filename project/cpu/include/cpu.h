@@ -59,4 +59,7 @@ uint32_t            obtener_dato_fisico                         (uint32_t       
 uint32_t            obtener_direccion_fisica_memoria            (t_pcb*             pcb,                    t_instruccion   *   instruccion,            uint32_t    numero_parametro);
 int                 escribir_dato_memoria                       (uint32_t           direccion_fisica,       uint32_t            dato_a_escribir);
 
+
+//PARA PRUEBAS -> despues borrar
+void                prueba_comunicacion_memoria                 (void);
 #endif /* CPU_H_ */

@@ -87,17 +87,17 @@ t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read) {
 t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int) * 2;
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t) * 2;
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   // mensaje->size = mensaje_size;
-  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
-  offset += sizeof(int);
-  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(int));
-  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
   mensaje->size = offset;
 
   return mensaje;
@@ -161,8 +161,8 @@ t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read) {
 }
 
 t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
-  int mensaje_size = sizeof(uint32_t);
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t);
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
@@ -214,16 +214,16 @@ t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
 t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int);
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t);
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   mensaje->size = mensaje_size;
 
-  memcpy(mensaje->stream + offset, &(read->resultado), sizeof(int));
-  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->resultado), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
 
   return mensaje;
 }
