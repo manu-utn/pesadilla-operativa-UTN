@@ -26,6 +26,7 @@ typedef enum {
   READ = 8,
   FETCH = 9,
   // TODO: el resto deben ser removidos
+  
   OPERACION_MENSAJE,
   OPERACION_PAQUETE,
   OPERACION_PCB,
@@ -41,6 +42,7 @@ typedef enum {
   OPERACION_PCB_CON_EXIT,
   PAQUETE_INSTRUCCION,
   OPERACION_RESPUESTA_SEGUNDA_TABLA,
+  OPERACION_RESPUESTA_MARCO,
   OPERACION_ESCRIBIR_DATO,
   OPERACION_PROCESO_SUSPENDIDO, OPERACION_PROCESO_SUSPENDIDO_CONFIRMADO,
   OPERACION_PROCESO_FINALIZADO,
@@ -81,14 +83,14 @@ typedef enum {
 
 // TODO: definir atributos: instrucciones y tabla de paginas
 typedef struct {
-  int socket;
-  int pid;
-  int tamanio;
-  int estimacion_rafaga;
-  int tiempo_en_ejecucion;
-  int tiempo_de_bloqueado;
-  int program_counter;
-  int tabla_primer_nivel;
+  uint32_t socket;
+  uint32_t pid;
+  uint32_t tamanio;
+  uint32_t estimacion_rafaga;
+  uint32_t tiempo_en_ejecucion;
+  uint32_t tiempo_de_bloqueado;
+  uint32_t program_counter;
+  uint32_t tabla_primer_nivel;
   t_pcb_estado estado;
   t_list* instrucciones;
 } t_pcb;
@@ -118,8 +120,8 @@ typedef struct{
 
 typedef struct{
 	int socket;
-	int num_tabla_primer_nivel;
-	int entrada_primer_nivel;
+	uint32_t num_tabla_primer_nivel;
+	uint32_t entrada_primer_nivel;
 }t_solicitud_segunda_tabla;
 
 typedef struct{
@@ -143,18 +145,22 @@ typedef struct{
 }t_solicitud_dato_fisico;
 
 typedef struct{
-  int size_dato;
-  void* dato_buscado;
+  uint32_t dato_buscado;
 }t_respuesta_dato_fisico;
+
+// typedef struct{
+//   int size_dato;
+//   uint32_t dato_buscado;
+// }t_respuesta_dato_fisico;
 
 typedef struct{
 	int socket;
 	uint32_t dir_fisica;
-  void* valor;
+  uint32_t valor;
 }t_escritura_dato_fisico;
 
 typedef struct{
-  int resultado;
+  uint32_t resultado;
 }t_respuesta_escritura_dato_fisico;
 
 t_config* iniciar_config(char*);
@@ -193,5 +199,9 @@ void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* i
 t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read);
 t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read);
 t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read);
+t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read);
+t_buffer* crear_mensaje_respuesta_marco(t_respuesta_solicitud_marco* read);
+t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read);
 
+t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read);
 #endif

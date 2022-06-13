@@ -2,6 +2,7 @@
 #define __KERNEL__H
 #include <libstatic.h>
 #include <semaphore.h>
+#include "dir.h"
 
 t_config* config;
 

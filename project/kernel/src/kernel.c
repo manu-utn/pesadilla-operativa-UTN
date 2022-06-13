@@ -77,7 +77,7 @@ void* escuchar_conexiones_entrantes() {
       t_buffer* mensaje = crear_mensaje("Conexión aceptada por Kernel");
 
       paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-      // paquete_add_mensaje(paquete, mensaje);
+      // paquete_add_mensaje(paquete, mensaje);FF
     }
 
     pthread_t th;

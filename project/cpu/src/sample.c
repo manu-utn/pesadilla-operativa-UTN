@@ -18,7 +18,7 @@
 //   iniciar_tlb();
 //   setear_algoritmo_reemplazo();
 //   puntero_reemplazo = 0;
-//   mock_datos_tlb();
+// mock_datos_tlb();
 
 //   /*pthread_t th1, th2;
 //   struct arg_struct args_dispatch;

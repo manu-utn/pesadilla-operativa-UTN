@@ -32,7 +32,9 @@ void paquete_add_solicitud_dato_fisico(t_paquete* paquete_serializado, t_solicit
 t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paquete_serializado);
 void paquete_add_solicitud_marco(t_paquete* paquete_serializado, t_solicitud_marco* solicitud_marco);
 void paquete_add_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado, t_solicitud_segunda_tabla* read);
-t_solicitud_segunda_tabla* paquete_obtener_solicitud_tabla_segundo_nivelpaquete_obtener_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado);
 t_solicitud_segunda_tabla* paquete_obtener_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado);
-
+t_solicitud_segunda_tabla* obtener_solicitud_tabla_segundo_nivel(t_paquete* paquete_serializado);
+t_solicitud_marco* obtener_solicitud_marco(t_paquete* paquete_serializado);
+t_solicitud_dato_fisico* obtener_solicitud_dato(t_paquete* paquete_serializado);
+t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_serializado);
 #endif
