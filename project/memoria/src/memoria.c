@@ -266,9 +266,9 @@ int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int ent
   t_entrada_tabla_segundo_nivel* entrada =
     (t_entrada_tabla_segundo_nivel*)list_get(tabla_segundo_nivel->entradas, entrada_segundo_nivel);
   // entrada->bit_uso = 1;
-  // marco = entrada->num_marco;
+  // marco = entrada->num_marco;*/
 
-  if (entrada->num_marco != NULL) {
+  if (entrada->num_marco != -1) {
     marco = entrada->num_marco;
 
     if (strcmp(algoritmo_reemplazo, "CLOCK-M") == 0) {
@@ -277,6 +277,8 @@ int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int ent
     entrada->bit_uso = 1;
   } else if (!marcos_disponibles_para_proceso(tabla_segundo_nivel->pid)) {
     t_entrada_tabla_segundo_nivel* entrada_victima = ejecutar_reemplazo(tabla_segundo_nivel->pid, entrada);
+  } else {
+    marco = buscar_marco_libre();
   }
 
   return marco;
@@ -285,10 +287,10 @@ int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int ent
 int obtener_marco(int num_tabla_segundo_nivel, int entrada_segundo_nivel, int operacion) {
   int marco = 0;
 
-  if (operacion == 1) {
+  if (operacion == 1) { // READ
     marco = buscar_marco(num_tabla_segundo_nivel, entrada_segundo_nivel);
 
-  } else {
+  } else { // WRITE
     marco = asignar_marco_libre_o_reemplazar_pagina(num_tabla_segundo_nivel, entrada_segundo_nivel);
   }
 
@@ -339,11 +341,13 @@ int inicializar_tabla_marcos() {
   return tam_tabla;
 }
 
-void inicializar_proceso(int pid, int entradas_por_tabla, int tam_proceso) {
+void inicializar_proceso(int pid,
+                         int entradas_por_tabla,
+                         int tam_proceso) { /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
   xlog(COLOR_CONEXION, "Inicializando proceso");
   int tam_acumulado = 0;
   int cant_marcos_asignados = 0;
-  int marcos_pro_proceso = config_get_int_value(config, "MARCOS_POR_PROCESO");
+  int marcos_por_proceso = config_get_int_value(config, "MARCOS_POR_PROCESO");
 
   t_tabla_primer_nivel* tabla_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
   // tabla_primer_nivel->num_tabla = generar_numero_tabla();
@@ -353,7 +357,7 @@ void inicializar_proceso(int pid, int entradas_por_tabla, int tam_proceso) {
 
   for (int i = 0; i < entradas_por_tabla; i++) {
     t_entrada_tabla_primer_nivel* entrada_primer_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-    entrada_primer_nivel->entrada_primer_nivel = 1;
+    entrada_primer_nivel->entrada_primer_nivel = 1; // TODO:
 
     t_list* tablas_segundo_nivel = list_create();
     t_tabla_segundo_nivel* tabla_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
@@ -362,18 +366,18 @@ void inicializar_proceso(int pid, int entradas_por_tabla, int tam_proceso) {
     tabla_segundo_nivel->pid = pid;
     tabla_segundo_nivel->entradas = list_create();
     for (int j = 0; j < entradas_por_tabla; j++) {
-      if (tam_acumulado <= tam_proceso && cant_marcos_asignados <= marcos_pro_proceso) {
+      if (cant_marcos_asignados <= marcos_por_proceso) {
         t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
         entrada_tabla_segundo_nivel->entrada_segundo_nivel = j;
         // entrada_tabla_segundo_nivel->num_tabla = generar_numero_tabla();
-        entrada_tabla_segundo_nivel->num_marco = buscar_marco_libre();
+        entrada_tabla_segundo_nivel->num_marco = -1;
         entrada_tabla_segundo_nivel->bit_uso = 0;
         entrada_tabla_segundo_nivel->bit_modif = 0;
         entrada_tabla_segundo_nivel->bit_presencia = 0;
         // tabla_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
         list_add(tabla_segundo_nivel->entradas, entrada_tabla_segundo_nivel);
         cant_marcos_asignados++;
-        tam_proceso += tam_marcos;
+        // tam_proceso += tam_marcos;
       }
     }
     entrada_primer_nivel->num_tabla_segundo_nivel = tabla_segundo_nivel->num_tabla;
@@ -446,7 +450,7 @@ void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list
   for (int i = 0; i < list_size(tabla_segundo_nivel->entradas); i++) {
     t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas, i);
 
-    if (entrada->num_marco != NULL) {
+    if (entrada->num_marco != -1) {
       t_marco_asignado* marco_asignado = malloc(sizeof(marco_asignado));
       marco_asignado->marco = entrada->num_marco;
       marco_asignado->entrada;
@@ -490,11 +494,11 @@ t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_se
   t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
 
   while (puntero_clock < list_size(marcos)) { // Recorro hasta el size de la lista
-    t_marco_asignado* marco = list_get(marcos, puntero_clock);
-    if (marco->entrada->bit_uso != 0) {
-      marco->entrada->bit_uso = 0;
+    t_marco_asignado* marco_asignado_a_entrada = list_get(marcos, puntero_clock);
+    if (marco_asignado_a_entrada->entrada->bit_uso != 0) {
+      marco_asignado_a_entrada->entrada->bit_uso = 0;
     } else {
-      entrada_victima = marco->entrada;
+      entrada_victima = marco_asignado_a_entrada->entrada;
       puntero_clock++;
       break;
     }

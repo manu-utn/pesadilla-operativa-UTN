@@ -49,14 +49,14 @@ void reservar_marcos_mock() {
   entrada3->bit_presencia = 1;
 
   entrada4->entrada_segundo_nivel = 4;
-  entrada4->num_marco = NULL;
+  entrada4->num_marco = -1;
   entrada4->bit_uso = 0;
   entrada4->bit_modif = 0;
   entrada4->bit_presencia = 0;
 
 
   entrada5->entrada_segundo_nivel = 5;
-  entrada5->num_marco = NULL;
+  entrada5->num_marco = -1;
   entrada5->bit_uso = 0;
   entrada5->bit_modif = 0;
   entrada5->bit_presencia = 0;
