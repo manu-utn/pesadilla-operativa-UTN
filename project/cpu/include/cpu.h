@@ -129,7 +129,12 @@ void armar_escritura_dato_fisico(t_escritura_dato_fisico* escritura_dato_fisico,
                                  uint32_t dir_logica,
                                  uint32_t valor);
 
-void armar_solicitud_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,int  num_marco,int num_pagina,int tam_pagina,uint32_t dir_logica);
+
+void armar_solicitud_dato_fisico(t_solicitud_dato_fisico* solicitud_dato_fisico,
+                                 int num_marco,
+                                 int num_pagina,
+                                 int tam_pagina,
+                                 uint32_t dir_logica);
 
 void ejecutar_reemplazo();
 void reemplazo_fifo();
@@ -153,5 +158,6 @@ void execute_exit(t_pcb* pcb, int socket_cliente);
 
 int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro);
 void setear_algoritmo_reemplazo();
+void check_interrupt(t_pcb* pcb, int socket_cliente);
 
 #endif /* CPU_H_ */

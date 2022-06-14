@@ -267,6 +267,8 @@ void solicitar_inicializar_estructuras_en_memoria(int socket_destino, t_paquete*
   }
 }
 
+// sinónimo de finalización de proceso, kernel solicita a swap liberar los recursos
+// (en este tp memoria y swap están integrados)
 void solicitar_liberar_recursos_en_memoria_swap(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_PROCESO_FINALIZADO;
 

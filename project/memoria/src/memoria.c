@@ -36,6 +36,14 @@ void* escuchar_conexiones() {
   free(puerto);
   pthread_exit(NULL);
 }
+
+
+// TODO: esto debería estar en swap.c
+// por el momento sólo escuchamos las entradas de memoria,
+void liberar_estructuras_en_swap() {
+  xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
+}
+
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   estado_conexion_con_cliente = true;
@@ -70,6 +78,7 @@ void* manejar_nueva_conexion(void* args) {
         free(respuesta_read);*/
         break;
       }
+      /*
       case OPERACION_INICIALIZAR_ESTRUCTURAS: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
@@ -88,6 +97,7 @@ void* manejar_nueva_conexion(void* args) {
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
         paquete_destroy(paquete_con_pcb_actualizado);
       } break;
+      */
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -206,6 +216,40 @@ void* manejar_nueva_conexion(void* args) {
 
         break;
       }
+      case OPERACION_PROCESO_SUSPENDIDO: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        // TODO: resolver cuando se avance el módulo..
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
+        confirmar_suspension_de_proceso(socket_cliente, paquete);
+        paquete_destroy(paquete);
+      } break;
+      case OPERACION_INICIALIZAR_ESTRUCTURAS: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
+        paquete_destroy(paquete);
+
+        // TODO: resolver cuando se avance el módulo..
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
+
+        pcb->tabla_primer_nivel = 1;
+        t_paquete* paquete_con_pcb_actualizado = paquete_create();
+        paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
+
+
+        // TODO: deberia agregar al pcb el valor de la tabla de paginas
+        confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
+        paquete_destroy(paquete_con_pcb_actualizado);
+      } break;
+      case OPERACION_PROCESO_FINALIZADO: {
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        // TODO: resolver cuando se avance el módulo de memoria
+        liberar_estructuras_en_swap();
+
+        xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
+        paquete_destroy(paquete);
+      } break;
       case -1: {
         log_info(logger, "el cliente se desconecto");
         estado_conexion_con_cliente = false;

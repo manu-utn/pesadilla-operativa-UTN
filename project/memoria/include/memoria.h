@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
-#include "dir.h"
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -112,7 +111,8 @@ t_tabla_primer_nivel* encontrar_tabla(int pid);
 void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos);
 t_list* encontrar_marcos_asignados_a_proceso(int pid);
 int escribir_dato(uint32_t dir_fisica, uint32_t valor);
-
 int ejecutar_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada);
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
+
+void liberar_estructuras_en_swap();
 #endif /* MEMORIA_H */
