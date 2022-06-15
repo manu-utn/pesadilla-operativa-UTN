@@ -7,8 +7,8 @@
 typedef struct{
     uint32_t    pagina;
     uint32_t    marco;
-    uint64_t    time;
-    uint64_t    time_nano;
+    uint32_t    time_sec;
+    uint64_t    time_nanosec;
 }t_entrada_tlb;
 
 
@@ -23,6 +23,7 @@ uint32_t            obtener_numero_pagina       (uint32_t           direccion_lo
 uint32_t            obtener_entrada_1er_nivel   (uint32_t           numero_pagina,      uint32_t    entradas_por_tabla);
 uint32_t            obtener_entrada_2do_nivel   (uint32_t           numero_pagina,      uint32_t    entradas_por_tabla);
 uint32_t            obtener_desplazamiento      (uint32_t           direccion_logica,   uint32_t    numero_pagina);
+void                agregar_pagina_marco_tlb    (uint32_t           pagina,             uint32_t    marco);
 t_entrada_tlb   *   obtener_entrada_tlb         (uint32_t           pagina,             uint32_t    marco);
 void                agregar_entrada_tlb         (t_entrada_tlb  *   entrada_tlb);
 void                realizar_reemplazo_fifo     (t_entrada_tlb  *   entrada_tlb);

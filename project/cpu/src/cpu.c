@@ -361,6 +361,8 @@ uint32_t obtener_direccion_fisica_memoria(t_pcb* pcb, t_instruccion* instruccion
     marco = obtener_marco_tlb(existe_pagina);
   }
 
+  agregar_pagina_marco_tlb(numero_pagina, marco);
+
   uint32_t desplazamiento = obtener_desplazamiento(direccion_logica, numero_pagina);
   uint32_t direccion_fisica = obtener_direccion_fisica(desplazamiento, marco);
 

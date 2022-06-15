@@ -43,16 +43,21 @@ uint32_t obtener_marco_tlb(int indice) {
   return marco;
 }
 
+void agregar_pagina_marco_tlb(uint32_t pagina, uint32_t marco) {
+  t_entrada_tlb* entrada_tlb = obtener_entrada_tlb(pagina, marco);
+  agregar_entrada_tlb(entrada_tlb);
+}
+
 t_entrada_tlb* obtener_entrada_tlb(uint32_t pagina, uint32_t marco) {
   t_entrada_tlb* retorno = malloc(sizeof(t_entrada_tlb));
 
   retorno->pagina = pagina;
   retorno->marco = marco;
-  retorno->time = time(NULL);
 
-  struct timespec timenano;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &timenano);
-  retorno->time_nano = timenano.tv_nsec;
+  struct timespec timestamp;
+  clock_gettime(CLOCK_REALTIME, &timestamp);
+  retorno->time_sec = timestamp.tv_sec;
+  retorno->time_nanosec = timestamp.tv_nsec;
 
   return retorno;
 }
@@ -113,19 +118,19 @@ int busco_index_oldest() {
   int index = 0;
   int index_buscado = -1;
   uint64_t aux_time = UINT64_MAX;
-  uint64_t aux_time_nano = UINT64_MAX;
+  uint64_t aux_time_micro = UINT64_MAX;
 
   while (index < list_size(tlb)) {
     t_entrada_tlb* entrada_tlb = list_get(tlb, index);
-    if (entrada_tlb->time < aux_time) {
+    if (entrada_tlb->time_sec < aux_time) {
       index_buscado = index;
-      aux_time = entrada_tlb->time;
-      aux_time_nano = entrada_tlb->time_nano;
-    } else if (entrada_tlb->time == aux_time) {
-      if (entrada_tlb->time_nano < aux_time_nano) {
+      aux_time = entrada_tlb->time_sec;
+      aux_time_micro = entrada_tlb->time_nanosec;
+    } else if (entrada_tlb->time_sec == aux_time) {
+      if (entrada_tlb->time_nanosec < aux_time_micro) {
         index_buscado = index;
-        aux_time = entrada_tlb->time;
-        aux_time_nano = entrada_tlb->time_nano;
+        aux_time = entrada_tlb->time_sec;
+        aux_time_micro = entrada_tlb->time_nanosec;
       }
     }
     index++;
