@@ -76,12 +76,14 @@ void* escuchar_conexiones_entrantes() {
       t_paquete* paquete = paquete_create();
       t_buffer* mensaje = crear_mensaje("Conexión aceptada por Kernel");
 
-      paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-      // paquete_add_mensaje(paquete, mensaje);
+      paquete_cambiar_mensaje(paquete, mensaje);
+      enviar_mensaje(cliente_fd, paquete);
+      paquete_destroy(paquete);
     }
 
     pthread_t th;
-    pthread_create(&th, NULL, escuchar_nueva_conexion, &cliente_fd), pthread_detach(th);
+    pthread_create(&th, NULL, escuchar_nueva_conexion, &cliente_fd);
+    pthread_detach(th);
   }
 
   pthread_exit(NULL);

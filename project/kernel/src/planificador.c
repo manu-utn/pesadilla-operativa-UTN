@@ -193,10 +193,14 @@ void iniciar_planificacion() {
   // Se mantiene la conexion dispatch, especialmente porque se deben escuchar por mensajes de esta conexion ademas de
   // enviar
   iniciar_conexion_cpu_dispatch();
-  pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL), pthread_detach(th3);
-  pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL), pthread_detach(th4);
+  pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL);
+  pthread_detach(th3);
 
-  pthread_create(&th5, NULL, (void *)escuchar_conexion_con_memoria, NULL), pthread_detach(th5);
+  pthread_create(&th4, NULL, iniciar_mediano_plazo, NULL);
+  pthread_detach(th4);
+
+  pthread_create(&th5, NULL, (void *)escuchar_conexion_con_memoria, NULL);
+  pthread_detach(th5);
 
   // sleep(1);
 
@@ -261,6 +265,7 @@ void ejecutar_proceso(t_pcb *pcb) {
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
   enviar_pcb(SOCKET_CONEXION_DISPATCH, paquete);
+  paquete_destroy(paquete);
   // pcb_destroy(pcb); // Luego sera recibido uno igual pero actualizado
   // imprimir_pcb(pcb);
   // BEGIN = time(NULL);
@@ -301,6 +306,7 @@ void *iniciar_largo_plazo() {
     t_paquete *paquete = paquete_create();
     paquete_add_pcb(paquete, pcb);
     solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
+    paquete_destroy(paquete);
     sem_wait(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
     pcb->tabla_primer_nivel = REFERENCIA_TABLA_RECIBIDA;
 
@@ -329,6 +335,7 @@ void *plp_pcb_finished() {
     t_paquete *paquete = paquete_create();
     paquete_add_pcb(paquete, pcb);
     solicitar_liberar_recursos_en_memoria_swap(SOCKET_CONEXION_MEMORIA, paquete);
+    paquete_destroy(paquete);
 
     remover_pcb_de_cola(pcb, COLA_FINISHED);
     imprimir_pcb(pcb);
@@ -365,6 +372,7 @@ void pmp_suspender_proceso(t_pcb *pcb) {
   paquete_add_pcb(paquete, pcb);
   // int socket_memoria = conectarse_a_memoria();
   solicitar_suspension_de_proceso(SOCKET_CONEXION_MEMORIA, paquete);
+  paquete_destroy(paquete);
   sem_wait(&SUSPENSION_EXITOSA);
 
   pcb->estado = SUSBLOCKED;
@@ -679,6 +687,7 @@ void enviar_interrupcion() {
 
   if (socket_destino != -1) {
     int status = enviar(socket_destino, paquete);
+    paquete_destroy(paquete);
 
     if (status != -1) {
       xlog(COLOR_CONEXION, "La interrupción fue enviada con éxito (socket_destino=%d)", socket_destino);
@@ -791,9 +800,9 @@ void escuchar_conexion_con_memoria() {
         paquete_destroy(paquete);
 
         xlog(COLOR_CONEXION, "Se recibió confirmación de Memoria estructuras inicializadas para un proceso");
-        
+
         pcb_destroy(pcb);
-        
+
         // TODO: sincronizar con semáforos donde corresponda
         sem_post(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
       } break;

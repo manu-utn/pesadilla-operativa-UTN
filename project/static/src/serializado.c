@@ -455,7 +455,7 @@ t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paqu
   return respuesta_dato;
 }
 
-t_respuesta_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado) {
+t_respuesta_escritura_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado) {
   int offset = 0;
 
   t_respuesta_escritura_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_escritura_dato_fisico));
