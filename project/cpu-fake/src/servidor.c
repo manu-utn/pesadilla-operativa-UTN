@@ -1,9 +1,11 @@
 #include "servidor.h"
+#include "timer.h"
 #include "utils-cliente.h"
 #include "xlog.h"
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <libstatic.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -17,7 +19,7 @@ int CONEXION_CPU_INTERRUPT;
 int SOCKET_CLIENTE_DISPATCH;
 
 int main() {
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "Servidor-1");
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "cpu-fake");
   config = iniciar_config(DIR_SERVIDOR_CFG);
 
   pthread_t th1, th2;
@@ -64,6 +66,9 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
 
+          // timer_detener();
+          // usleep(1000);
+          // timer_imprimir();
           desalojar_y_enviar_proceso_en_ejecucion();
 
           paquete_destroy(paquete);
@@ -86,7 +91,9 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
@@ -96,11 +103,20 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 
 void desalojar_y_enviar_proceso_en_ejecucion() {
   t_paquete* paquete = paquete_create();
-  paquete_add_pcb(paquete, PROCESO_EJECUTANDO);
-  imprimir_pcb(PROCESO_EJECUTANDO);
+  t_pcb* pcb = PROCESO_EJECUTANDO;
+  // pcb->tiempo_en_ejecucion = TIMER.tiempo_total; // en milisegundos
+
+  xlog(COLOR_INFO,
+       "Se actualizó el tiempo en ejecución de un pcb (pcb=%d, tiempo=%d)",
+       pcb->pid,
+       pcb->tiempo_en_ejecucion);
+
+  // timer_imprimir();
+  imprimir_pcb(pcb);
+  paquete_add_pcb(paquete, pcb);
 
   enviar_pcb_desalojado(SOCKET_CLIENTE_DISPATCH, paquete);
-  xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU");
+  xlog(COLOR_TAREA, "Se ha desalojado un PCB de CPU (pcb=%d)", pcb->pid);
   // pcb_destroy(PROCESO_EJECUTANDO);
 }
 
@@ -120,16 +136,12 @@ void* iniciar_conexion_dispatch() {
 }
 
 void* escuchar_conexiones_entrantes(void* args) {
-  // int socket = *(int*)args;
   CONEXION_ESTADO estado_conexion_con_cliente = CONEXION_ESCUCHANDO;
   CONEXION_ESTADO ESTADO_CONEXION_DISPATCH = CONEXION_ESCUCHANDO;
 
   while (ESTADO_CONEXION_DISPATCH) {
     int socket_cliente = esperar_cliente(CONEXION_CPU_DISPATCH);
     SOCKET_CLIENTE_DISPATCH = socket_cliente;
-    // xlog(COLOR_CONEXION, "Valor del socket Dispatch: %d", CONEXION_CPU_DISPATCH);
-    // pthread_t th;
-    // pthread_create(&th, NULL, escuchar_nueva_conexion, &socket_cliente), pthread_detach(th);
 
     while (estado_conexion_con_cliente) {
       int codigo_operacion = recibir_operacion(socket_cliente);
@@ -140,15 +152,12 @@ void* escuchar_conexiones_entrantes(void* args) {
 
           PROCESO_EJECUTANDO = paquete_obtener_pcb(paquete_con_pcb);
           xlog(COLOR_TAREA, "Ejecutando instrucciones de un proceso (pid=%d)", PROCESO_EJECUTANDO->pid);
-
-          // imprimir_pcb(pcb_deserializado);
-
+          // timer_iniciar();
+          // imprimir_pcb(PROCESO_EJECUTANDO);
+          // sleep(1);
+          iniciar_ciclo_de_instruccion(PROCESO_EJECUTANDO);
           // pcb_destroy(pcb_deserializado);
           // paquete_destroy(paquete_con_pcb);
-
-          // descomentar para validar el memcheck
-          // terminar_servidor(socket_cpu_dispatch, logger, config);
-          // return 0;
         } break;
         case OPERACION_MENSAJE: {
           recibir_mensaje(socket_cliente);
@@ -168,10 +177,67 @@ void* escuchar_conexiones_entrantes(void* args) {
           // entrante
           estado_conexion_con_cliente = CONEXION_FINALIZADA;
         } break;
-        default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
+        default: {
+          xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
+        } break;
       }
     }
   }
 
   pthread_exit(NULL);
+}
+
+void iniciar_ciclo_de_instruccion(t_pcb* pcb) {
+  // emulamos fetch+decode+execute todo junto
+
+  t_list* instrucciones = pcb->instrucciones;
+
+  // for (pcb->pid; pcb->pid < list_size(instrucciones); pcb->pid++) {
+  while (pcb->program_counter < list_size(instrucciones)) {
+    t_instruccion* instruccion = list_get(instrucciones, pcb->program_counter);
+    pcb->program_counter++;
+    validar_operacion_io(pcb, instruccion);
+    // validar_operacion_exit(pcb, instruccion);
+  }
+
+  imprimir_pcb(pcb);
+}
+
+void validar_operacion_io(t_pcb* pcb, t_instruccion* instruccion) {
+  if (es_esta_instruccion(instruccion, "I/O")) {
+    int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
+    /*
+    timer_detener();
+    timer_imprimir();
+
+    pcb->tiempo_en_ejecucion = TIMER.tiempo_total;
+    */
+    pcb->tiempo_de_bloqueado = tiempo_bloqueado;
+
+    t_paquete* paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
+    enviar_pcb_con_operacion_io(SOCKET_CLIENTE_DISPATCH, paquete);
+  }
+}
+
+void validar_operacion_exit(t_pcb* pcb, t_instruccion* instruccion) {
+  if (es_esta_instruccion(instruccion, "EXIT")) {
+    t_paquete* paquete = paquete_create();
+    paquete_add_pcb(paquete, pcb);
+    // enviar_pcb_con_operacion_exit(SOCKET_CLIENTE_DISPATCH, paquete);
+  }
+}
+
+int instruccion_obtener_parametro(t_instruccion* instruccion, int numero_parametro) {
+  char** parametros = string_split(instruccion->params, " ");
+  int valor = atoi(parametros[numero_parametro]);
+
+  string_iterate_lines(parametros, (void*)free);
+
+  return valor;
+}
+
+bool es_esta_instruccion(t_instruccion* instruccion, char* identificador) {
+  return strcmp(identificador, instruccion->identificador) == 0;
 }

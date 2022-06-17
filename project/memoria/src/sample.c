@@ -2,18 +2,27 @@
 #include "memoria.h"
 #include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
+#include <utils.h>
 
 int main() {
   // función de la biblioteca static
-  estado_conexion_memoria = true;
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
-  config = iniciar_config(DIR_MEMORIA_CFG);
-  char* ip = config_get_string_value(config, "IP_ESCUCHA");
-  char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA");
-  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
-  memoria_principal = reservar_memoria_inicial(size_memoria);
-  pthread_t th;
-  pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
+  inicializar_estructuras();
+  // pthread_t th;
+  // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
+
+  // PARA TESTEAR ALGORITMOS DE REEMPLAZO
+  reservar_marcos_mock();
+
+  t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+
+  entrada->entrada_segundo_nivel = 5;
+  entrada->num_marco = -1;
+  entrada->bit_uso = 0;
+  entrada->bit_modif = 0;
+  entrada->bit_presencia = 0;
+
+  int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
+
 
   pthread_exit(0);
 }

@@ -1,7 +1,5 @@
 #include "libstatic.h"
 #include "utils-servidor.h"
-#include <stdint.h>
-#include <stdio.h>
 
 t_config* iniciar_config(char* config) {
   return config_create(config);
@@ -62,7 +60,168 @@ t_buffer* crear_mensaje(char* texto) {
   return mensaje;
 }
 
+t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int) * 3;
+  int offset = 0;
 
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  // mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->num_tabla_primer_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->entrada_primer_nivel), sizeof(int));
+  offset += sizeof(int);
+
+  mensaje->size = offset;
+
+  return mensaje;
+}
+
+
+t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int) * 2;
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  // mensaje->size = mensaje_size;
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  mensaje->size = offset;
+
+  return mensaje;
+}
+
+
+t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int) * 4;
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->entrada_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->operacion), sizeof(int));
+  offset += sizeof(int);
+
+  return mensaje;
+}
+
+t_buffer* crear_mensaje_respuesta_marco(t_respuesta_solicitud_marco* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int);
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->num_marco), sizeof(int));
+  offset += sizeof(int);
+
+  return mensaje;
+}
+
+t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int) * 2;
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->dir_fisica), sizeof(int));
+  offset += sizeof(int);
+  return mensaje;
+}
+
+t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
+  // int mensaje_longitud = strlen(read->dato_buscado);                  // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = (sizeof(char) * mensaje_longitud) + sizeof(int); // 5 Bytes
+  int mensaje_size = sizeof(int); // 5 Bytes
+
+  // int mensaje_size = sizeof(int);
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  // memcpy(mensaje->stream + offset, &mensaje_longitud, sizeof(int));
+  // offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->dato_buscado), mensaje_size);
+  offset += mensaje_size;
+  return mensaje;
+}
+
+
+t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int) * 3;
+  int offset = 0;
+  // int size_valor = ((sizeof(char)) * (strlen(read->valor))) + 1;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->dir_fisica), sizeof(uint32_t));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->valor), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  return mensaje;
+}
+
+t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read) {
+  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
+  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
+  int mensaje_size = sizeof(int);
+  int offset = 0;
+
+  t_buffer* mensaje = NULL;
+  mensaje = empty_buffer();               // <- generaba leaks
+  mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+  mensaje->size = mensaje_size;
+
+  memcpy(mensaje->stream + offset, &(read->resultado), sizeof(int));
+  offset += sizeof(int);
+
+  return mensaje;
+}
+
+/*
 t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
@@ -98,19 +257,21 @@ t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
     int instruccion_size = identificador_size + params_size + sizeof(int) + sizeof(int);
 
     mensaje->stream = realloc(mensaje->stream, offset + instruccion_size);
-    paquete_add_instruccion(mensaje, instruccion);
+    paquete_add_instruccion_pcb_actualizado(mensaje, instruccion);
 
     offset += instruccion_size;
   }
 
-  if (tiempo_bloqueo != NULL) {
+  if (tiempo_bloqueo != 0) {
     offset += sizeof(int), memcpy(mensaje->stream + offset, &tiempo_bloqueo, sizeof(int));
   }
 
 
   mensaje->size = offset;
-}
 
+  return mensaje;
+}
+*/
 
 void paquete_add_instruccion_pcb_actualizado(t_buffer* mensaje, t_instruccion* instruccion) {
   int identificador_longitud = strlen(instruccion->identificador) + 1;
@@ -152,10 +313,15 @@ void iterator_paquete(void* valor) {
 }
 
 void paquete_destroy(t_paquete* paquete) {
+  int codigo_operacion = paquete->codigo_operacion;
+
   mensaje_destroy(paquete->buffer);
   free(paquete);
 
-  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados durante de la creación del paquete");
+  xlog(COLOR_RECURSOS,
+       "Se liberaron con éxito los recursos asignados durante de la creación del paquete (%d, tipo=%s)",
+       codigo_operacion,
+       obtener_tipo_operacion(codigo_operacion));
 }
 
 void instruccion_destroy(t_instruccion* instruccion) {
@@ -190,7 +356,7 @@ void asignar_codigo_operacion(op_code codigo_operacion, t_paquete* paquete) {
 }
 
 void terminar_programa(int conexion, t_log* logger, t_config* config) {
-  log_destroy(logger), config_destroy(config), liberar_conexion(conexion);
+  liberar_conexion(conexion), log_destroy(logger), config_destroy(config);
 }
 
 t_pcb* pcb_create(int socket, int pid, int tamanio) {
@@ -202,6 +368,7 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   pcb->tamanio = tamanio;       // TODO: definir
   pcb->estimacion_rafaga = 0;   // TODO: definir
   pcb->tiempo_en_ejecucion = 0; // TODO: definir
+  pcb->tiempo_de_bloqueado = 0; // TODO: definir
   pcb->program_counter = 0;     // TODO: definir
   pcb->estado = NEW;
 
@@ -241,14 +408,17 @@ void imprimir_instruccion(t_instruccion* instruccion) {
 }
 
 void imprimir_pcb(t_pcb* pcb) {
-  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, t_en_exec=%d, pc=%d, estado=%d\n",
+  printf("socket=%d, pid=%d, tamanio=%d, est_raf=%d, tiempo_en_ejecucion=%d, tiempo_en_bloqueado=%d, pc=%d, estado=%d, "
+         "tabla=%d\n",
          pcb->socket,
          pcb->pid,
          pcb->tamanio,
          pcb->estimacion_rafaga,
          pcb->tiempo_en_ejecucion,
+         pcb->tiempo_de_bloqueado,
          pcb->program_counter,
-         pcb->estado);
+         pcb->estado,
+         pcb->tabla_primer_nivel);
 
   printf("list_size=%d\n", list_size(pcb->instrucciones));
 
@@ -261,10 +431,12 @@ void imprimir_pcb(t_pcb* pcb) {
 
 t_pcb* pcb_fake() {
   t_pcb* pcb = pcb_create(1, 10, 5);
-  pcb->socket = 4;
-  pcb->tamanio = 5000;
-  pcb->estimacion_rafaga = 2;
-  pcb->program_counter = 1;
+  pcb->socket = 0;
+  pcb->tamanio = 0;
+  pcb->estimacion_rafaga = 0;
+  pcb->program_counter = 0;
+  pcb->tiempo_en_ejecucion = 0;
+  pcb->tiempo_de_bloqueado = 0;
 
   return pcb;
 }
@@ -274,4 +446,13 @@ void imprimir_instrucciones(t_list* lista) {
     t_instruccion* instruccion = list_get(lista, index);
     imprimir_instruccion(instruccion);
   }
+}
+
+t_paquete* paquete_instruccion_create(int tamanio) {
+  t_paquete* paquete = paquete_create();
+  paquete->codigo_operacion = PAQUETE_INSTRUCCION;
+  paquete->buffer->stream = malloc(tamanio);
+  paquete->buffer->size = tamanio;
+
+  return paquete;
 }
