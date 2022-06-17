@@ -408,6 +408,8 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   xlog(COLOR_CONEXION, "Inicializando proceso");
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
+
+  // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
 
   /*
@@ -623,6 +625,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
 
   // TODO: usar una variable global cantidad_tabla_paginas_primer nivel, usar ese valor e incrementar
   // validar si conviene usar otra manera
+  // ó contar la cantidad de elementos en la estructura global (en el diccionario)
   tabla_paginas_primer_nivel->num_tabla = 1;
 
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
@@ -639,9 +642,15 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
     dictionary_put(tablas_de_paginas_segundo_nivel,
                    string_itoa(tabla_paginas_segundo_nivel->num_tabla),
                    tabla_paginas_segundo_nivel);
-  }
 
-  entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
+
+    entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
+
+    // agregamos una entrada_primer_nivel a la TP_primer_nivel
+    dictionary_put(tabla_primer_nivel->entradas_primer_nivel,
+                   string_itoa(entrada_primer_nivel->entrada_primer_nivel),
+                   entrada_primer_nivel);
+  }
 
   return tabla_paginas_primer_nivel;
 }
@@ -666,10 +675,11 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
 
     inicializar_entrada_de_tabla_paginas(entrada_tabla_segundo_nivel);
 
+    // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel,
                    string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel),
                    entrada_tabla_segundo_nivel);
   }
 
   return tabla_paginas_segundo_nivel;
-  }
+}
