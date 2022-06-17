@@ -99,13 +99,17 @@ void inicializar_estructuras() {
   puntero_clock = 0;
   llenar_memoria_mock();
   tam_marcos = config_get_int_value(config, "TAM_PAGINA");
-  diccionario_tablas = dictionary_create();
+  //diccionario_tablas = dictionary_create();
+  tablas_de_paginas_primer_nivel = dictionary_create();
   tabla_marcos = list_create();
+
+  // TODO: cambiar por el diccionario
   lista_tablas_segundo_nivel = list_create();
   xlog(COLOR_CONEXION, "Tamanio tabla de marcos: %d:", inicializar_tabla_marcos());
   reservar_marcos_mock();
 
   // mostrar_tabla_marcos();
   // mem_hexdump(memoria_principal, size_memoria_principal);
-  inicializar_proceso(0, 4, 500);
+  // inicializar_proceso(0, 4, 500);
+  inicializar_estructuras_de_este_proceso(0, 500);
 }
