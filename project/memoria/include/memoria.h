@@ -136,4 +136,5 @@ int obtener_cantidad_entradas_por_tabla_por_config();
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel);
 void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel entrada_tabla_segundo_nivel);
+int cantidad_tablas_paginas_primer_nivel();
 #endif /* MEMORIA_H */

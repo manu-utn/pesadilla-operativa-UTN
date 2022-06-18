@@ -3,6 +3,7 @@
 #include "serializado.h"
 #include "utils-cliente.h"
 #include "utils-servidor.h"
+#include <commons/collections/dictionary.h>
 #include <commons/string.h>
 
 void* reservar_memoria_inicial(int size_memoria_total) {
@@ -494,12 +495,14 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   */
 }
 
+// TODO: evaluar si deprecar, no se está usando
 int generar_numero_tabla() {
   srand(time(NULL));
   int r = rand();
   return r;
 }
 
+// TODO: validar
 int buscar_marco_libre() {
   int buscar_primer_libre(t_marco * marco) {
     return marco->ocupado == 0;
@@ -511,6 +514,7 @@ int buscar_marco_libre() {
 }
 
 
+// TODO: validar
 void mostrar_tabla_marcos() {
   xlog(COLOR_CONEXION, "########TABLA MARCOS################");
 
@@ -524,6 +528,7 @@ void mostrar_tabla_marcos() {
 }
 
 
+// TODO: validar
 void llenar_memoria_mock() {
   int offset = 0;
   int num_marco = 0;
@@ -620,13 +625,17 @@ t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_se
   return entrada_victima;
 }
 
+int cantidad_tablas_paginas_primer_nivel() {
+  return dictionary_size(tablas_de_paginas_primer_nivel);
+}
+
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
   t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
 
-  // TODO: usar una variable global cantidad_tabla_paginas_primer nivel, usar ese valor e incrementar
-  // validar si conviene usar otra manera
-  // ó contar la cantidad de elementos en la estructura global (en el diccionario)
-  tabla_paginas_primer_nivel->num_tabla = 1;
+  // TODO: validar si conviene usar otra manera
+  // contamos la cantidad de elementos en la estructura global (en el diccionario) y le sumamos uno
+  tabla_paginas_primer_nivel->num_tabla = cantidad_tablas_paginas_primer_nivel() + 1;
+  // tabla_paginas_primer_nivel->num_tabla = 1;
 
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
