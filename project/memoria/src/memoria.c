@@ -304,10 +304,10 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
       marco = entrada_segundo_nivel->num_marco;
     }
     else if(hay_marcos_libres_asignados_al_proceso(pid)){
-      marco = obtener_primer_marco_libre_asignado_al_proceso(pid);
+      marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
     }
     else{
-      // si no tiene marcos libres => ejecutar algoritmo de sustitución
+      // si no tiene marcos libres => ejecutar algoritmo de sustitución ?
     }
   }
 
@@ -327,33 +327,36 @@ bool hay_marcos_libres_asignados_al_proceso(int pid) {
   return list_any_satisfy(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
 }
 
-// TODO: validar
+// TODO: validar, creo que ya está cubierto en obtener_marco excepto por los bits de uso/modificado
 int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int entrada_segundo_nivel) {
   int marco = 0;
 
+  // TODO: validar lo de abajo, agregué algunos "TODO", y otro al comienzo de ésta función
+  /*
   int es_la_tabla(t_tabla_segundo_nivel * tabla_actual) {
     return tabla_actual->num_tabla == num_tabla_segundo_nivel;
   }
 
   t_tabla_segundo_nivel* tabla_segundo_nivel = list_find(lista_tablas_segundo_nivel, (void*)es_la_tabla);
-
-  t_entrada_tabla_segundo_nivel* entrada = (t_entrada_tabla_segundo_nivel*)list_get(tabla_segundo_nivel->entradas, entrada_segundo_nivel);
-  // entrada->bit_uso = 1;
-  // marco = entrada->num_marco;*/
+  t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas_segundo_nivel, entrada_segundo_nivel);
 
   if (entrada->num_marco != -1) {
     marco = entrada->num_marco;
 
     if (strcmp(algoritmo_reemplazo, "CLOCK-M") == 0) {
+      // TODO: el bit de modificado no deberìa estar habilitado sólo si la entrada es de escritura?
       entrada->bit_modif = 1;
     }
+
+    // TODO: no deberìa estar en 1 por default cuando se inicializan las entradas al admitir un proceso?
     entrada->bit_uso = 1;
   }
-  else if (!marcos_disponibles_para_proceso(tabla_segundo_nivel->pid)) {
+  else if (!hay_marcos_libres_asignados_al_proceso(tabla_segundo_nivel->pid)) {
     t_entrada_tabla_segundo_nivel* entrada_victima = ejecutar_reemplazo(tabla_segundo_nivel->pid, entrada);
   } else {
     marco = buscar_marco_libre();
   }
+  */
 
   return marco;
 }
@@ -416,7 +419,7 @@ int obtener_tamanio_pagina_por_config() {
   return config_get_int_value(config, "TAM_MEMORIA");
 }
 
-int obtener_cantidad_marcos_en_memoria()() {
+int obtener_cantidad_marcos_en_memoria(){
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
@@ -429,6 +432,9 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
+
+  // para todo lo de abajo, se delegó comportamiento en varias funciones, para facilitar lectura y mantenimiento y detectar leaks
+  // lo dejo por acá mientras tanto
 
   /*
   // TODO: evaluar si remover el tamaño_acumulado, se había pensado para una asignación dinámica de frames
@@ -534,13 +540,14 @@ int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel){
 
 // TODO: validar
 // TODO: lógica repetida con hay_marcos_disponibles_asignados_al_proceso
-int obtener_primer_marco_libre_asignado_al_proceso(int pid) {
+int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
   int marco_libre_asignado_a_este_proceso(t_marco * marco) {
     return marco->pid == pid && marco->ocupado == 0;
   }
 
   t_marco* marco_libre = (t_marco*) list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
   marco_libre->ocupado = 1;
+  entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
 
   return marco_libre->num_marco;
 }
@@ -671,7 +678,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
 
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
-  for (int numero_entrada_primer_nivel = 0; i < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_primer_nivel++) {
+  for (int numero_entrada_primer_nivel = 0; numero_entrada_primer_nivel < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_primer_nivel++) {
     t_entrada_tabla_primer_nivel* entrada_primer_nivel = malloc(sizeof(t_entrada_tabla_primer_nivel));
 
     // esto identifica cada entrada de TP 1er nivel, la MMU accede a ésta usando
@@ -688,7 +695,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
     entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
 
     // agregamos una entrada_primer_nivel a la TP_primer_nivel
-    dictionary_put(tabla_primer_nivel->entradas_primer_nivel,
+    dictionary_put(tabla_paginas_primer_nivel->entradas_primer_nivel,
                    string_itoa(entrada_primer_nivel->entrada_primer_nivel),
                    entrada_primer_nivel);
   }
@@ -696,8 +703,10 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(){
   return tabla_paginas_primer_nivel;
 }
 
-void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel entrada_tabla_segundo_nivel) {
-  entrada_tabla_segundo_nivel->bit_uso = 0;
+void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel) {
+  // TODO: evaluar si siempre corresponde que se inicialize en 1, al menos para el clock y clock-m supongo que si
+  entrada_tabla_segundo_nivel->bit_uso = 1;
+
   entrada_tabla_segundo_nivel->bit_modif = 0;
   entrada_tabla_segundo_nivel->bit_presencia = 0;
 

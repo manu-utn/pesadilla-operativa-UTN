@@ -134,7 +134,7 @@ int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int ent
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel);
-void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel entrada_tabla_segundo_nivel);
+void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
 int cantidad_tablas_paginas_primer_nivel();
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada);
 
@@ -144,7 +144,7 @@ int obtener_cantidad_marcos_por_proceso_por_config();
 int obtener_tamanio_pagina_por_config();
 int obtener_cantidad_marcos_en_memoria();
 bool hay_marcos_libres_asignados_al_proceso(int pid);
-int obtener_primer_marco_libre_asignado_al_proceso(int pid);
+int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 #endif /* MEMORIA_H */
