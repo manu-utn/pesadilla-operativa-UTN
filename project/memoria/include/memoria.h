@@ -110,43 +110,49 @@ t_dictionary* tablas_de_paginas_primer_nivel;
 t_dictionary* tablas_de_paginas_segundo_nivel;
 
 t_list* marcos_prueba_clock;
-int generar_numero_tabla();
-// void inicializar_proceso(int pid, int entradas_por_tabla, int tam_proceso);
+
 void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
 void dividir_memoria_principal_en_marcos();
 void mostrar_tabla_marcos();
-uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
-
-// int buscar_tabla_segundo_nivel(int num_tabla_primer_nivel,int entrada_primer_nivel);
-int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabla);
-
-int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
 void llenar_memoria_mock();
-t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid);
-void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos);
-t_list* obtener_marcos_asignados_a_este_proceso(int pid);
-int escribir_dato(uint32_t dir_fisica, uint32_t valor);
-int ejecutar_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada);
-t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
 
-void liberar_estructuras_en_swap();
-int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
+uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
+int escribir_dato(uint32_t dir_fisica, uint32_t valor);
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel);
 void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
 int cantidad_tablas_paginas_primer_nivel();
+
+int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabla);
+t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid);
+t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
+int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada);
 
+int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
+int obtener_cantidad_marcos_en_memoria();
+int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+bool hay_marcos_libres_asignados_al_proceso(int pid);
+
+t_list* obtener_marcos_asignados_a_este_proceso(int pid);
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder);
+t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
+int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
+
+void liberar_estructuras_en_swap();
+
+bool algoritmo_reemplazo_cargado_es(char* algoritmo);
+
+// TODO: validar si deprecar, no se utiliza
+int generar_numero_tabla();
+void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos);
+
+// datos de la config
 int obtener_cantidad_entradas_por_tabla_por_config();
 int obtener_tamanio_memoria_por_config();
 int obtener_cantidad_marcos_por_proceso_por_config();
-int obtener_tamanio_pagina_por_config();
-int obtener_cantidad_marcos_en_memoria();
-bool hay_marcos_libres_asignados_al_proceso(int pid);
-int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
-t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
-int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 char* obtener_algoritmo_reemplazo_por_config();
-bool algoritmo_reemplazo_cargado_es(char* algoritmo);
+int obtener_tamanio_pagina_por_config();
+
 #endif /* MEMORIA_H */
