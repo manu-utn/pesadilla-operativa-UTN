@@ -122,9 +122,9 @@ int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabl
 
 int obtener_marco(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
 void llenar_memoria_mock();
-t_tabla_primer_nivel* encontrar_tabla(int pid);
+t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid);
 void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos);
-t_list* encontrar_marcos_asignados_a_proceso(int pid);
+t_list* obtener_marcos_asignados_a_este_proceso(int pid);
 int escribir_dato(uint32_t dir_fisica, uint32_t valor);
 int ejecutar_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada);
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
@@ -147,4 +147,6 @@ bool hay_marcos_libres_asignados_al_proceso(int pid);
 int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
+char* obtener_algoritmo_reemplazo_por_config();
+bool algoritmo_reemplazo_cargado_es(char* algoritmo);
 #endif /* MEMORIA_H */
