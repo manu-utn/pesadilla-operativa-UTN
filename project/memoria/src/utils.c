@@ -91,21 +91,33 @@ void inicializar_estructuras() {
   estado_conexion_memoria = true;
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
+
+  // TODO: deprecar
   algoritmo_reemplazo = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+
+  // TODO: deprecar
   cant_marcos_por_proceso = config_get_int_value(config, "MARCOS_POR_PROCESO");
+
+  // TODO: validar porque aparece dos veces
   uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
+
+  // TODO: deprecar
   memoria_principal = reservar_memoria_inicial(size_memoria);
   size_memoria_principal = config_get_int_value(config, "TAM_MEMORIA");
+
   puntero_clock = 0;
+
+  // TODO: validar
   llenar_memoria_mock();
   tam_marcos = config_get_int_value(config, "TAM_PAGINA");
   //diccionario_tablas = dictionary_create();
   tablas_de_paginas_primer_nivel = dictionary_create();
+  tablas_de_paginas_segundo_nivel = dictionary_create();
   tabla_marcos = list_create();
 
-  // TODO: cambiar por el diccionario
-  lista_tablas_segundo_nivel = list_create();
-  xlog(COLOR_CONEXION, "Tamanio tabla de marcos: %d:", inicializar_tabla_marcos());
+  dividir_memoria_principal_en_marcos();
+
+  // TODO: validar
   reservar_marcos_mock();
 
   // mostrar_tabla_marcos();
