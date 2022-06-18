@@ -37,7 +37,8 @@ int main() {
   // enviar_interrupcion();
 
   pthread_t th;
-  pthread_create(&th, NULL, escuchar_conexiones_entrantes, NULL), pthread_detach(th);
+  pthread_create(&th, NULL, escuchar_conexiones_entrantes, NULL);
+  pthread_detach(th);
 
   // TODO: remover cuando se solucione el problema del centinela global en loop que contiene a esperar_cliente()
   sem_wait(&CERRAR_PROCESO);

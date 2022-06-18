@@ -341,7 +341,6 @@ void *plp_pcb_finished() {
     imprimir_pcb(pcb);
     matar_proceso(pcb->socket); // Se avisa a la consola de la finalizacion
     pcb_destroy(pcb);
-    imprimir_pcb(pcb);
   }
 }
 
