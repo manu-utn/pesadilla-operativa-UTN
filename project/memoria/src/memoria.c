@@ -307,7 +307,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
       marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
     }
     else{
-      // si no tiene marcos libres => ejecutar algoritmo de sustitución ?
+      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas?
     }
   }
 
@@ -719,7 +719,7 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
   // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
 
-  for (int numero_entrada_segundo_nivel = 0; i < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_segundo_nivel++) {
+  for (int numero_entrada_segundo_nivel = 0; numero_entrada_segundo_nivel < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_segundo_nivel++) {
     t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
     entrada_tabla_segundo_nivel->entrada_segundo_nivel = numero_entrada_segundo_nivel;
 
