@@ -160,4 +160,5 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
 void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado);
 t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos);
+int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos);
 #endif /* MEMORIA_H */

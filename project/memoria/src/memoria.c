@@ -564,7 +564,7 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
     return marco->pid == pid && marco->ocupado == 0;
   }
 
-  t_marco* marco_libre = (t_marco*) list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
+  t_marco* marco_libre = list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
   marco_libre->ocupado = 1;
 
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
@@ -616,17 +616,22 @@ t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
   return tabla_paginas_primer_nivel;
 }
 
-// TODO: validar, se hicieron cambios en la tp_primer_nivel, las entradas son un diccionario
 t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
-  t_list* marcos_asignados = list_create();
-
   bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
     return marco->pid == pid;
   }
 
-  marcos_asignados = list_filter(tabla_marcos, marco_libre_asignado_a_este_proceso);
+  bool marco_menor_numero(t_marco * marco_menor_numero, t_marco * marco_mayor_numero) {
+    return marco_menor_numero->numero <= marco_mayor_numero->numero;
+  }
 
-  return marcos_asignados;
+  t_list* marcos_asignados = list_filter(tabla_marcos, marco_libre_asignado_a_este_proceso);
+
+  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo
+  // en la cola circular
+  t_list* marcos_asignados_ordenados_menor_a_mayor_numero = list_sorted(marcos_asignados, marco_menor_numero);
+
+  return marcos_asignados_ordenados_menor_a_mayor_numero;
 
   // TODO: validar si deprecar, ocurre lo mismo que con encontrar_marcos_en_tabla_segundo_nivel
   // lo comento mientras tanto
@@ -736,4 +741,14 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
   }
 
   return tabla_paginas_segundo_nivel;
+}
+
+int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos) {
+  for (int posicion = 0; posicion < list_size(lista_marcos); posicion++) {
+    if (marco == (t_marco*) list_get(lista_marcos, posicion)) {
+      return posicion;
+    }
+  }
+
+  return -1;
 }

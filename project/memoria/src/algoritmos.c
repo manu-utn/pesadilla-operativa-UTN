@@ -61,9 +61,11 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
 
   int posicion_marco_leido = 0;
 
-  // si el algoritmo fué ejecutado, entonces iteramos a partir del marco al que apunte el puntero de clock
+  // TODO: evaluar otros escenarios, los marcos asignados por proceso siempre se devuelven ordenados
+  // por numero de menor a mayor y uso su posición en la lista
   if(marco_apuntado_por_algoritmo_clock != NULL){
-    posicion_marco_leido = marco_apuntado_por_algoritmo_clock->num_marco;
+    // si el algoritmo fué ejecutado, entonces iteramos a partir del marco al que apunte el puntero de clock
+    posicion_marco_leido = obtener_posicion_de_marco_del_listado(marco_apuntado_por_algoritmo_clock, marcos_asignados);
   }
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
