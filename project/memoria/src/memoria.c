@@ -277,15 +277,6 @@ void* manejar_nueva_conexion(void* args) {
   pthread_exit(NULL);
 }
 
-// TODO: validar
-int escribir_dato(uint32_t dir_fisica, uint32_t valor) {
-  // Busco a que proceso pertenece
-
-  int resultado = 0;
-
-  return resultado;
-}
-
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
@@ -371,24 +362,6 @@ int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entra
   t_entrada_tabla_primer_nivel* entrada_primer_nivel = dictionary_get(TP_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel));
 
   return entrada_primer_nivel->num_tabla_segundo_nivel;
-}
-
-// TODO: validar
-uint32_t buscar_dato_en_memoria(uint32_t dir_fisica) {
-  xlog(COLOR_CONEXION, "Buscando en memoria la dir fisica: %d", dir_fisica);
-
-  uint32_t dato_buscado = 0;
-  int num_marco_buscado = dir_fisica / tam_marcos;
-  int desplazamiento = dir_fisica % tam_marcos;
-
-  bool es_el_marco(t_marco * marco) {
-    return (marco->num_marco == num_marco_buscado);
-  }
-
-  t_marco* marco = list_find(tabla_marcos, (void*)es_el_marco);
-  int inicio = (num_marco_buscado * tam_marcos) + desplazamiento;
-  memcpy(&dato_buscado, memoria_principal + inicio, sizeof(int));
-  return dato_buscado;
 }
 
 // TODO: validar
