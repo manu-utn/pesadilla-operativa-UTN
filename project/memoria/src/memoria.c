@@ -6,6 +6,7 @@
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
 
+// TODO: validar
 void* reservar_memoria_inicial(int size_memoria_total) {
   void* memoria_total = malloc(size_memoria_total);
 
@@ -14,6 +15,7 @@ void* reservar_memoria_inicial(int size_memoria_total) {
   return memoria_total;
 }
 
+// TODO: validar
 void* escuchar_conexiones() {
   estado_conexion_memoria = true;
   char* ip = config_get_string_value(config, "IP_ESCUCHA");
@@ -46,6 +48,7 @@ void liberar_estructuras_en_swap() {
   xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
 }
 
+// TODO: validar
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   estado_conexion_con_cliente = true;
@@ -305,14 +308,16 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
     }
     else if(hay_marcos_libres_asignados_al_proceso(pid)){
       marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
+
+      // según los algoritmos de reemplazo (clock/clock modificado): si bit_de_uso == 0 && bit_de_presencia == 1, entonces bit_de_uso=1 (se habilita de nuevo)
+      // podríamos siempre setearlo a 1, pero agregamos éste condicional para recordar/relacionar con la teoría
+      if(entrada_segundo_nivel->bit_uso == 0) entrada_segundo_nivel->bit_uso = 1;
     }
     else{
-      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas?
+      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
+      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
     }
   }
-
-  // TODO: validar si corresponde habilitar el bit de uso
-  // entrada->bit_uso = 1;
 
   return marco;
 }
@@ -320,7 +325,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
 // TODO: validar
 // TODO: lógica repetida con obtener_primer_marco_libre
 bool hay_marcos_libres_asignados_al_proceso(int pid) {
-  int marco_libre_asignado_a_este_proceso(t_marco* marco) {
+  bool marco_libre_asignado_a_este_proceso(t_marco* marco) {
     return marco->pid == pid && marco->ocupado != 0;
   }
 
@@ -396,7 +401,13 @@ void dividir_memoria_principal_en_marcos() {
     marco->num_marco = numero_marco;
     marco->direccion = 0;
     marco->pid = 0;
+
+    // para simular un bitmap de marcos libres/ocupados
     marco->ocupado = 0;
+
+    // para facilitar el algoritmo de reemplazo
+    marco->apuntado_por_puntero_de_clock = false;
+    marco->entrada_segundo_nivel = NULL;
 
     list_add(tabla_marcos, marco);
   }
@@ -417,6 +428,14 @@ int obtener_cantidad_marcos_por_proceso_por_config() {
 
 int obtener_tamanio_pagina_por_config() {
   return config_get_int_value(config, "TAM_MEMORIA");
+}
+
+char* obtener_algoritmo_reemplazo_por_config() {
+  return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+}
+
+bool algoritmo_reemplazo_cargado_es(char* algoritmo){
+  return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
 }
 
 int obtener_cantidad_marcos_en_memoria(){
@@ -545,9 +564,13 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
     return marco->pid == pid && marco->ocupado == 0;
   }
 
-  t_marco* marco_libre = (t_marco*) list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
+  t_marco* marco_libre = list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
   marco_libre->ocupado = 1;
+
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
+
+  // para facilitar el algoritmo de reemplazo
+  marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 
   return marco_libre->num_marco;
 }
@@ -556,7 +579,6 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 // TODO: validar
 void mostrar_tabla_marcos() {
   xlog(COLOR_CONEXION, "########TABLA MARCOS################");
-
 
   for (int i = 0; i < list_size(tabla_marcos); i++) {
     t_marco* marco = (t_marco*)list_get(tabla_marcos, i);
@@ -578,90 +600,77 @@ void llenar_memoria_mock() {
   //}
 }
 
-// TODO: validar si está ok, y en donde se usa
-t_tabla_primer_nivel* encontrar_tabla(int pid) {
-  int i = 0;
-  t_tabla_primer_nivel* tabla = malloc(sizeof(t_tabla_primer_nivel));
-  while (i < dictionary_size(tablas_de_paginas_primer_nivel)) {
-    tabla = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(i));
-    if (tabla->pid == pid) {
-      return tabla;
-    }
-    i++;
+// TODO: validar si aún se requiere
+// se estaba usando para encontrar_marcos_asignados_por_procesos pero las tp_segundo_nivel ya tienen el pid
+t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
+  t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
+
+  for(int cantidad_tablas_paginas_primer_nivel_leidas = 0;
+      cantidad_tablas_paginas_primer_nivel_leidas < cantidad_tablas_paginas_primer_nivel();
+      cantidad_tablas_paginas_primer_nivel_leidas++){
+    tabla_paginas_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(cantidad_tablas_paginas_primer_nivel_leidas));
+
+    if (tabla_paginas_primer_nivel->pid == pid) break;
   }
-  return NULL;
+
+  return tabla_paginas_primer_nivel;
 }
 
-// TODO: validar, se hicieron cambios en la tp_2do_nivel, ahora es diccionario
-void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos) {
-  t_tabla_segundo_nivel* tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, num_tabla_segundo_nivel);
-
-
-  for (int i = 0; i < list_size(tabla_segundo_nivel->entradas); i++) {
-    t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas, i);
-
-    if (entrada->num_marco != -1) {
-      t_marco_asignado* marco_asignado = malloc(sizeof(marco_asignado));
-      marco_asignado->marco = entrada->num_marco;
-      marco_asignado->entrada;
-      list_add(marcos, marco_asignado);
-    }
+t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
+  bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
+    return marco->pid == pid;
   }
-}
 
-// TODO: validar, se hicieron cambios en la tp_primer_nivel, las entradas son un diccionario
-t_list* encontrar_marcos_asignados_a_proceso(int pid) {
-  t_list* marcos = list_create();
-  // ITERO LAS TABLAS DE PAGINAS
+  bool marco_menor_numero(t_marco * marco_menor_numero, t_marco * marco_mayor_numero) {
+    return marco_menor_numero->numero <= marco_mayor_numero->numero;
+  }
 
-  t_tabla_primer_nivel* tabla = encontrar_tabla(pid);
+  t_list* marcos_asignados = list_filter(tabla_marcos, marco_libre_asignado_a_este_proceso);
 
-  for (int i = 0; i < list_size(tabla->entradas); i++) {
-    t_entrada_tabla_primer_nivel* entrada_primer_nivel = list_get(tabla->entradas, i);
+  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo
+  // en la cola circular
+  t_list* marcos_asignados_ordenados_menor_a_mayor_numero = list_sorted(marcos_asignados, marco_menor_numero);
+
+  return marcos_asignados_ordenados_menor_a_mayor_numero;
+
+  // TODO: validar si deprecar, ocurre lo mismo que con encontrar_marcos_en_tabla_segundo_nivel
+  // lo comento mientras tanto
+  /*
+  t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
+
+  for (int i = 0; i < list_size(TP_primer_nivel->entradas_primer_nivel); i++) {
+    t_entrada_tabla_primer_nivel* entrada_primer_nivel = list_get(TP_primer_nivel->entradas_primer_nivel, i);
 
     if (entrada_primer_nivel->num_tabla_segundo_nivel != NULL) {
       encontrar_marcos_en_tabla_segundo_nivel(entrada_primer_nivel->num_tabla_segundo_nivel, marcos);
     }
   }
+   */
 }
 
-int ejecutar_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada) {
-  char* algoritmo = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-  t_list* marcos_involucrados = encontrar_marcos_asignados_a_proceso(pid);
-  t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-  if (strcmp(algoritmo, "CLOCK")) {
-    entrada_victima = ejecutar_clock(marcos_involucrados, entrada);
+// TODO: validar si es necesario seguir usando,
+// la lista de marcos ya tiene un pid del proceso, y como es asignación fija de marcos por proceso se deberia de elegir
+// los marcos del proceso no de la tabla de paginas
+void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos) {
+  // lo comento mientras tanto
 
-    // TODO: REALIZAR EL REEMPLAZO ENTRE LA ENTRADA A REEMPLAZAR Y LA ENTRADA REFERENCIADA
+  /*
+  t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel,
+  string_itoa(num_tabla_segundo_nivel));
 
-  } else {
-    // marco_victima = ejecutar_clock_modificado(marcos_involucrados, entrada);
-  }
+  for (int i = 0; i < dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel); i++) {
+    // TODO: lo adapté del t_list a t_dictionary
+    t_entrada_tabla_segundo_nivel* entrada = dictionary_get(tabla_segundo_nivel->entradas_segundo_nivel,
+  string_itoa(i));
 
-  return 0;
-}
-
-t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada) {
-  t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-
-  while (puntero_clock < list_size(marcos)) { // Recorro hasta el size de la lista
-    t_marco_asignado* marco_asignado_a_entrada = list_get(marcos, puntero_clock);
-    if (marco_asignado_a_entrada->entrada->bit_uso != 0) {
-      marco_asignado_a_entrada->entrada->bit_uso = 0;
-    } else {
-      entrada_victima = marco_asignado_a_entrada->entrada;
-      puntero_clock++;
-      break;
+    if (entrada->num_marco != -1) {
+      t_marco_asignado* marco_asignado = malloc(sizeof(marco_asignado));
+      marco_asignado->marco = entrada->num_marco;
+      //marco_asignado->entrada; // ??? estaba suelto
+      list_add(marcos, marco_asignado);
     }
-
-    if (puntero_clock + 1 == list_size(marcos)) {
-      puntero_clock = 0;
-      continue;
-    }
-    puntero_clock++;
   }
-
-  return entrada_victima;
+   */
 }
 
 int cantidad_tablas_paginas_primer_nivel() {
@@ -732,4 +741,14 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
   }
 
   return tabla_paginas_segundo_nivel;
+}
+
+int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos) {
+  for (int posicion = 0; posicion < list_size(lista_marcos); posicion++) {
+    if (marco == (t_marco*) list_get(lista_marcos, posicion)) {
+      return posicion;
+    }
+  }
+
+  return -1;
 }
