@@ -37,21 +37,6 @@ typedef struct{
 }t_configuracion;
 
 typedef struct{
-    int num_marco;
-    uint32_t direccion;
-    int pid;
-    int ocupado;
-}t_marco;
-
-
-typedef struct{
-    int num_tabla;
-    int pid;
-    t_dictionary* entradas_primer_nivel;
-}t_tabla_primer_nivel;
-
-
-typedef struct{
     int entrada_primer_nivel;
     int num_tabla_segundo_nivel;
 }t_entrada_tabla_primer_nivel;
@@ -70,10 +55,27 @@ typedef struct{
     int bit_presencia;
 }t_entrada_tabla_segundo_nivel;
 
-typedef struct{
-    int marco;
-    t_entrada_tabla_segundo_nivel* entrada;
-}t_marco_asignado;
+typedef struct {
+  int num_marco;
+  uint32_t direccion;
+  int pid;
+  int ocupado;
+
+  // para facilitar el algoritmo de reemplazo
+  bool apuntado_por_puntero_de_clock;
+  t_entrada_tabla_segundo_nivel* entrada_segundo_nivel;
+} t_marco;
+
+typedef struct {
+  int marco;
+  t_entrada_tabla_segundo_nivel* entrada;
+} t_marco_asignado;
+
+typedef struct {
+  int num_tabla;
+  int pid;
+  t_dictionary* entradas_primer_nivel;
+} t_tabla_primer_nivel;
 
 typedef struct{
     t_list* marcos;
@@ -154,5 +156,7 @@ int obtener_tamanio_memoria_por_config();
 int obtener_cantidad_marcos_por_proceso_por_config();
 char* obtener_algoritmo_reemplazo_por_config();
 int obtener_tamanio_pagina_por_config();
-
+t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
+bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
+void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado);
 #endif /* MEMORIA_H */

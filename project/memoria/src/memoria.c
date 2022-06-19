@@ -308,14 +308,16 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
     }
     else if(hay_marcos_libres_asignados_al_proceso(pid)){
       marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
+
+      // según los algoritmos de reemplazo (clock/clock modificado): si bit_de_uso == 0 && bit_de_presencia == 1, entonces bit_de_uso=1 (se habilita de nuevo)
+      // podríamos siempre setearlo a 1, pero agregamos éste condicional para recordar/relacionar con la teoría
+      if(entrada_segundo_nivel->bit_uso == 0) entrada_segundo_nivel->bit_uso = 1;
     }
     else{
-      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas?
+      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
+      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
     }
   }
-
-  // TODO: validar si corresponde habilitar el bit de uso
-  // entrada->bit_uso = 1;
 
   return marco;
 }
@@ -323,7 +325,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
 // TODO: validar
 // TODO: lógica repetida con obtener_primer_marco_libre
 bool hay_marcos_libres_asignados_al_proceso(int pid) {
-  int marco_libre_asignado_a_este_proceso(t_marco* marco) {
+  bool marco_libre_asignado_a_este_proceso(t_marco* marco) {
     return marco->pid == pid && marco->ocupado != 0;
   }
 
@@ -399,7 +401,13 @@ void dividir_memoria_principal_en_marcos() {
     marco->num_marco = numero_marco;
     marco->direccion = 0;
     marco->pid = 0;
+
+    // para simular un bitmap de marcos libres/ocupados
     marco->ocupado = 0;
+
+    // para facilitar el algoritmo de reemplazo
+    marco->apuntado_por_puntero_de_clock = false;
+    marco->entrada_segundo_nivel = NULL;
 
     list_add(tabla_marcos, marco);
   }
@@ -558,7 +566,11 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 
   t_marco* marco_libre = (t_marco*) list_find(tabla_marcos, (void*) marco_libre_asignado_a_este_proceso);
   marco_libre->ocupado = 1;
+
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
+
+  // para facilitar el algoritmo de reemplazo
+  marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 
   return marco_libre->num_marco;
 }
