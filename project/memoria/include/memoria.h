@@ -161,4 +161,7 @@ bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_ele
 void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado);
 t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos);
 int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos);
+
+t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
+bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 #endif /* MEMORIA_H */

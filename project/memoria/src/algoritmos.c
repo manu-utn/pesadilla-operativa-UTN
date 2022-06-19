@@ -12,13 +12,10 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo( int pid, t_entrada_tab
   int numero_marco_elegido = 0;
 
   if(algoritmo_reemplazo_cargado_es("CLOCK")){
-    // TODO: cambiar bit de presencia en 0 de la victima, asignarle el marco a la nueva, sacarle el frame a la entrada en la TP
     entrada_segundo_nivel_victima = ejecutar_clock(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
-
-    // TODO: REALIZAR EL REEMPLAZO ENTRE LA ENTRADA A REEMPLAZAR Y LA ENTRADA REFERENCIADA
-
-  } else {
-    // marco_victima = ejecutar_clock_modificado(marcos_involucrados, entrada);
+  }
+  else if(algoritmo_reemplazo_cargado_es("CLOCK")){
+      // marco_victima = ejecutar_clock_modificado(marcos_involucrados, entrada);
   }
 
   numero_marco_elegido = entrada_segundo_nivel_victima->num_marco;
@@ -38,6 +35,14 @@ bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_ele
   return entrada_elegida->bit_uso == 0;
 }
 
+bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida) {
+  // TODO: considerar si definir un atributo de prioridad según lo siguiente
+  // 1. (u=0, m=0)
+  // 2. (u=0, m=1) <- considerar
+  // 3. (u=1, m=1) <- considerar
+  return entrada_elegida->bit_uso == 0 && entrada_elegida->bit_modif == 0;
+}
+
 void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado){
   marco_seleccionado->apuntado_por_puntero_de_clock = false;
   proximo_marco_seleccionado->apuntado_por_puntero_de_clock = true;
@@ -51,6 +56,12 @@ t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos){
   t_marco* marco = list_find(lista_marcos, (void*) esta_apuntado_por_puntero_de_clock);
 
   return marco;
+}
+
+t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
+  t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+
+  // TODO: necesario definir el criterio por 3 prioridades
 }
 
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder){
