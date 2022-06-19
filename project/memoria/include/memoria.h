@@ -159,4 +159,5 @@ int obtener_tamanio_pagina_por_config();
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
 void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado);
+t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos);
 #endif /* MEMORIA_H */

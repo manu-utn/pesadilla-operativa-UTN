@@ -43,15 +43,41 @@ void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* pr
   proximo_marco_seleccionado->apuntado_por_puntero_de_clock = true;
 }
 
-// TODO: iterar a partir del marco al que apunte el puntero de clock
+t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos){
+  bool esta_apuntado_por_puntero_de_clock(t_marco * marco) {
+    return marco->apuntado_por_puntero_de_clock;
+  }
+
+  t_marco* marco = list_find(lista_marcos, (void*) esta_apuntado_por_puntero_de_clock);
+
+  return marco;
+}
+
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder){
   t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   bool victima_encontrada = false;
 
+  t_marco* marco_apuntado_por_algoritmo_clock = algoritmo_clock_puntero_obtener_marco(marcos_asignados);
+
+  int posicion_marco_leido = 0;
+
+  // si el algoritmo fué ejecutado, entonces iteramos a partir del marco al que apunte el puntero de clock
+  if(marco_apuntado_por_algoritmo_clock != NULL){
+    posicion_marco_leido = marco_apuntado_por_algoritmo_clock->num_marco;
+  }
+
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
-  for(int posicion_marco_leido = 0; !victima_encontrada ; posicion_marco_leido++){
+  for(; !victima_encontrada ; posicion_marco_leido++){
     t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
+    int posicion_proximo_marco = posicion_marco_leido + 1;
+
+    // consideramos que el marco leido es el último de la lista, el próximo marco era el primero de la cola circular
+    if (posicion_marco_leido > list_size(marcos_asignados)){
+      posicion_proximo_marco = 0;
+    }
+
     t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido + 1);
+
     t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
 
     if(!es_victima_segun_algoritmo_clock(entrada_asignada_al_marco)){
@@ -77,6 +103,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
   return entrada_victima_elegida;
 }
 
+// TODO: validar si contempla todos los escenarios, por el momento estoy usando entrada_victima_elegida_por_algoritmo_clock
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
   t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
 
