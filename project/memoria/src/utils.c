@@ -25,17 +25,16 @@ void inicializar_estructuras() {
 
   dividir_memoria_principal_en_marcos();
 
-  mostrar_tabla_marcos();
-
   // TODO: validar
-  reservar_marcos_mock();
+  // reservar_marcos_mock();
 
   // mostrar_tabla_marcos();
   // mem_hexdump(memoria_principal, size_memoria_principal);
   // inicializar_proceso(0, 4, 500);
-  inicializar_estructuras_de_este_proceso(0, 500);
 }
 
+// comentamos para probar la otra versión
+// intentámos adaptarlo el mock a la versión con las otras estructuras
 void reservar_marcos_mock() {
   t_marco* marco1 = list_get(tabla_marcos, 0);
   t_marco* marco2 = list_get(tabla_marcos, 1);
@@ -54,15 +53,13 @@ void reservar_marcos_mock() {
   marco3->pid = 1;
   list_add_in_index(tabla_marcos, 2, marco3);
 
-  t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
-  tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
+  t_entrada_tabla_segundo_nivel* entrada1 = entrada_TP_segundo_nivel_create(0, 3, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada2 = entrada_TP_segundo_nivel_create(1, 1, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada3 = entrada_TP_segundo_nivel_create(2, 2, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada4 = entrada_TP_segundo_nivel_create(3, -1, 0, 0, 0);
+  t_entrada_tabla_segundo_nivel* entrada5 = entrada_TP_segundo_nivel_create(4, -1, 0, 0, 0);
 
-  t_entrada_tabla_segundo_nivel* entrada1 = entrada_TP_segundo_nivel_create(1, 3, 1, 0, 1);
-  t_entrada_tabla_segundo_nivel* entrada2 = entrada_TP_segundo_nivel_create(2, 1, 1, 0, 1);
-  t_entrada_tabla_segundo_nivel* entrada3 = entrada_TP_segundo_nivel_create(3, 2, 1, 0, 1);
-  t_entrada_tabla_segundo_nivel* entrada4 = entrada_TP_segundo_nivel_create(4, 4, -1, 0, 0);
-  t_entrada_tabla_segundo_nivel* entrada5 = entrada_TP_segundo_nivel_create(5, 5, -1, 0, 0);
-
+  t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(1);
   dictionary_put(
     tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
   dictionary_put(

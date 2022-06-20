@@ -173,4 +173,10 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel_create(int num_entrada, int num_marco, int bit_uso, int bit_modif, int bit_presencia);
+void simular_solicitud_marco_por_mmu();
+void imprimir_marco(t_marco* marco);
+t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel);
+void imprimir_tablas_de_paginas();
+void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel);
+void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada);
 #endif /* MEMORIA_H */
