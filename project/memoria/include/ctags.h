@@ -6,6 +6,7 @@ bool hay_marcos_libres_asignados_al_proceso(int pid);
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel * entrada);
 char * obtener_algoritmo_reemplazo_por_config();
 int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel,int entrada_segundo_nivel);
+int cantidad_marcos_libres_asignados_al_proceso(int pid);
 int cantidad_tablas_paginas_primer_nivel();
 int escribir_dato(uint32_t dir_fisica,uint32_t valor);
 int generar_numero_tabla();

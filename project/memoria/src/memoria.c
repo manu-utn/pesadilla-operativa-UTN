@@ -308,6 +308,12 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
         numero_entrada_TP_segundo_nivel,
         marco);
     } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
+      xlog(
+        COLOR_TAREA,
+        "Buscando alguno de los marcos libre de los asignados al proceso... (pid=%d, cantidad_marcos_disponibles=%d)",
+        pid,
+        cantidad_marcos_libres_asignados_al_proceso(pid));
+
       marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
 
       xlog(COLOR_TAREA,
@@ -339,11 +345,19 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
   return marco;
 }
 
-// TODO: validar
+// TODO: lógica repetida con obtener_primer_marco_libre y hay_marcos_libres_asignados_al_proceso
+int cantidad_marcos_libres_asignados_al_proceso(int pid) {
+  bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
+    return marco->pid == pid && marco->ocupado == 0;
+  }
+
+  return list_count_satisfying(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
+}
+
 // TODO: lógica repetida con obtener_primer_marco_libre
 bool hay_marcos_libres_asignados_al_proceso(int pid) {
   bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
-    return marco->pid == pid && marco->ocupado != 0;
+    return marco->pid == pid && marco->ocupado == 0;
   }
 
   return list_any_satisfy(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
@@ -607,7 +621,7 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,
 
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
-       "numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
+       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
        marco->num_marco,
        marco->pid,
        (marco->ocupado) ? "SI" : "NO",
@@ -623,7 +637,8 @@ void mostrar_tabla_marcos() {
 
 void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada) {
   xlog(COLOR_INFO,
-       "--> numero_entrada_segundo_nivel=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, bit_de_presencia=%d",
+       "....[TP_SEGUNDO_NIVEL] tp_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
+       "bit_de_presencia=%d",
        entrada->entrada_segundo_nivel,
        entrada->num_marco,
        entrada->bit_uso,
@@ -633,7 +648,7 @@ void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* ent
 
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
   xlog(COLOR_INFO,
-       "tp_primer_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
+       "[TP_PRIMER_NIVEL] tp_numero=%d, pid=%d, cantidad_entradas=%d",
        tabla_primer_nivel->num_tabla,
        tabla_primer_nivel->pid,
        dictionary_size(tabla_primer_nivel->entradas_primer_nivel));
@@ -643,7 +658,7 @@ void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_p
       obtener_TP_segundo_nivel(tabla_primer_nivel->num_tabla, entrada_primer_nivel->entrada_primer_nivel);
 
     xlog(COLOR_INFO,
-         "-> entrada_primer_nivel=%d, tp_segundo_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
+         "..[ENTRADA_PRIMER_NIVEL] entrada_numero=%d, tp_segundo_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
          entrada_primer_nivel->entrada_primer_nivel,
          tabla_segundo_nivel->num_tabla,
          tabla_segundo_nivel->pid,

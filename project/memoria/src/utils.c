@@ -28,12 +28,15 @@ void inicializar_estructuras() {
   // TODO: validar
   // reservar_marcos_mock();
 
+  // lo estamos usando en sample.c
   // mostrar_tabla_marcos();
   // mem_hexdump(memoria_principal, size_memoria_principal);
+
+  // lo estamos usando en sample.c
   // inicializar_proceso(0, 4, 500);
 }
 
-// comentamos para probar la otra versión
+// lo comentamos arriba para probar la otra versión en sample.c
 // intentámos adaptarlo el mock a la versión con las otras estructuras
 void reservar_marcos_mock() {
   t_marco* marco1 = list_get(tabla_marcos, 0);

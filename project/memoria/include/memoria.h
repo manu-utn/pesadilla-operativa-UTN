@@ -179,4 +179,5 @@ t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int 
 void imprimir_tablas_de_paginas();
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel);
 void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada);
+int cantidad_marcos_libres_asignados_al_proceso(int pid);
 #endif /* MEMORIA_H */

@@ -20,6 +20,7 @@ int main() {
 
   simular_solicitud_marco_por_mmu();
 
+  // comentamos para probar la otra versión
   /*
   t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
 
@@ -45,4 +46,7 @@ void simular_solicitud_marco_por_mmu() {
   nuevo_marco = obtener_marco(1, 2);
   nuevo_marco = obtener_marco(1, 3);
   nuevo_marco = obtener_marco(1, 4);
+
+  // nuevo_marco = obtener_marco(2, 1);
+  // nuevo_marco = obtener_marco(2, 2);
 }
