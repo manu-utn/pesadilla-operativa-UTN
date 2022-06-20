@@ -24,6 +24,13 @@ typedef enum {
   OPERACION_ESCRITURA = 2
 } t_operacion_memoria;
 
+typedef enum {
+  CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
+  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA = 1,
+  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA = 2,
+  CLOCK_MODIFICADO_VICITMA_PRIORIDAD_BAJA = 3
+} CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD;
+
 typedef struct{
     int puerto_escucha;
     int tam_memoria;
@@ -164,4 +171,5 @@ int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos);
 
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
+CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 #endif /* MEMORIA_H */
