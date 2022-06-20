@@ -22,6 +22,7 @@ int obtener_tamanio_pagina_por_config();
 int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid,t_entrada_tabla_segundo_nivel * entrada_segundo_nivel_solicitada_para_acceder);
 int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,t_entrada_tabla_segundo_nivel * entrada_TP_segundo_nivel);
 t_entrada_tabla_segundo_nivel * ejecutar_clock(t_list * marcos_asignados,t_entrada_tabla_segundo_nivel * entrada_solicitada_para_acceder);
+t_entrada_tabla_segundo_nivel * entrada_TP_segundo_nivel_create(int num_entrada,int num_marco,int bit_uso,int bit_modif,int bit_presencia);
 t_entrada_tabla_segundo_nivel * entrada_victima_elegida_por_algoritmo_clock(t_list * marcos_asignados,t_entrada_tabla_segundo_nivel * entrada_solicitada_para_acceder);
 t_entrada_tabla_segundo_nivel * entrada_victima_elegida_por_algoritmo_clock_modificado(t_list * marcos_asignados,t_entrada_tabla_segundo_nivel * entrada_solicitada_para_acceder);
 t_entrada_tabla_segundo_nivel * obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);

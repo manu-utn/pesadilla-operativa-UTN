@@ -6,7 +6,7 @@
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
 
-// TODO: validar
+// TODO: validar si remover, ya no se está utilizando
 void* reservar_memoria_inicial(int size_memoria_total) {
   void* memoria_total = malloc(size_memoria_total);
 
@@ -370,7 +370,11 @@ int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entra
 // TODO: validar
 // TODO: relacionar con buscar_marco_libre()
 void dividir_memoria_principal_en_marcos() {
-  xlog(COLOR_CONEXION, "Inicializando tabla de marcos");
+  xlog(COLOR_INFO,
+       "Inicializando tabla de marcos (memoria_bytes=%d, tamanio_pagina_bytes=%d, cantidad_marcos_en_memoria=%d)",
+       obtener_tamanio_memoria_por_config(),
+       obtener_tamanio_pagina_por_config(),
+       obtener_cantidad_marcos_en_memoria());
 
   for (int numero_marco = 0; numero_marco < obtener_cantidad_marcos_en_memoria(); numero_marco++) {
     t_marco* marco = malloc(sizeof(t_marco));
@@ -402,7 +406,7 @@ int obtener_cantidad_marcos_por_proceso_por_config() {
 }
 
 int obtener_tamanio_pagina_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
+  return config_get_int_value(config, "TAM_PAGINA");
 }
 
 char* obtener_algoritmo_reemplazo_por_config() {
@@ -563,6 +567,8 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,
 void mostrar_tabla_marcos() {
   xlog(COLOR_CONEXION, "########TABLA MARCOS################");
 
+  xlog(COLOR_INFO, "marcos: list_size=%d\n", list_size(tabla_marcos));
+
   for (int i = 0; i < list_size(tabla_marcos); i++) {
     t_marco* marco = (t_marco*)list_get(tabla_marcos, i);
     printf("Num Marco: %d ", marco->num_marco);
@@ -577,7 +583,7 @@ void llenar_memoria_mock() {
   int offset = 0;
   int num_marco = 0;
   // while (offset < size_memoria_principal) {
-  memset(memoria_principal + offset, 5, size_memoria_principal);
+  memset(memoria_principal + offset, 5, obtener_tamanio_memoria_por_config());
   offset = offset + 64;
   num_marco += 1;
   //}
@@ -741,4 +747,20 @@ int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos) 
   }
 
   return -1;
+}
+
+t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel_create(int num_entrada,
+                                                               int num_marco,
+                                                               int bit_uso,
+                                                               int bit_modif,
+                                                               int bit_presencia) {
+  t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+
+  entrada->entrada_segundo_nivel = num_entrada;
+  entrada->num_marco = num_marco;
+  entrada->bit_uso = bit_uso;
+  entrada->bit_modif = bit_modif;
+  entrada->bit_presencia = bit_presencia;
+
+  return entrada;
 }

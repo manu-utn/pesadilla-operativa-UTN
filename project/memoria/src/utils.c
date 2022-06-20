@@ -1,6 +1,40 @@
 #include "utils.h"
 #include "libstatic.h"
 #include "memoria.h"
+#include <commons/collections/dictionary.h>
+
+void inicializar_estructuras() {
+  estado_conexion_memoria = true;
+  logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
+  config = iniciar_config(DIR_MEMORIA_CFG);
+
+  // TODO: validar porque aparece dos veces
+  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
+
+  memoria_principal = malloc(obtener_tamanio_memoria_por_config());
+
+  // TODO: validar si deprecar, la nueva implementación no lo está utilizando
+  puntero_clock = 0;
+
+  // TODO: validar
+  llenar_memoria_mock();
+
+  tablas_de_paginas_primer_nivel = dictionary_create();
+  tablas_de_paginas_segundo_nivel = dictionary_create();
+  tabla_marcos = list_create();
+
+  dividir_memoria_principal_en_marcos();
+
+  mostrar_tabla_marcos();
+
+  // TODO: validar
+  reservar_marcos_mock();
+
+  // mostrar_tabla_marcos();
+  // mem_hexdump(memoria_principal, size_memoria_principal);
+  // inicializar_proceso(0, 4, 500);
+  inicializar_estructuras_de_este_proceso(0, 500);
+}
 
 void reservar_marcos_mock() {
   t_marco* marco1 = list_get(tabla_marcos, 0);
@@ -20,52 +54,27 @@ void reservar_marcos_mock() {
   marco3->pid = 1;
   list_add_in_index(tabla_marcos, 2, marco3);
 
+  t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
+  tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
 
-  t_tabla_segundo_nivel* tabla = malloc(sizeof(t_tabla_segundo_nivel));
+  t_entrada_tabla_segundo_nivel* entrada1 = entrada_TP_segundo_nivel_create(1, 3, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada2 = entrada_TP_segundo_nivel_create(2, 1, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada3 = entrada_TP_segundo_nivel_create(3, 2, 1, 0, 1);
+  t_entrada_tabla_segundo_nivel* entrada4 = entrada_TP_segundo_nivel_create(4, 4, -1, 0, 0);
+  t_entrada_tabla_segundo_nivel* entrada5 = entrada_TP_segundo_nivel_create(5, 5, -1, 0, 0);
 
-  t_entrada_tabla_segundo_nivel* entrada1 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-  t_entrada_tabla_segundo_nivel* entrada2 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-  t_entrada_tabla_segundo_nivel* entrada3 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-  t_entrada_tabla_segundo_nivel* entrada4 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-  t_entrada_tabla_segundo_nivel* entrada5 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+  dictionary_put(
+    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
+  dictionary_put(
+    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada2->entrada_segundo_nivel), entrada2);
+  dictionary_put(
+    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada3->entrada_segundo_nivel), entrada3);
+  dictionary_put(
+    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada4->entrada_segundo_nivel), entrada4);
+  dictionary_put(
+    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada5->entrada_segundo_nivel), entrada5);
 
-  entrada1->entrada_segundo_nivel = 1;
-  entrada1->num_marco = 3;
-  entrada1->bit_uso = 1;
-  entrada1->bit_modif = 0;
-  entrada1->bit_presencia = 1;
-
-  entrada2->entrada_segundo_nivel = 2;
-  entrada2->num_marco = 1;
-  entrada2->bit_uso = 1;
-  entrada2->bit_modif = 0;
-  entrada2->bit_presencia = 1;
-
-  entrada3->entrada_segundo_nivel = 3;
-  entrada3->num_marco = 2;
-  entrada3->bit_uso = 1;
-  entrada3->bit_modif = 0;
-  entrada3->bit_presencia = 1;
-
-  entrada4->entrada_segundo_nivel = 4;
-  entrada4->num_marco = -1;
-  entrada4->bit_uso = 0;
-  entrada4->bit_modif = 0;
-  entrada4->bit_presencia = 0;
-
-
-  entrada5->entrada_segundo_nivel = 5;
-  entrada5->num_marco = -1;
-  entrada5->bit_uso = 0;
-  entrada5->bit_modif = 0;
-  entrada5->bit_presencia = 0;
-
-  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
-  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada2);
-  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada3);
-  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada4);
-  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada5);
-
+  // TODO: (???)
   t_marco_asignado* marco_involucrado1 = malloc(sizeof(t_marco_asignado));
   marco_involucrado1->marco = marco1->num_marco;
   marco_involucrado1->entrada = entrada1;
@@ -81,44 +90,4 @@ void reservar_marcos_mock() {
   list_add(marcos_prueba_clock, marco_involucrado1);
   list_add(marcos_prueba_clock, marco_involucrado2);
   list_add(marcos_prueba_clock, marco_involucrado3);
-}
-
-
-void inicializar_estructuras() {
-  estado_conexion_memoria = true;
-  logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
-  config = iniciar_config(DIR_MEMORIA_CFG);
-
-  // TODO: deprecar
-  algoritmo_reemplazo = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-
-  // TODO: deprecar
-  cant_marcos_por_proceso = config_get_int_value(config, "MARCOS_POR_PROCESO");
-
-  // TODO: validar porque aparece dos veces
-  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
-
-  // TODO: deprecar
-  memoria_principal = reservar_memoria_inicial(size_memoria);
-  size_memoria_principal = config_get_int_value(config, "TAM_MEMORIA");
-
-  puntero_clock = 0;
-
-  // TODO: validar
-  llenar_memoria_mock();
-  tam_marcos = config_get_int_value(config, "TAM_PAGINA");
-  // diccionario_tablas = dictionary_create();
-  tablas_de_paginas_primer_nivel = dictionary_create();
-  tablas_de_paginas_segundo_nivel = dictionary_create();
-  tabla_marcos = list_create();
-
-  dividir_memoria_principal_en_marcos();
-
-  // TODO: validar
-  reservar_marcos_mock();
-
-  // mostrar_tabla_marcos();
-  // mem_hexdump(memoria_principal, size_memoria_principal);
-  // inicializar_proceso(0, 4, 500);
-  inicializar_estructuras_de_este_proceso(0, 500);
 }
