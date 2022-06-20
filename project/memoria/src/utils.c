@@ -22,7 +22,6 @@ void reservar_marcos_mock() {
 
 
   t_tabla_segundo_nivel* tabla = malloc(sizeof(t_tabla_segundo_nivel));
-  t_list* entradas = list_create();
 
   t_entrada_tabla_segundo_nivel* entrada1 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   t_entrada_tabla_segundo_nivel* entrada2 = malloc(sizeof(t_entrada_tabla_segundo_nivel));
@@ -61,13 +60,11 @@ void reservar_marcos_mock() {
   entrada5->bit_modif = 0;
   entrada5->bit_presencia = 0;
 
-  list_add(entradas, entrada1);
-  list_add(entradas, entrada2);
-  list_add(entradas, entrada3);
-  list_add(entradas, entrada4);
-  list_add(entradas, entrada5);
-
-  tabla->entradas = entradas;
+  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
+  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada2);
+  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada3);
+  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada4);
+  dictionary_put(tabla->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada5);
 
   t_marco_asignado* marco_involucrado1 = malloc(sizeof(t_marco_asignado));
   marco_involucrado1->marco = marco1->num_marco;
@@ -110,7 +107,7 @@ void inicializar_estructuras() {
   // TODO: validar
   llenar_memoria_mock();
   tam_marcos = config_get_int_value(config, "TAM_PAGINA");
-  //diccionario_tablas = dictionary_create();
+  // diccionario_tablas = dictionary_create();
   tablas_de_paginas_primer_nivel = dictionary_create();
   tablas_de_paginas_segundo_nivel = dictionary_create();
   tabla_marcos = list_create();

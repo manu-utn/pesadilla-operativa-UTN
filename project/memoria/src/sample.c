@@ -21,7 +21,9 @@ int main() {
   entrada->bit_modif = 0;
   entrada->bit_presencia = 0;
 
-  int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
+  // int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
+  t_entrada_tabla_segundo_nivel* entradaVictima =
+    entrada_victima_elegida_por_algoritmo_clock(marcos_prueba_clock, entrada);
 
 
   pthread_exit(0);
