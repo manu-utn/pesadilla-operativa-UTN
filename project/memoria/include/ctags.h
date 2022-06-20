@@ -26,7 +26,7 @@ t_entrada_tabla_segundo_nivel * ejecutar_clock(t_list * marcos_asignados,t_entra
 t_entrada_tabla_segundo_nivel * entrada_TP_segundo_nivel_create(int num_entrada,int num_marco,int bit_uso,int bit_modif,int bit_presencia);
 t_entrada_tabla_segundo_nivel * entrada_victima_elegida_por_algoritmo_clock(t_list * marcos_asignados,t_entrada_tabla_segundo_nivel * entrada_solicitada_para_acceder);
 t_entrada_tabla_segundo_nivel * entrada_victima_elegida_por_algoritmo_clock_modificado(t_list * marcos_asignados,t_entrada_tabla_segundo_nivel * entrada_solicitada_para_acceder);
-t_entrada_tabla_segundo_nivel * obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
+t_entrada_tabla_segundo_nivel * obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel,int numero_entrada_TP_segundo_nivel);
 t_list * obtener_marcos_asignados_a_este_proceso(int pid);
 t_marco * algoritmo_clock_puntero_obtener_marco(t_list * lista_de_marcos);
 t_tabla_primer_nivel * obtener_tabla_paginas_primer_nivel_por_pid(int pid);

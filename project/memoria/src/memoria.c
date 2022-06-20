@@ -295,7 +295,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
     return -1;
   } else {
     t_entrada_tabla_segundo_nivel* entrada_segundo_nivel =
-      obtener_entrada_tabla_segundo_nivel(numero_entrada_TP_segundo_nivel);
+      obtener_entrada_tabla_segundo_nivel(numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
     int pid = obtener_pid_asignado_TP_segundo_nivel(numero_entrada_TP_segundo_nivel);
 
     if (tiene_marco_asignado_entrada_TP(entrada_segundo_nivel)) {
@@ -333,9 +333,11 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
       marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
 
       xlog(COLOR_TAREA,
-           "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (TP_2do_nivel=%d, "
+           "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
+           "TP_2do_nivel=%d, "
            "numero_entrada=%d, "
            "numero_marco=%d)",
+           obtener_algoritmo_reemplazo_por_config(),
            numero_tabla_paginas_segundo_nivel,
            numero_entrada_TP_segundo_nivel,
            marco);
@@ -397,6 +399,7 @@ int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int ent
   return marco;
 }
 
+// TODO: validar lógica repetida
 t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   t_tabla_primer_nivel* TP_primer_nivel =
     dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
@@ -409,6 +412,7 @@ t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int 
   return TP_segundo_nivel;
 }
 
+// TODO: validar lógica repetida
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   t_tabla_primer_nivel* TP_primer_nivel =
     dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
@@ -584,9 +588,10 @@ int generar_numero_tabla() {
   return r;
 }
 
-t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel) {
+t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel,
+                                                                   int numero_entrada_TP_segundo_nivel) {
   t_tabla_segundo_nivel* TP_segundo_nivel =
-    dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
+    dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_TP_segundo_nivel));
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel =
     dictionary_get(TP_segundo_nivel->entradas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
 

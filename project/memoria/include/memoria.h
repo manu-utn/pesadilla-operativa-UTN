@@ -135,7 +135,7 @@ int cantidad_tablas_paginas_primer_nivel();
 
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabla);
 t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid);
-t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel);
+t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel);
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada);
 

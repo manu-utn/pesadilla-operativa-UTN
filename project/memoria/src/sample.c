@@ -42,11 +42,20 @@ int main() {
 
 void simular_solicitud_marco_por_mmu() {
   int nuevo_marco = 0;
+  // en estas cuatro peticiones buscará el primer marco libre asignado al proceso
   nuevo_marco = obtener_marco(1, 1);
   nuevo_marco = obtener_marco(1, 2);
   nuevo_marco = obtener_marco(1, 3);
   nuevo_marco = obtener_marco(1, 4);
+  printf("\n");
 
-  // nuevo_marco = obtener_marco(2, 1);
-  // nuevo_marco = obtener_marco(2, 2);
+  // en estas dos peticiones buscará el marco ya asignado a esas entradas
+  nuevo_marco = obtener_marco(1, 1);
+  nuevo_marco = obtener_marco(1, 2);
+  printf("\n");
+
+  // en estas dos peticiones ejecutará el algoritmo de reemplazo,
+  // con la configuración actual el proceso tiene asignado 4 marcos, y ya usó 4
+  nuevo_marco = obtener_marco(2, 1);
+  nuevo_marco = obtener_marco(2, 2);
 }
