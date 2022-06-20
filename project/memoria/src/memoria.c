@@ -394,7 +394,7 @@ void dividir_memoria_principal_en_marcos() {
 }
 
 int obtener_cantidad_entradas_por_tabla_por_config() {
-  return config_get_int_value(config, "ENTRADAS_POR_TABLA");
+  return config_get_int_value(config, "PAGINAS_POR_TABLA");
 }
 
 int obtener_tamanio_memoria_por_config() {
@@ -721,6 +721,7 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
 
   // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
+  tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
 
   for (int numero_entrada_segundo_nivel = 0;
        numero_entrada_segundo_nivel < obtener_cantidad_entradas_por_tabla_por_config();
