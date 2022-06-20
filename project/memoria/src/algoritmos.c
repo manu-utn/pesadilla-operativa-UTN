@@ -92,17 +92,18 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     posicion_marco_leido = posicion_primer_marco_leido;
   }
 
+  // Criterios del clock modificado:
   // 1º busqueda: (0,0) sin modificar bit U
   // 2º busqueda: (0,1) modificando bit U
   // 3º repetir 1º búsqueda, ...
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
   for(int numero_busqueda = 1; !victima_encontrada;){
-    for(;;posicion_marco_leido++){
+    for(;!victima_encontrada; posicion_marco_leido++){
       t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
       int posicion_proximo_marco = posicion_marco_leido + 1;
 
-      // consideramos que el marco leido es el último de la lista, el próximo marco era el primero de la cola circular
+      // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
       if (posicion_marco_leido > list_size(marcos_asignados)){
         posicion_proximo_marco = 0;
       }
@@ -112,7 +113,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
 
       if(numero_busqueda == 1){
-        // evaluamos si alguno cumple (0,0)
+        // busqueda nº1: buscar el par (U=0, M=0)
         if (entrada_asignada_al_marco->bit_uso == 0 && entrada_asignada_al_marco->bit_modif == 0) {
           entrada_victima_elegida = entrada_asignada_al_marco;
 
@@ -134,21 +135,26 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
         }
       }
 
+      // movemos el puntero del clock en la cola circular
       algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
 
       // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
       marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
 
-      // volvemos al principio de la cola circular, el for seguirá iterando
+      // volvemos al principio de la cola circular, la siguiente iteración del 2º for
+      // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
+      // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
       if(posicion_marco_leido > list_size(marcos_asignados)) posicion_marco_leido = 0;
 
-      if (posicion_marco_leido == posicion_primer_marco_leido){
+      // si el próximo marco es el mismo del que partimos, entonces llegamos al final
+      // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo de la lista)
+      if (posicion_marco_leido+1 == posicion_primer_marco_leido){
         // alternativa usar el operador módulo para tener resultados entre (1,2)
 
-        // si la 1º búsqueda no encontró ningún (0,0) ==> avanzamos a la 2º búsqueda (0,1) + modificando U=1 (si y sólo si U==1)
+        // si la 1º búsqueda no encontró ningún par (U=0, M=0) ==> avanzamos a la 2º búsqueda (U=0, M=1) + modificando U=0 (si y sólo si U==1)
         if(numero_busqueda == 1) numero_busqueda = 2;
 
-        // si la 2º búsqueda no encontró ningún (0,1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
+        // si la 2º búsqueda no encontró ningún par (U=0, M=1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
         else if (numero_busqueda == 2) numero_busqueda = 1;
       }
     }
