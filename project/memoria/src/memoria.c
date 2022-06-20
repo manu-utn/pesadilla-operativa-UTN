@@ -285,20 +285,43 @@ bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
 // TODO: validar
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
   int marco = 0;
+  xlog(COLOR_TAREA,
+       "Buscando un marco disponible... (TP_2do_nivel=%d, numero_entrada=%d)",
+       numero_tabla_paginas_segundo_nivel,
+       numero_entrada_TP_segundo_nivel);
 
   // TODO: evaluar más en detalle como manejar este error, por el momento retornamos -1
   if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel))) {
     return -1;
   } else {
     t_entrada_tabla_segundo_nivel* entrada_segundo_nivel =
-      obtener_entrada_tabla_segundo_nivel(numero_entrada_TP_segundo_nivel);
-
+      obtener_entrada_tabla_segundo_nivel(numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
     int pid = obtener_pid_asignado_TP_segundo_nivel(numero_entrada_TP_segundo_nivel);
 
     if (tiene_marco_asignado_entrada_TP(entrada_segundo_nivel)) {
       marco = entrada_segundo_nivel->num_marco;
+
+      xlog(
+        COLOR_TAREA,
+        "Se encontró el marco asignado a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, numero_marco=%d)",
+        numero_tabla_paginas_segundo_nivel,
+        numero_entrada_TP_segundo_nivel,
+        marco);
     } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
+      xlog(
+        COLOR_TAREA,
+        "Buscando alguno de los marcos libre de los asignados al proceso... (pid=%d, cantidad_marcos_disponibles=%d)",
+        pid,
+        cantidad_marcos_libres_asignados_al_proceso(pid));
+
       marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
+
+      xlog(COLOR_TAREA,
+           "Se obtuvo el primer marco libre para a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, "
+           "numero_marco=%d)",
+           numero_tabla_paginas_segundo_nivel,
+           numero_entrada_TP_segundo_nivel,
+           marco);
 
       // según los algoritmos de reemplazo (clock/clock modificado): si bit_de_uso == 0 && bit_de_presencia == 1,
       // entonces bit_de_uso=1 (se habilita de nuevo) podríamos siempre setearlo a 1, pero agregamos éste condicional
@@ -308,17 +331,35 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
     } else {
       // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
       marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+
+      xlog(COLOR_TAREA,
+           "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
+           "TP_2do_nivel=%d, "
+           "numero_entrada=%d, "
+           "numero_marco=%d)",
+           obtener_algoritmo_reemplazo_por_config(),
+           numero_tabla_paginas_segundo_nivel,
+           numero_entrada_TP_segundo_nivel,
+           marco);
     }
   }
 
   return marco;
 }
 
-// TODO: validar
+// TODO: lógica repetida con obtener_primer_marco_libre y hay_marcos_libres_asignados_al_proceso
+int cantidad_marcos_libres_asignados_al_proceso(int pid) {
+  bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
+    return marco->pid == pid && marco->ocupado == 0;
+  }
+
+  return list_count_satisfying(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
+}
+
 // TODO: lógica repetida con obtener_primer_marco_libre
 bool hay_marcos_libres_asignados_al_proceso(int pid) {
   bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
-    return marco->pid == pid && marco->ocupado != 0;
+    return marco->pid == pid && marco->ocupado == 0;
   }
 
   return list_any_satisfy(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
@@ -358,6 +399,20 @@ int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int ent
   return marco;
 }
 
+// TODO: validar lógica repetida
+t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
+  t_tabla_primer_nivel* TP_primer_nivel =
+    dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
+  t_entrada_tabla_primer_nivel* entrada_primer_nivel =
+    dictionary_get(TP_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel));
+
+  t_tabla_segundo_nivel* TP_segundo_nivel =
+    dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(entrada_primer_nivel->num_tabla_segundo_nivel));
+
+  return TP_segundo_nivel;
+}
+
+// TODO: validar lógica repetida
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   t_tabla_primer_nivel* TP_primer_nivel =
     dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
@@ -370,8 +425,8 @@ int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entra
 // TODO: validar
 // TODO: relacionar con buscar_marco_libre()
 void dividir_memoria_principal_en_marcos() {
-  xlog(COLOR_INFO,
-       "Inicializando tabla de marcos (memoria_bytes=%d, tamanio_pagina_bytes=%d, cantidad_marcos_en_memoria=%d)",
+  xlog(COLOR_TAREA,
+       "Dividiendo la memoria en marcos (memoria_bytes=%d, tamanio_pagina_bytes=%d, cantidad_marcos_en_memoria=%d)",
        obtener_tamanio_memoria_por_config(),
        obtener_tamanio_pagina_por_config(),
        obtener_cantidad_marcos_en_memoria());
@@ -424,12 +479,18 @@ int obtener_cantidad_marcos_en_memoria() {
 void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   // TODO: validar el comentario de abajo
   /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
-  xlog(COLOR_CONEXION, "Inicializando proceso");
+  xlog(
+    COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
+
+  xlog(COLOR_TAREA,
+       "TP de primer nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_primer_nivel=%d)",
+       tabla_primer_nivel->num_tabla,
+       dictionary_size(tablas_de_paginas_primer_nivel));
 
   // para todo lo de abajo, se delegó comportamiento en varias funciones, para facilitar lectura y mantenimiento y
   // detectar leaks lo dejo por acá mientras tanto
@@ -527,9 +588,10 @@ int generar_numero_tabla() {
   return r;
 }
 
-t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_entrada_TP_segundo_nivel) {
+t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel,
+                                                                   int numero_entrada_TP_segundo_nivel) {
   t_tabla_segundo_nivel* TP_segundo_nivel =
-    dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
+    dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_TP_segundo_nivel));
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel =
     dictionary_get(TP_segundo_nivel->entradas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
 
@@ -562,19 +624,61 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,
   return marco_libre->num_marco;
 }
 
+void imprimir_marco(t_marco* marco) {
+  xlog(COLOR_INFO,
+       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
+       marco->num_marco,
+       marco->pid,
+       (marco->ocupado) ? "SI" : "NO",
+       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
+}
 
-// TODO: validar
+
 void mostrar_tabla_marcos() {
-  xlog(COLOR_CONEXION, "########TABLA MARCOS################");
+  xlog(COLOR_INFO, "Imprimiendo datos de los marcos en memoria...");
 
-  xlog(COLOR_INFO, "marcos: list_size=%d\n", list_size(tabla_marcos));
+  list_iterate(tabla_marcos, (void*)imprimir_marco);
+}
 
-  for (int i = 0; i < list_size(tabla_marcos); i++) {
-    t_marco* marco = (t_marco*)list_get(tabla_marcos, i);
-    printf("Num Marco: %d ", marco->num_marco);
-    printf("Direccion: %d ", marco->direccion);
-    printf("PID: %d\n", marco->pid);
+void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada) {
+  xlog(COLOR_INFO,
+       "....[TP_SEGUNDO_NIVEL] tp_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
+       "bit_de_presencia=%d",
+       entrada->entrada_segundo_nivel,
+       entrada->num_marco,
+       entrada->bit_uso,
+       entrada->bit_modif,
+       entrada->bit_presencia);
+}
+
+void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
+  xlog(COLOR_INFO,
+       "[TP_PRIMER_NIVEL] tp_numero=%d, pid=%d, cantidad_entradas=%d",
+       tabla_primer_nivel->num_tabla,
+       tabla_primer_nivel->pid,
+       dictionary_size(tabla_primer_nivel->entradas_primer_nivel));
+
+  void imprimir_entrada_primer_segundo_nivel(char* ___, t_entrada_tabla_primer_nivel* entrada_primer_nivel) {
+    t_tabla_segundo_nivel* tabla_segundo_nivel =
+      obtener_TP_segundo_nivel(tabla_primer_nivel->num_tabla, entrada_primer_nivel->entrada_primer_nivel);
+
+    xlog(COLOR_INFO,
+         "..[ENTRADA_PRIMER_NIVEL] entrada_numero=%d, tp_segundo_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
+         entrada_primer_nivel->entrada_primer_nivel,
+         tabla_segundo_nivel->num_tabla,
+         tabla_segundo_nivel->pid,
+         dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
+
+    dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
   }
+
+  dictionary_iterator(tabla_primer_nivel->entradas_primer_nivel, (void*)imprimir_entrada_primer_segundo_nivel);
+}
+
+void imprimir_tablas_de_paginas() {
+  xlog(COLOR_INFO, "Imprimiendo datos de las tablas de paginas...");
+
+  dictionary_iterator(tablas_de_paginas_primer_nivel, (void*)imprimir_tabla_paginas_primer_nivel);
 }
 
 
@@ -671,6 +775,7 @@ int cantidad_tablas_paginas_primer_nivel() {
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
   t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
 
+  xlog(COLOR_TAREA, "Creando TP de primer nivel...");
   // TODO: validar si conviene usar otra manera
   // contamos la cantidad de elementos en la estructura global (en el diccionario) y le sumamos uno
   tabla_paginas_primer_nivel->num_tabla = cantidad_tablas_paginas_primer_nivel() + 1;
@@ -690,9 +795,15 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
     t_tabla_segundo_nivel* tabla_paginas_segundo_nivel =
       tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel);
+
+    // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel,
                    string_itoa(tabla_paginas_segundo_nivel->num_tabla),
                    tabla_paginas_segundo_nivel);
+    xlog(COLOR_TAREA,
+         "TP de segundo nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_segundo_nivel=%d)",
+         tabla_paginas_segundo_nivel->num_tabla,
+         dictionary_size(tablas_de_paginas_segundo_nivel));
 
 
     entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
@@ -702,6 +813,11 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
                    string_itoa(entrada_primer_nivel->entrada_primer_nivel),
                    entrada_primer_nivel);
   }
+
+  xlog(COLOR_TAREA,
+       "TP de primer nivel creada con éxito (TP_1er_nivel_numero=%d, cantidad_entradas=%d)",
+       tabla_paginas_primer_nivel->num_tabla,
+       dictionary_size(tabla_paginas_primer_nivel->entradas_primer_nivel));
 
   return tabla_paginas_primer_nivel;
 }
@@ -719,6 +835,8 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel) {
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
 
+  xlog(COLOR_TAREA, "Creando TP de segundo nivel... (numero_TP=%d)", numero_tabla_segundo_nivel);
+
   // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
   tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
@@ -731,11 +849,15 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
 
     inicializar_entrada_de_tabla_paginas(entrada_tabla_segundo_nivel);
 
-    // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel,
                    string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel),
                    entrada_tabla_segundo_nivel);
   }
+
+  xlog(COLOR_TAREA,
+       "TP de segundo nivel creada con éxito (numero_TP=%d, cantidad_entradas=%d)",
+       tabla_paginas_segundo_nivel->num_tabla,
+       dictionary_size(tabla_paginas_segundo_nivel->entradas_segundo_nivel));
 
   return tabla_paginas_segundo_nivel;
 }
