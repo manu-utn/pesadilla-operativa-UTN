@@ -180,4 +180,7 @@ void imprimir_tablas_de_paginas();
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel);
 void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada);
 int cantidad_marcos_libres_asignados_al_proceso(int pid);
+void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
+void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
+void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 #endif /* MEMORIA_H */
