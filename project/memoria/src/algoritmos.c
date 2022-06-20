@@ -14,9 +14,11 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(
   int numero_marco_elegido = 0;
 
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    entrada_segundo_nivel_victima =
-      ejecutar_clock(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
-  } else if (algoritmo_reemplazo_cargado_es("CLOCK")) {
+    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock(
+      marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
+    // entrada_segundo_nivel_victima = ejecutar_clock(marcos_asignados_al_proceso,
+    // entrada_segundo_nivel_solicitada_para_acceder);
+  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
     // marco_victima = ejecutar_clock_modificado(marcos_involucrados, entrada);
   }
 
@@ -65,7 +67,7 @@ void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* pr
 
 t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos) {
   bool esta_apuntado_por_puntero_de_clock(t_marco * marco) {
-    return marco->apuntado_por_puntero_de_clock;
+    return marco->apuntado_por_puntero_de_clock == true;
   }
 
   t_marco* marco = list_find(lista_de_marcos, (void*)esta_apuntado_por_puntero_de_clock);
@@ -175,6 +177,8 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
   t_list* marcos_asignados,
   t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
+  xlog(COLOR_INFO, "Ejecutando Algoritmo de Reemplazo Clock...");
+
   t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   bool victima_encontrada = false;
 
