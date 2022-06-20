@@ -1,4 +1,16 @@
 * Diagramas para comunicar
+** Diagrama de Actividades de CPU/MMU
+   #+BEGIN_QUOTE
+   Se enfatiza el proceso de traducción de las DL
+   #+END_QUOTE
+
+   [[doc/diagrama-de-actividades-cpu-mmu.png]]
+** Diagrama de Actividades entre Memoria y CPU/MMU 
+   #+BEGIN_QUOTE
+   Se enfatiza el proceso de traducción de las DL
+   #+END_QUOTE
+
+   [[doc/diagrama-actividades-memoria-y-cpu-mmu.png]]
 ** Diagrama de Casos de Uso
    #+BEGIN_QUOTE
    Para tener una idea general de los requisitos funcionales al interactuar con el sistema
