@@ -158,7 +158,7 @@ void* manejar_nueva_conexion_(void* args) {
 void ciclo_instruccion(t_pcb* pcb, uint32_t socket_cliente) {
   xlog(COLOR_INFO, "Iniciando ciclo de instruccion, pcbid: %d", pcb->pid);
 
-  limpiar_tlb();
+  limpiar_tlb(pcb->pid);
 
   while (HAY_PCB_PARA_EJECUTAR_ && pcb->program_counter < list_size(pcb->instrucciones)) {
     t_instruccion* instruccion = malloc(sizeof(t_instruccion));
@@ -361,7 +361,7 @@ uint32_t obtener_direccion_fisica_memoria(t_pcb* pcb, t_instruccion* instruccion
     marco = obtener_marco_tlb(existe_pagina);
   }
 
-  agregar_pagina_marco_tlb(numero_pagina, marco);
+  agregar_pagina_marco_tlb(numero_pagina, marco, pcb->pid);
 
   uint32_t desplazamiento = obtener_desplazamiento(direccion_logica, numero_pagina);
   uint32_t direccion_fisica = obtener_direccion_fisica(desplazamiento, marco);

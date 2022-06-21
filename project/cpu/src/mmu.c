@@ -12,8 +12,11 @@ void iniciar_tlb() {
   reemplazo_tlb = config_get_string_value(config, "REEMPLAZO_TLB");
 }
 
-void limpiar_tlb() {
-  list_clean(tlb);
+void limpiar_tlb(u_int32_t pid) {
+  t_entrada_tlb* entrada_tlb = list_get(tlb, 0);
+  if (pid != entrada_tlb->pid) {
+    list_clean(tlb);
+  }
 }
 
 uint32_t obtener_numero_pagina(uint32_t direccion_logica) {
@@ -43,14 +46,15 @@ uint32_t obtener_marco_tlb(int indice) {
   return marco;
 }
 
-void agregar_pagina_marco_tlb(uint32_t pagina, uint32_t marco) {
-  t_entrada_tlb* entrada_tlb = obtener_entrada_tlb(pagina, marco);
+void agregar_pagina_marco_tlb(uint32_t pagina, uint32_t marco, uint32_t pid) {
+  t_entrada_tlb* entrada_tlb = obtener_entrada_tlb(pagina, marco, pid);
   agregar_entrada_tlb(entrada_tlb);
 }
 
-t_entrada_tlb* obtener_entrada_tlb(uint32_t pagina, uint32_t marco) {
+t_entrada_tlb* obtener_entrada_tlb(uint32_t pagina, uint32_t marco, uint32_t pid) {
   t_entrada_tlb* retorno = malloc(sizeof(t_entrada_tlb));
 
+  retorno->pid = pid;
   retorno->pagina = pagina;
   retorno->marco = marco;
 
@@ -142,18 +146,18 @@ int busco_index_oldest() {
 t_list* prueba_crear_datos_tlb() {
   tlb = list_create();
   cantidad_entradas_tlb = 3;
-  t_entrada_tlb* entrada1 = obtener_entrada_tlb(2, 2);
-  t_entrada_tlb* entrada2 = obtener_entrada_tlb(3, 3);
-  t_entrada_tlb* entrada3 = obtener_entrada_tlb(2, 2);
-  t_entrada_tlb* entrada4 = obtener_entrada_tlb(1, 1);
-  t_entrada_tlb* entrada5 = obtener_entrada_tlb(5, 5);
-  t_entrada_tlb* entrada6 = obtener_entrada_tlb(2, 2);
-  t_entrada_tlb* entrada7 = obtener_entrada_tlb(4, 4);
-  t_entrada_tlb* entrada8 = obtener_entrada_tlb(5, 5);
-  t_entrada_tlb* entrada9 = obtener_entrada_tlb(3, 3);
-  t_entrada_tlb* entrada10 = obtener_entrada_tlb(2, 2);
-  t_entrada_tlb* entrada11 = obtener_entrada_tlb(5, 5);
-  t_entrada_tlb* entrada12 = obtener_entrada_tlb(2, 2);
+  t_entrada_tlb* entrada1 = obtener_entrada_tlb(2, 2, 1);
+  t_entrada_tlb* entrada2 = obtener_entrada_tlb(3, 3, 1);
+  t_entrada_tlb* entrada3 = obtener_entrada_tlb(2, 2, 1);
+  t_entrada_tlb* entrada4 = obtener_entrada_tlb(1, 1, 1);
+  t_entrada_tlb* entrada5 = obtener_entrada_tlb(5, 5, 1);
+  t_entrada_tlb* entrada6 = obtener_entrada_tlb(2, 2, 1);
+  t_entrada_tlb* entrada7 = obtener_entrada_tlb(4, 4, 1);
+  t_entrada_tlb* entrada8 = obtener_entrada_tlb(5, 5, 1);
+  t_entrada_tlb* entrada9 = obtener_entrada_tlb(3, 3, 1);
+  t_entrada_tlb* entrada10 = obtener_entrada_tlb(2, 2, 1);
+  t_entrada_tlb* entrada11 = obtener_entrada_tlb(5, 5, 1);
+  t_entrada_tlb* entrada12 = obtener_entrada_tlb(2, 2, 1);
 
   t_list* tlb_prueba = list_create();
 
