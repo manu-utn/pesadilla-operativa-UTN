@@ -144,6 +144,8 @@ void* manejar_nueva_conexion(void* args) {
         int numero_TP_segundo_nivel =
           obtener_numero_TP_segundo_nivel(solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel,
                                           solicitud_numero_tp_segundo_nivel->entrada_primer_nivel);
+        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
+        // int numero_TP_segundo_nivel = 5;
 
         xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_TP_segundo_nivel);
 
@@ -174,6 +176,8 @@ void* manejar_nueva_conexion(void* args) {
         // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
         int num_marco =
           obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
+        // int num_marco = 4;
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
 

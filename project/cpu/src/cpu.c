@@ -17,6 +17,10 @@ int main() {
   pthread_create(&th1, NULL, realizar_handshake_memoria, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
+  // PARA PRUEBAS - COMENTAR SI NO SE UTILIZA
+  pthread_t th_test;
+  pthread_create(&th_test, NULL, prueba_comunicacion_memoria, NULL), pthread_detach(th_test);
+
   xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
 
   pthread_exit(0);
@@ -202,9 +206,8 @@ void execute(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente, ui
 
   if (strcmp(instruccion->identificador, "NO_OP") == 0) {
     xlog(COLOR_INFO, "Ejecutando NO_OP, pcb id: %d", pcb->pid);
-    uint32_t cantidad_de_veces_no_op = instruccion_obtener_parametro(instruccion, 0);
-    // xlog(COLOR_INFO, "NO_OP se ejecutara %d veces", cantidad_de_veces_no_op);
-
+    // uint32_t cantidad_de_veces_no_op = instruccion_obtener_parametro(instruccion, 0); // no sirve ya que desde
+    // consola lo separa en inst individuales
     execute_no_op();
 
   } else if (strcmp(instruccion->identificador, "I/O") == 0) {
@@ -228,30 +231,6 @@ void execute(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente, ui
     execute_exit(pcb, socket_cliente);
   }
 }
-/*
-void execute_no_op() {
-  int retardo = config_get_int_value(config, "RETARDO_NOOP");
-  xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
-  usleep(retardo * 1000);
-}
-
-void execute_io(t_pcb* pcb, t_instruccion* instruccion, int socket_cliente) {
-  int tiempo_bloqueado = instruccion_obtener_parametro(instruccion, 0);
-  pcb->tiempo_de_bloqueado = tiempo_bloqueado;
-
-  t_paquete* paquete = paquete_create();
-  paquete_add_pcb(paquete, pcb);
-  xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
-  enviar_pcb_con_operacion_io(socket_cliente, paquete);
-  HAY_PCB_PARA_EJECUTAR = 0;
-}
-void execute_exit(t_pcb* pcb, int socket_cliente) {
-  // pcb->program_counter++;
-  t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, 0);
-  paquete_cambiar_mensaje(paquete, mensaje);
-  enviar_pcb_actualizado(socket_cliente, paquete);
-}*/
 
 void check_interrupt(t_pcb* pcb, uint32_t socket_cliente) {
   if (HAY_PCB_PARA_EJECUTAR_) {
@@ -313,12 +292,6 @@ void execute_exit(t_pcb* pcb, int socket_cliente) {
   paquete_add_pcb(paquete, pcb);
   enviar_pcb_con_operacion_exit(socket_cliente, paquete);
   HAY_PCB_PARA_EJECUTAR_ = 0;
-  // HAY_PCB_PARA_EJECUTAR = 0;
-  /*
-  t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb, NULL);
-  paquete_cambiar_mensaje(paquete, mensaje);
-  enviar_pcb_actualizado(socket_cliente, paquete);
-  */
 }
 
 int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
@@ -547,28 +520,28 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
   pthread_exit(NULL);
 }
 
-// void prueba_comunicacion_memoria() {
-//   // typedef struct {
-//   //   uint32_t socket;
-//   //   uint32_t pid;
-//   //   uint32_t tamanio;
-//   //   uint32_t estimacion_rafaga;
-//   //   uint32_t tiempo_en_ejecucion;
-//   //   uint32_t tiempo_de_bloqueado;
-//   //   uint32_t program_counter;
-//   //   uint32_t tabla_primer_nivel;
-//   //   t_pcb_estado estado;
-//   //   t_list* instrucciones;
-//   // } t_pcb;
-//   // typedef struct{
-//   //   char* identificador;
-//   //   char* params;
-//   // } t_instruccion;
-//   t_instruccion* instruccion = malloc(sizeof(t_instruccion));
-//   instruccion->identificador = "WRITE";
-//   instruccion->params = "4 42";
-//   t_pcb* pcb = malloc(sizeof(t_pcb));
-//   pcb->tabla_primer_nivel = 4;
-//   execute_write(pcb, instruccion);
-//   // execute_read(pcb, instruccion);
-// }
+void prueba_comunicacion_memoria() {
+  // typedef struct {
+  //   uint32_t socket;
+  //   uint32_t pid;
+  //   uint32_t tamanio;
+  //   uint32_t estimacion_rafaga;
+  //   uint32_t tiempo_en_ejecucion;
+  //   uint32_t tiempo_de_bloqueado;
+  //   uint32_t program_counter;
+  //   uint32_t tabla_primer_nivel;
+  //   t_pcb_estado estado;
+  //   t_list* instrucciones;
+  // } t_pcb;
+  // typedef struct{
+  //   char* identificador;
+  //   char* params;
+  // } t_instruccion;
+  t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+  instruccion->identificador = "WRITE";
+  instruccion->params = "4 42";
+  t_pcb* pcb = malloc(sizeof(t_pcb));
+  pcb->tabla_primer_nivel = 4;
+  execute_write(pcb, instruccion);
+  // execute_read(pcb, instruccion);
+}

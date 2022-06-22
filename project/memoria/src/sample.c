@@ -7,18 +7,18 @@
 int main() {
   // función de la biblioteca static
   inicializar_estructuras();
-  // pthread_t th;
-  // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
+  pthread_t th;
+  pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 
   // PARA TESTEAR ALGORITMOS DE REEMPLAZO
   // reservar_marcos_mock();
 
-  inicializar_estructuras_de_este_proceso(0, 500);
+  // inicializar_estructuras_de_este_proceso(0, 500);
 
-  mostrar_tabla_marcos();
-  imprimir_tablas_de_paginas();
+  // mostrar_tabla_marcos();
+  // imprimir_tablas_de_paginas();
 
-  simular_solicitud_marco_por_mmu();
+  // simular_solicitud_marco_por_mmu();
 
   // comentamos para probar la otra versión
   /*
@@ -36,8 +36,10 @@ int main() {
    *
    */
 
+  xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
 
-  return 0;
+  pthread_exit(0);
+  // return 0;
 }
 
 void simular_solicitud_marco_por_mmu() {
