@@ -392,6 +392,8 @@ t_solicitud_marco* obtener_solicitud_marco(t_paquete* paquete_serializado) {
   offset += sizeof(int);
   memcpy(&(read->entrada_segundo_nivel), paquete_serializado->buffer->stream + offset, sizeof(int));
   offset += sizeof(int);
+  memcpy(&(read->operacion), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
 
   return read;
 }
@@ -413,15 +415,12 @@ t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_ser
   uint32_t offset = 0;
 
   t_escritura_dato_fisico* read = malloc(sizeof(t_escritura_dato_fisico));
-  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+  memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->dir_fisica), paquete_serializado->buffer->stream + offset, sizeof(int));
+  offset += sizeof(int);
+  memcpy(&(read->valor), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
   offset += sizeof(uint32_t);
-  memcpy(&(read->dir_fisica), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  offset += sizeof(uint32_t);
-  int size_valor = 0;
-  memcpy(&size_valor, paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  offset += sizeof(uint32_t);
-  memcpy(read->valor, paquete_serializado->buffer->stream + offset, size_valor);
-  offset += size_valor;
 
   return read;
 }

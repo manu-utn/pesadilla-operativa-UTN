@@ -327,6 +327,14 @@ int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
   solicitud->socket = socket_memoria;
   solicitud->dir_fisica = direccion_fisica;
   solicitud->valor = dato_a_escribir;
+  // t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
+  //                                                      int tam_pagina,
+  //                                                      int cant_entradas_por_tabla,
+  //                                                      int num_pagina,
+  //                                                      uint32_t dir_logica,
+  //                                                      int operacion) {
+  //   log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
+  //   int cod_op = 0;
 
   t_paquete* paquete = paquete_create();
   t_buffer* mensaje = crear_mensaje_escritura_dato_fisico(solicitud);

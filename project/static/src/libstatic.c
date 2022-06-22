@@ -107,7 +107,7 @@ t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_ta
 t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int) * 3;
+  int mensaje_size = sizeof(int) * 4;
   int offset = 0;
 
   t_buffer* mensaje = NULL;
@@ -120,6 +120,8 @@ t_buffer* crear_mensaje_obtener_marco(t_solicitud_marco* read) {
   memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(int));
   offset += sizeof(int);
   memcpy(mensaje->stream + offset, &(read->entrada_segundo_nivel), sizeof(int));
+  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->operacion), sizeof(int));
   offset += sizeof(int);
 
   return mensaje;
