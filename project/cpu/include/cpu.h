@@ -20,6 +20,7 @@
 #include "dir.h"
 #include "serializado.h"
 #include "utils-cliente.h"
+#include "utils-servidor.h"
 
 t_config    *   config;
 t_log       *   logger;

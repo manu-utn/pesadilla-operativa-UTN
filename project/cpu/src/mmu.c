@@ -13,6 +13,9 @@ void iniciar_tlb() {
 }
 
 void limpiar_tlb(u_int32_t pid) {
+  if (list_size(tlb) == 0)
+    return;
+
   t_entrada_tlb* entrada_tlb = list_get(tlb, 0);
   if (pid != entrada_tlb->pid) {
     list_clean(tlb);

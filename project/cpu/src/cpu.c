@@ -13,13 +13,13 @@ int main() {
   // estado_conexion_con_cliente = false;
 
   pthread_t th, th1, th2;
-  pthread_create(&th, NULL, escuchar_dispatch_, NULL), pthread_detach(th);
-  pthread_create(&th1, NULL, realizar_handshake_memoria, NULL), pthread_detach(th1);
-  pthread_create(&th2, NULL, iniciar_conexion_interrupt, NULL), pthread_detach(th2);
+  pthread_create(&th, NULL, (void*)escuchar_dispatch_, NULL), pthread_detach(th);
+  pthread_create(&th1, NULL, (void*)realizar_handshake_memoria, NULL), pthread_detach(th1);
+  pthread_create(&th2, NULL, (void*)iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
   // PARA PRUEBAS - COMENTAR SI NO SE UTILIZA
-  pthread_t th_test;
-  pthread_create(&th_test, NULL, prueba_comunicacion_memoria, NULL), pthread_detach(th_test);
+  // pthread_t th_test;
+  // pthread_create(&th_test, NULL, (void*)prueba_comunicacion_memoria, NULL), pthread_detach(th_test);
 
   xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
 
@@ -262,6 +262,7 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente)
   paquete_add_pcb(paquete, pcb);
   xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
+  HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
 void execute_read(t_pcb* pcb, t_instruccion* instruccion) {
