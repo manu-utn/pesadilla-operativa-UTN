@@ -154,10 +154,10 @@ void enviar_mensaje_handshake(int socket_destino, t_paquete* paquete) {
   int status = enviar(socket_destino, paquete);
 
   if (status != -1) {
-    log_info(logger,
-             "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
-             socket_destino,
-             paquete->buffer->size);
+    xlog(COLOR_PAQUETE,
+         "El MENSAJE fue enviado con éxito (socket_destino=%d, buffer_bytes=%d)",
+         socket_destino,
+         paquete->buffer->size);
   }
 }
 
@@ -225,6 +225,7 @@ void enviar_operacion_obtener_dato(int socket_destino, t_paquete* paquete) {
              paquete->buffer->size);
   }
 }
+
 
 void enviar_operacion_escribir_dato(int socket_destino, t_paquete* paquete) {
   paquete->codigo_operacion = OPERACION_ESCRIBIR_DATO;
