@@ -22,7 +22,9 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(
     // entrada_segundo_nivel_victima = ejecutar_clock(marcos_asignados_al_proceso,
     // entrada_segundo_nivel_solicitada_para_acceder);
   } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    // marco_victima = ejecutar_clock_modificado(marcos_involucrados, entrada);
+    // entrada_segundo_nivel_victima = ejecutar_clock_modificado(marcos_asignados_al_proceso, entrada);
+    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(
+      marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   }
 
   numero_marco_elegido = entrada_segundo_nivel_victima->num_marco;
@@ -115,13 +117,15 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
   for (int numero_busqueda = 1; !victima_encontrada;) {
     for (; !victima_encontrada; posicion_marco_leido++) {
-      t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
       int posicion_proximo_marco = posicion_marco_leido + 1;
-
       // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
-      if (posicion_marco_leido > list_size(marcos_asignados)) {
+      if (posicion_proximo_marco == list_size(marcos_asignados)) {
         posicion_proximo_marco = 0;
+        posicion_marco_leido = 0;
+        continue;
       }
+
+      t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
       t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido + 1);
 

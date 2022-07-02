@@ -248,6 +248,8 @@ void* manejar_nueva_conexion(void* args) {
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
+
+        // TODO: DEVOLVER LA TABLA DE IMER NIVEL POSTA ASIGNADA AL PROCESO
         pcb->tabla_primer_nivel = 1;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
@@ -650,7 +652,7 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid) {
   xlog(COLOR_INFO, "[Algoritmo Reemplazo] Imprimiendo datos de los marcos asignados a un proceso... (pid=%d)", pid);
 
   t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
-  list_iterate(marcos_asignados_al_proceso, (void*)imprimir_marco);
+  // list_iterate(marcos_asignados_al_proceso, (void*)imprimir_marco);
 }
 
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada) {
@@ -818,7 +820,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
 
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
     t_tabla_segundo_nivel* tabla_paginas_segundo_nivel =
-      tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel);
+      tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, 1);
 
     // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel,
@@ -856,13 +858,14 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
   entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
 }
 
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel) {
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid) {
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
 
   xlog(COLOR_TAREA, "Creando TP de segundo nivel... (numero_TP=%d)", numero_tabla_segundo_nivel);
 
   // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
+  tabla_paginas_segundo_nivel->pid = pid;
   tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
 
   for (int numero_entrada_segundo_nivel = 0;

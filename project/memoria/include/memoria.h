@@ -14,6 +14,14 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
+#include <sys/stat.h>
+
+#include <stdbool.h>
+#include <ctype.h>
+#include <assert.h>
+#include <sys/mman.h>
+#include <stdarg.h>
+#include <errno.h>
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -129,7 +137,7 @@ uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
 int escribir_dato(uint32_t dir_fisica, uint32_t valor);
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel);
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
 void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
 int cantidad_tablas_paginas_primer_nivel();
 
@@ -183,4 +191,8 @@ int cantidad_marcos_libres_asignados_al_proceso(int pid);
 void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
+
+//SWAP
+int crear_punto_de_montaje(char* path);
+
 #endif /* MEMORIA_H */

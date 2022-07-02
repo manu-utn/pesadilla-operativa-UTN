@@ -62,7 +62,7 @@ void reservar_marcos_mock() {
   t_entrada_tabla_segundo_nivel* entrada4 = entrada_TP_segundo_nivel_create(3, -1, 0, 0, 0);
   t_entrada_tabla_segundo_nivel* entrada5 = entrada_TP_segundo_nivel_create(4, -1, 0, 0, 0);
 
-  t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(1);
+  t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(1, 1);
   dictionary_put(
     tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
   dictionary_put(
@@ -90,4 +90,40 @@ void reservar_marcos_mock() {
   list_add(marcos_prueba_clock, marco_involucrado1);
   list_add(marcos_prueba_clock, marco_involucrado2);
   list_add(marcos_prueba_clock, marco_involucrado3);
+}
+
+static void marco_destroy(t_marco* marco) {
+  free(marco);
+}
+
+void reservar_marcos_2() {
+  t_marco* marco1 = malloc(sizeof(t_marco));
+  t_marco* marco2 = malloc(sizeof(t_marco));
+  t_marco* marco3 = malloc(sizeof(t_marco));
+  marcos_prueba_clock = list_create();
+
+  marco1->ocupado = 1;
+  marco1->pid = 1;
+  t_tabla_segundo_nivel* tabla1 = malloc(sizeof(t_tabla_segundo_nivel));
+  tabla1 = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
+  marco1->entrada_segundo_nivel = dictionary_get(tabla1->entradas_segundo_nivel, "0");
+  // list_add_in_index(tabla_marcos, 0, marco1);
+  list_replace_and_destroy_element(tabla_marcos, 0, marco1, (void*)marco_destroy);
+
+
+  marco2->ocupado = 1;
+  marco2->pid = 1;
+  // t_tabla_segundo_nivel* tabla2 = malloc(sizeof(t_tabla_segundo_nivel));
+  // tabla2 = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
+  marco2->entrada_segundo_nivel = dictionary_get(tabla1->entradas_segundo_nivel, "1");
+  // list_add_in_index(tabla_marcos, 1, marco2);
+  list_replace_and_destroy_element(tabla_marcos, 1, marco2, (void*)marco_destroy);
+
+  marco3->ocupado = 1;
+  marco3->pid = 1;
+  // list_add_in_index(tabla_marcos, 2, marco3);
+  // t_tabla_segundo_nivel* tabla3 = malloc(sizeof(t_tabla_segundo_nivel));
+  // tabla3 = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
+  marco3->entrada_segundo_nivel = dictionary_get(tabla1->entradas_segundo_nivel, "2");
+  list_replace_and_destroy_element(tabla_marcos, 2, marco3, (void*)marco_destroy);
 }

@@ -7,6 +7,8 @@
 int main() {
   // función de la biblioteca static
   inicializar_estructuras();
+  char* path_punto_monateje = config_get_string_value(config, "PATH_SWAP");
+  crear_punto_de_montaje(path_punto_monateje);
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 
@@ -18,30 +20,33 @@ int main() {
   mostrar_tabla_marcos();
   imprimir_tablas_de_paginas();
 
+  reservar_marcos_2();
+
   simular_solicitud_marco_por_mmu();
 
   // comentamos para probar la otra versión
+
   /*
-  t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
+    t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
 
-  entrada->entrada_segundo_nivel = 5;
-  entrada->num_marco = -1;
-  entrada->bit_uso = 0;
-  entrada->bit_modif = 0;
-  entrada->bit_presencia = 0;
+    entrada->entrada_segundo_nivel = 5;
+    entrada->num_marco = -1;
+    entrada->bit_uso = 0;
+    entrada->bit_modif = 0;
+    entrada->bit_presencia = 0;
 
-  // int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
-  t_entrada_tabla_segundo_nivel* entradaVictima =
-    entrada_victima_elegida_por_algoritmo_clock(marcos_prueba_clock, entrada);
-   *
-   */
-
+    // int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
+    t_entrada_tabla_segundo_nivel* entradaVictima =
+      entrada_victima_elegida_por_algoritmo_clock_modificado(marcos_prueba_clock, entrada);
+  */
 
   return 0;
 }
 
+
 void simular_solicitud_marco_por_mmu() {
   int nuevo_marco = 0;
+
   // en estas cuatro peticiones buscará el primer marco libre asignado al proceso
   nuevo_marco = obtener_marco(1, 1);
   nuevo_marco = obtener_marco(1, 2);
