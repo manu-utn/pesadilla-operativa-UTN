@@ -39,14 +39,14 @@ ifeq (, $(shell which docker))
 endif
 
 libcommons-installed:
-ifneq ($(DOCKER_RUNNING), true)
+ifeq ($(DOCKER_RUNNING), true)
 ifeq (, $(shell ldconfig -p | grep libcommons))
-	$(error No tenes instalado la shared library so-commons ejecuta `make install` e intentalo de nuevo)
+		$(error No tenes instalado la shared library so-commons ejecuta `make install` e intentalo de nuevo)
 endif
 endif
 
 libcspecs-installed:
-ifneq ($(DOCKER_RUNNING), true)
+ifeq ($(DOCKER_RUNNING), true)
 ifeq (, $(shell ldconfig -p | grep libcspec))
 	$(error No tenes instalado la shared cspecs ejecuta `make install` e intentalo de nuevo)
 endif

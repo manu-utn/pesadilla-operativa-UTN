@@ -3,6 +3,7 @@
 -include .config/functions.mk
 -include .config/docker.mk
 -include .config/install.mk
+-include .config/deploy.mk
 -include .config/packages-installed.mk
 -include project.cfg
 

@@ -56,26 +56,29 @@ ifeq ($(USER_UTNSO_IS_REQUIRED), true)
 	@su utnso && cd (DIR_BASE)
 endif
 
+# TODO: validar si en el contenedor de docker debe tener sudo..
 install-lib-cspec:
 # validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
-ifneq ("", "$(wildcard $(DIR_LIBS)/cspec)")
+ifeq (, $(wildcard $(DIR_LIBS)/cspec))
 	$(info Instalando cspec library...)
 	@cd $(DIR_LIBS) && \
-	sudo git clone http://github.com/mumuki/cspec
-	@sudo $(MAKE) -C $(DIR_LIBS)/cspec clean all install
+	git clone http://github.com/mumuki/cspec
+	@$(MAKE) -C $(DIR_LIBS)/cspec clean all install
 endif
 
+# TODO: validar si en el contenedor de docker debe tener sudo..
 install-lib-commons:
 # validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
-ifneq ("", "$(wildcard $(DIR_LIBS)/so-commons-library)")
+ifeq (, $(wildcard $(DIR_LIBS)/so-commons-library))
 	$(info Instalando so-commons...)
 	@cd $(DIR_LIBS) && \
-	sudo git clone http://github.com/sisoputnfrba/so-commons-library
-	@sudo $(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
+	git clone http://github.com/sisoputnfrba/so-commons-library
+	@$(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
 endif
 
+# TODO: validar si en el contenedor de docker debe tener sudo..
 install-ctags:
-ifneq (, $(shell which universal-ctags))
+ifeq (, $(shell which universal-ctags))
 	$(info Instalando ctags...)
 	@cd /tmp && \
 			git clone https://github.com/universal-ctags/ctags.git && cd ctags && \
