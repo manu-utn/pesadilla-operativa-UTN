@@ -56,23 +56,24 @@ ifeq ($(USER_UTNSO_IS_REQUIRED), true)
 	@su utnso && cd (DIR_BASE)
 endif
 
-# TODO: validar si en el contenedor de docker debe tener sudo..
+# TODO: es necesario el sudo en make install, porque la implementacion del makefile de Cpsec no lo agrego
+# TODO: validar nuevamente si en el contenedor de docker debe tener sudo..
+# TODO: integrar validacion de shared library instalada con ldconfig (interviene el LD_PATH)
 install-lib-cspec:
 # validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
 ifeq (, $(wildcard $(DIR_LIBS)/cspec))
 	$(info Instalando cspec library...)
-	@cd $(DIR_LIBS) && \
-	git clone http://github.com/mumuki/cspec
-	@$(MAKE) -C $(DIR_LIBS)/cspec clean all install
+	@cd $(DIR_LIBS) && $(RM) cspec && git clone http://github.com/mumuki/cspec
+	@sudo $(MAKE) -C $(DIR_LIBS)/cspec clean all install
 endif
 
-# TODO: validar si en el contenedor de docker debe tener sudo..
+# TODO: validar nuevamente si en el contenedor de docker debe tener sudo..
+# TODO: integrar validacion de shared library instalada con ldconfig (interviene el LD_PATH)
 install-lib-commons:
 # validamos si existe la ruta, caso contrario arrojara error y el makefile fallara..
 ifeq (, $(wildcard $(DIR_LIBS)/so-commons-library))
 	$(info Instalando so-commons...)
-	@cd $(DIR_LIBS) && \
-	git clone http://github.com/sisoputnfrba/so-commons-library
+	@cd $(DIR_LIBS) && $(RM) so-commons-library && git clone http://github.com/sisoputnfrba/so-commons-library
 	@$(MAKE) -C $(DIR_LIBS)/so-commons-library clean all test install
 endif
 
@@ -80,9 +81,9 @@ endif
 install-ctags:
 ifeq (, $(shell which universal-ctags))
 	$(info Instalando ctags...)
-	@cd /tmp && \
-			git clone https://github.com/universal-ctags/ctags.git && cd ctags && \
-    ./autogen.sh && ./configure && make && sudo make install
+
+	@cd /tmp && $(RM) ctags && git clone https://github.com/universal-ctags/ctags.git && \
+	cd ctags && ./autogen.sh && ./configure && make && sudo make install
 endif
 
 .PHONY: install-virtualbox install-dev-utils install-ctags install-lib-cspec install-lib-commons add-user copy-project deploy-dev deploy-prod
