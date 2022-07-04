@@ -1,14 +1,15 @@
 #include "sample.h"
+#include "libstatic.h" // <-- STATIC LIB
 #include "memoria.h"
-#include <libstatic.h> // <-- STATIC LIB
 #include <stdio.h>
 #include <utils.h>
 
 int main() {
   // función de la biblioteca static
   inicializar_estructuras();
-  char* path_punto_monateje = config_get_string_value(config, "PATH_SWAP");
-  crear_punto_de_montaje(path_punto_monateje);
+  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
+  crear_punto_de_montaje(path_punto_monataje);
+  inicializar_archivo_swap(0, 500, path_punto_monataje);
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 
@@ -22,7 +23,7 @@ int main() {
 
   reservar_marcos_2();
 
-  simular_solicitud_marco_por_mmu();
+  // simular_solicitud_marco_por_mmu();
 
   // comentamos para probar la otra versión
 

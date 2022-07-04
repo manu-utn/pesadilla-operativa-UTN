@@ -31,3 +31,29 @@ int crear_punto_de_montaje(char* path) {
   }
   return 1;
 }
+
+void inicializar_archivo_swap(int pid, int tamanio, char* path) {
+  char* filename = string_new();
+  char* extension = ".swap";
+  char* contenido = string_repeat('0', tamanio);
+  size_t resultado;
+
+  string_append(&filename, path);
+  string_append(&filename, "/");
+  string_append(&filename, string_itoa(pid));
+  string_append(&filename, extension);
+
+  FILE* fd = fopen(filename, "w+");
+
+  if (fd == NULL) {
+    log_error(logger, "Error al crear el archivo swap");
+  }
+
+  resultado = fwrite(contenido, sizeof(char*), tamanio, fd);
+
+  if (resultado != tamanio) {
+    log_error(logger, "No se ha inicializado correctamente el archivo.");
+  } else {
+    log_info(logger, "Archivo creado correctamente.");
+  }
+}
