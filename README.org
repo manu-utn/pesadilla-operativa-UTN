@@ -1,3 +1,14 @@
+* Configuracion en Servidor sin GUI
+#+BEGIN_SRC shell
+# generamos la clave publica
+ssh-keygen -C "correo@dominio.com"
+
+# la subimos a internet
+curl -T ~/.ssh/id_rsa.pub https://transfer.sh/clave.txt
+
+# agregar la clave publica en https://github.com/settings/ssh/new
+#+END_SRC
+
 * Diagramas para comunicar
 ** Diagrama de Actividades de CPU/MMU
    #+BEGIN_QUOTE
