@@ -1,5 +1,5 @@
 * Configuracion en Servidor sin GUI
-* Generar clave ssh publica
+** Generar clave ssh publica
 #+BEGIN_SRC shell
 # 1. generar la clave publica
 ssh-keygen -C "correo@dominio.com"
