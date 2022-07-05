@@ -10,6 +10,7 @@ int main() {
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
   inicializar_archivo_swap(0, 500, path_punto_monataje);
+  inicializar_archivo_swap(1, 500, path_punto_monataje);
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 
@@ -22,6 +23,8 @@ int main() {
   imprimir_tablas_de_paginas();
 
   reservar_marcos_2();
+
+  eliminar_archivo_swap(0, 500, path_punto_monataje);
 
   // simular_solicitud_marco_por_mmu();
 

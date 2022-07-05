@@ -54,6 +54,26 @@ void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   if (resultado != tamanio) {
     log_error(logger, "No se ha inicializado correctamente el archivo.");
   } else {
-    log_info(logger, "Archivo creado correctamente.");
+    log_info(logger, "Archivo %s creado correctamente.", filename);
+  }
+
+  if (fclose(fd) != 0) {
+    log_error(logger, "No se ha podido cerrar el fichero.\n");
+  }
+}
+
+void eliminar_archivo_swap(int pid, int tamanio, char* path) {
+  char* filename = string_new();
+  char* extension = ".swap";
+
+  string_append(&filename, path);
+  string_append(&filename, "/");
+  string_append(&filename, string_itoa(pid));
+  string_append(&filename, extension);
+
+  if (remove(filename) == 0) {
+    log_info(logger, "El archivo %s fue eliminado satisfactoriamente\n", filename);
+  } else {
+    log_error(logger, "No se pudo eliminar el archivo\n");
   }
 }
