@@ -9,6 +9,7 @@
 
 ##@ Entorno
 i install: install-virtualbox install-dev-utils install-ctags install-lib-cspec install-lib-commons add-user copy-project ## Instalar y configurar entorno (unica vez)
+	echo "#define DIR_BASE \"/home/$(USERNAME)/tp-2022-1c-Sisop-Oh-Yeah/project/\"" > ./project/static/include/dir.h
 
 ##@ Desarrollo
 # TODO: need refactor
