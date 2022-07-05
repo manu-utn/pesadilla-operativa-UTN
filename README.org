@@ -1,12 +1,22 @@
 * Configuracion en Servidor sin GUI
+* Generar clave ssh publica
 #+BEGIN_SRC shell
-# generamos la clave publica
+# 1. generar la clave publica
 ssh-keygen -C "correo@dominio.com"
 
-# la subimos a internet
+# 2. subir la clave publica a internet con curl
 curl -T ~/.ssh/id_rsa.pub https://transfer.sh/clave.txt
 
-# agregar la clave publica en https://github.com/settings/ssh/new
+# 3. agregar la clave publica en https://github.com/settings/ssh/new
+#+END_SRC
+
+** Descargar repositorio remoto
+#+BEGIN_SRC shell
+# 1. instalar el paquete de git
+sudo apt install -y git
+
+# 2. descargar repositorio remoto como local
+git clone git@github.com:sisoputnfrba/tp-2022-1c-Sisop-Oh-Yeah.git
 #+END_SRC
 
 * Diagramas para comunicar
