@@ -100,6 +100,7 @@ void reservar_marcos_2() {
   t_marco* marco1 = malloc(sizeof(t_marco));
   t_marco* marco2 = malloc(sizeof(t_marco));
   t_marco* marco3 = malloc(sizeof(t_marco));
+  t_marco* marco4 = malloc(sizeof(t_marco));
   marcos_prueba_clock = list_create();
 
   marco1->ocupado = 1;
@@ -132,4 +133,14 @@ void reservar_marcos_2() {
   // tabla3 = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
   marco3->entrada_segundo_nivel = dictionary_get(tabla1->entradas_segundo_nivel, "2");
   list_replace_and_destroy_element(tabla_marcos, 2, marco3, (void*)marco_destroy);
+
+  marco4->ocupado = 1;
+  marco4->pid = 1;
+  marco4->num_marco = 4;
+  marco4->apuntado_por_puntero_de_clock = false;
+  // list_add_in_index(tabla_marcos, 2, marco3);
+  // t_tabla_segundo_nivel* tabla3 = malloc(sizeof(t_tabla_segundo_nivel));
+  // tabla3 = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
+  marco4->entrada_segundo_nivel = dictionary_get(tabla1->entradas_segundo_nivel, "3");
+  list_replace_and_destroy_element(tabla_marcos, 3, marco4, (void*)marco_destroy);
 }
