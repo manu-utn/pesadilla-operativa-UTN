@@ -194,5 +194,5 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 
 //SWAP
 int crear_punto_de_montaje(char* path);
-
+void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
 #endif /* MEMORIA_H */
