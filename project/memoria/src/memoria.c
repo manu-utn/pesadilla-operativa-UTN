@@ -625,11 +625,12 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,
 }
 
 void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
-  int marco_libre_asignado_a_este_proceso(t_marco * marco) {
-    return marco->pid == pid && marco->ocupado == 0;
+  // TODO: chequear
+  int _marco(t_marco * marco) {
+    return marco->num_marco == numero_marco;
   }
 
-  t_marco* marco_asignado = list_find(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
+  t_marco* marco_asignado = list_find(tabla_marcos, (void*)_marco);
   marco_asignado->ocupado = 1;
 
   entrada_TP_segundo_nivel->num_marco = marco_asignado->num_marco;
