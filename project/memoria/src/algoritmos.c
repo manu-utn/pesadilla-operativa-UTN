@@ -119,15 +119,17 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     for (; !victima_encontrada; posicion_marco_leido++) {
       int posicion_proximo_marco = posicion_marco_leido + 1;
       // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
-      if (posicion_proximo_marco == list_size(marcos_asignados)) {
+      /*if (posicion_marco_leido == list_size(marcos_asignados)) {
         posicion_proximo_marco = 0;
         posicion_marco_leido = 0;
         continue;
-      }
+      }*/
 
       t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
-      t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido + 1);
+      t_marco* proximo_marco_seleccionado = (posicion_marco_leido + 1) == list_size(marcos_asignados) ?
+                                              list_get(marcos_asignados, 0) :
+                                              list_get(marcos_asignados, posicion_marco_leido + 1);
 
       t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
 
@@ -163,8 +165,10 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       // volvemos al principio de la cola circular, la siguiente iteración del 2º for
       // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
       // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
-      if (posicion_proximo_marco > list_size(marcos_asignados))
+      if (posicion_proximo_marco >= list_size(marcos_asignados)) {
         posicion_marco_leido = 0;
+        posicion_proximo_marco = posicion_primer_marco_leido;
+      }
 
       // si el próximo marco es el mismo del que partimos, entonces llegamos al final
       // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
