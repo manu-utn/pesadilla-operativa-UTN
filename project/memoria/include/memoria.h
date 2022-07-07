@@ -33,6 +33,11 @@ typedef enum {
 } t_operacion_memoria;
 
 typedef enum {
+  MARCO_LIBRE = 0,
+  MARCO_OCUPADO = 1,
+} t_estado_marco;
+
+typedef enum {
   CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
   CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA = 1,
   CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA = 2,
@@ -195,4 +200,9 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 //SWAP
 int crear_punto_de_montaje(char* path);
 void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+t_marco* marco_create(int numero, int pid, t_estado_marco estado);
+t_marco* obtener_marco_de_memoria(int numero_marco);
+void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
+void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 #endif /* MEMORIA_H */

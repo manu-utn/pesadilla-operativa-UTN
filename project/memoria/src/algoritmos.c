@@ -132,6 +132,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
                                               list_get(marcos_asignados, posicion_marco_leido + 1);
 
       t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
+      algoritmo_clock_entrada_imprimir_bits(entrada_asignada_al_marco);
 
       if (numero_busqueda == 1) {
         // busqueda nº1: buscar el par (U=0, M=0)
