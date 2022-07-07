@@ -166,7 +166,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
       // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
       if (posicion_proximo_marco >= list_size(marcos_asignados)) {
-        posicion_marco_leido = 0;
+        posicion_marco_leido = -1;
         posicion_proximo_marco = posicion_primer_marco_leido;
       }
 
