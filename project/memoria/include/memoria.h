@@ -14,6 +14,14 @@
 #include <stdint.h>
 #include <libstatic.h>
 #include <semaphore.h>
+#include <sys/stat.h>
+
+#include <stdbool.h>
+#include <ctype.h>
+#include <assert.h>
+#include <sys/mman.h>
+#include <stdarg.h>
+#include <errno.h>
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -23,6 +31,11 @@ typedef enum {
   OPERACION_LECTURA = 1,
   OPERACION_ESCRITURA = 2
 } t_operacion_memoria;
+
+typedef enum {
+  MARCO_LIBRE = 0,
+  MARCO_OCUPADO = 1,
+} t_estado_marco;
 
 typedef enum {
   CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
@@ -129,7 +142,7 @@ uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
 int escribir_dato(uint32_t dir_fisica, uint32_t valor);
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel);
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
 void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
 int cantidad_tablas_paginas_primer_nivel();
 
@@ -180,4 +193,17 @@ void imprimir_tablas_de_paginas();
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel);
 void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada);
 int cantidad_marcos_libres_asignados_al_proceso(int pid);
+void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
+void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
+void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
+
+//SWAP
+int crear_punto_de_montaje(char* path);
+void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+t_marco* marco_create(int numero, int pid, t_estado_marco estado);
+t_marco* obtener_marco_de_memoria(int numero_marco);
+void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
+void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
+void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 #endif /* MEMORIA_H */

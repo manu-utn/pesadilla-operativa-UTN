@@ -248,6 +248,8 @@ void* manejar_nueva_conexion(void* args) {
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
+
+        // TODO: DEVOLVER LA TABLA DE IMER NIVEL POSTA ASIGNADA AL PROCESO
         pcb->tabla_primer_nivel = 1;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
@@ -301,12 +303,13 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
     if (tiene_marco_asignado_entrada_TP(entrada_segundo_nivel)) {
       marco = entrada_segundo_nivel->num_marco;
 
-      xlog(
-        COLOR_TAREA,
-        "Se encontró el marco asignado a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, numero_marco=%d)",
-        numero_tabla_paginas_segundo_nivel,
-        numero_entrada_TP_segundo_nivel,
-        marco);
+      xlog(COLOR_TAREA,
+           "Se encontró el marco asignado a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, pid=%d, "
+           "numero_marco=%d)",
+           numero_tabla_paginas_segundo_nivel,
+           numero_entrada_TP_segundo_nivel,
+           pid,
+           marco);
     } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
       xlog(
         COLOR_TAREA,
@@ -422,8 +425,6 @@ int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entra
   return entrada_primer_nivel->num_tabla_segundo_nivel;
 }
 
-// TODO: validar
-// TODO: relacionar con buscar_marco_libre()
 void dividir_memoria_principal_en_marcos() {
   xlog(COLOR_TAREA,
        "Dividiendo la memoria en marcos (memoria_bytes=%d, tamanio_pagina_bytes=%d, cantidad_marcos_en_memoria=%d)",
@@ -435,7 +436,7 @@ void dividir_memoria_principal_en_marcos() {
     t_marco* marco = malloc(sizeof(t_marco));
     marco->num_marco = numero_marco;
     marco->direccion = 0;
-    marco->pid = 0;
+    marco->pid = -1; // porque no tiene un proceso asignado al principio
 
     // para simular un bitmap de marcos libres/ocupados
     marco->ocupado = 0;
@@ -624,6 +625,21 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,
   return marco_libre->num_marco;
 }
 
+// TODO: evaluar si deprecar, se staba usando en un mock
+void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
+  int _marco(t_marco * marco) {
+    return marco->num_marco == numero_marco;
+  }
+
+  t_marco* marco_asignado = list_find(tabla_marcos, (void*)_marco);
+  marco_asignado->pid = pid;
+  marco_asignado->ocupado = 1;
+
+  entrada_TP_segundo_nivel->num_marco = marco_asignado->num_marco;
+
+  // para facilitar el algoritmo de reemplazo
+  marco_asignado->entrada_segundo_nivel = entrada_TP_segundo_nivel;
+}
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
        "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
@@ -633,6 +649,14 @@ void imprimir_marco(t_marco* marco) {
        (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
 }
 
+void algoritmo_reemplazo_imprimir_marco(t_marco* marco) {
+  xlog(COLOR_INFO,
+       "[Algoritmo Reemplazo] [MARCO] numero_marco=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
+       marco->num_marco,
+       marco->pid,
+       (marco->ocupado) ? "SI" : "NO",
+       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
+}
 
 void mostrar_tabla_marcos() {
   xlog(COLOR_INFO, "Imprimiendo datos de los marcos en memoria...");
@@ -640,15 +664,71 @@ void mostrar_tabla_marcos() {
   list_iterate(tabla_marcos, (void*)imprimir_marco);
 }
 
+void algoritmo_reemplazo_imprimir_marcos_asignados(int pid) {
+  xlog(COLOR_INFO, "[Algoritmo Reemplazo] Imprimiendo datos de los marcos asignados a un proceso... (pid=%d)", pid);
+
+  t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
+  list_iterate(marcos_asignados_al_proceso, (void*)imprimir_marco);
+}
+
+void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada) {
+  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
+    xlog(COLOR_INFO,
+         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_presencia);
+  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
+    xlog(COLOR_INFO,
+         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
+         "bit_de_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_modif,
+         entrada->bit_presencia);
+  }
+}
+
 void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada) {
+  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
+    xlog(COLOR_INFO,
+         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, "
+         "bit_de_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_presencia);
+  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
+    xlog(COLOR_INFO,
+         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
+         "bit_de_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_modif,
+         entrada->bit_presencia);
+  }
+}
+
+void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel) {
   xlog(COLOR_INFO,
-       "....[TP_SEGUNDO_NIVEL] tp_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
-       "bit_de_presencia=%d",
-       entrada->entrada_segundo_nivel,
-       entrada->num_marco,
-       entrada->bit_uso,
-       entrada->bit_modif,
-       entrada->bit_presencia);
+       "[TP_SEGUNDO_NIVEL] tp_numero=%d, cantidad_entradas=%d",
+       tabla_segundo_nivel->num_tabla,
+       dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
+
+  void imprimir_entrada_segundo_nivel(char* ___, t_entrada_tabla_segundo_nivel* entrada) {
+    xlog(COLOR_INFO,
+         "..[ENTRADA_SEGUNDO_NIVEL] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_modif,
+         entrada->bit_presencia);
+  }
+
+  dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
 }
 
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
@@ -779,7 +859,9 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
   // TODO: validar si conviene usar otra manera
   // contamos la cantidad de elementos en la estructura global (en el diccionario) y le sumamos uno
   tabla_paginas_primer_nivel->num_tabla = cantidad_tablas_paginas_primer_nivel() + 1;
-  // tabla_paginas_primer_nivel->num_tabla = 1;
+
+  // TODO: evaluar porque se necesitaba el pid en la TP de 1er nivel
+  tabla_paginas_primer_nivel->pid = -1;
 
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
@@ -794,7 +876,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
 
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
     t_tabla_segundo_nivel* tabla_paginas_segundo_nivel =
-      tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel);
+      tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, 1);
 
     // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel,
@@ -832,13 +914,14 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
   entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
 }
 
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel) {
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid) {
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
 
   xlog(COLOR_TAREA, "Creando TP de segundo nivel... (numero_TP=%d)", numero_tabla_segundo_nivel);
 
   // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
+  tabla_paginas_segundo_nivel->pid = pid;
   tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
 
   for (int numero_entrada_segundo_nivel = 0;
@@ -886,4 +969,53 @@ t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel_create(int num_entrada,
   entrada->bit_presencia = bit_presencia;
 
   return entrada;
+}
+
+t_marco* marco_create(int numero, int pid, t_estado_marco estado) {
+  t_marco* marco = malloc(sizeof(t_marco));
+  marco->pid = pid;
+  marco->num_marco = numero;
+  marco->ocupado = estado;
+
+  return marco;
+}
+
+t_marco* obtener_marco_de_memoria(int numero_marco) {
+  int es_este_marco(t_marco * marco) {
+    return marco->num_marco == numero_marco;
+  }
+
+  t_marco* marco = list_find(tabla_marcos, (void*)es_este_marco);
+
+  return marco;
+}
+
+// TODO: evaluar, que ocurre en el algoritmo de sustiticón..
+// - y la anterior entrada que tenia asignada este marco?
+// - dos o más entradas comparten el mismo marco pero éste marco ya no apunta a esa entrada..
+void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
+  t_marco* marco = obtener_marco_de_memoria(numero_marco);
+
+  marco->pid = pid;
+  marco->ocupado = 1;
+
+  entrada_TP_segundo_nivel->num_marco = numero_marco;
+
+  // para facilitar el algoritmo de reemplazo
+  marco->entrada_segundo_nivel = entrada_TP_segundo_nivel;
+}
+
+void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco) {
+  t_marco* marco = obtener_marco_de_memoria(numero_marco);
+  marco->apuntado_por_puntero_de_clock = true;
+}
+
+void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
+  xlog(COLOR_INFO,
+       "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+       entrada->entrada_segundo_nivel,
+       entrada->num_marco,
+       entrada->bit_uso,
+       entrada->bit_modif,
+       entrada->bit_presencia)
 }
