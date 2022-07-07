@@ -194,6 +194,13 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 
 //SWAP
 int crear_punto_de_montaje(char* path);
+void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+t_marco* marco_create(int numero, int pid, t_estado_marco estado);
+t_marco* obtener_marco_de_memoria(int numero_marco);
+void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
+void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
+void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
+void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 char* get_filepath(char* file, char* path, int pid);
 void inicializar_archivo_swap(int pid, int tamanio, char* path);
 void eliminar_archivo_swap(int pid, char* path);
