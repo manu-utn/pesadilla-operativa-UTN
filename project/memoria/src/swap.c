@@ -1,11 +1,6 @@
 #include "libstatic.h"
 #include "memoria.h"
 
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
 int crear_punto_de_montaje(char* path) {
   int e;
   struct stat info;
@@ -37,16 +32,23 @@ int crear_punto_de_montaje(char* path) {
   return 1;
 }
 
+char* get_filepath(char* file, char* path, int pid) {
+  char* extension = ".swap";
+
+  string_append(&file, path);
+  string_append(&file, "/");
+  string_append(&file, string_itoa(pid));
+  string_append(&file, extension);
+
+  return file;
+}
+
 void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   char* filename = string_new();
-  char* extension = ".swap";
   void* contenido = string_repeat('0', tamanio);
   size_t resultado;
 
-  string_append(&filename, path);
-  string_append(&filename, "/");
-  string_append(&filename, string_itoa(pid));
-  string_append(&filename, extension);
+  filename = get_filepath(filename, path, pid);
 
   FILE* fd = fopen(filename, "wb");
 
@@ -67,14 +69,10 @@ void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   }
 }
 
-void eliminar_archivo_swap(int pid, int tamanio, char* path) {
+void eliminar_archivo_swap(int pid, char* path) {
   char* filename = string_new();
-  char* extension = ".swap";
 
-  string_append(&filename, path);
-  string_append(&filename, "/");
-  string_append(&filename, string_itoa(pid));
-  string_append(&filename, extension);
+  filename = get_filepath(filename, path, pid);
 
   if (remove(filename) == 0) {
     log_info(logger, "El archivo %s fue eliminado satisfactoriamente\n", filename);
