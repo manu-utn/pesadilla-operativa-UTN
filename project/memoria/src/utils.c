@@ -146,15 +146,6 @@ void reservar_marcos_2() {
 }
 
 void reservar_marcos_3() {
-  /*
-  t_marco* marco1 = marco_create(1, pid, MARCO_OCUPADO);
-  marco1->apuntado_por_puntero_de_clock = true;
-
-  asignar_marco_al_proceso(pid, marco1->num_marco, entrada);
-  list_replace_and_destroy_element(tabla_marcos, marco1->num_marco-1, marco1, (void*)marco_destroy);
-  */
-
-  // TODO: evaluar, relación del numero de tabla de segundo nivel con el pid ?
   t_tabla_segundo_nivel* tabla = dictionary_get(tablas_de_paginas_segundo_nivel, "1");
   t_entrada_tabla_segundo_nivel* entrada;
 
@@ -200,4 +191,6 @@ void reservar_marcos_3() {
   reasignar_marco(numero_marco, pid, entrada);
   xlog(
     COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+
+  imprimir_entradas_tabla_paginas_segundo_nivel(tabla);
 }

@@ -693,6 +693,25 @@ void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* ent
        entrada->bit_presencia);
 }
 
+void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel) {
+  xlog(COLOR_INFO,
+       "[TP_SEGUNDO_NIVEL] tp_numero=%d, cantidad_entradas=%d",
+       tabla_segundo_nivel->num_tabla,
+       dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
+
+  void imprimir_entrada_segundo_nivel(char* ___, t_entrada_tabla_segundo_nivel* entrada) {
+    xlog(COLOR_INFO,
+         "..[ENTRADA_SEGUNDO_NIVEL] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+         entrada->entrada_segundo_nivel,
+         entrada->num_marco,
+         entrada->bit_uso,
+         entrada->bit_modif,
+         entrada->bit_presencia);
+  }
+
+  dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
+}
+
 void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
   xlog(COLOR_INFO,
        "[TP_PRIMER_NIVEL] tp_numero=%d, pid=%d, cantidad_entradas=%d",

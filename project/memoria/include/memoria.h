@@ -205,4 +205,5 @@ t_marco* obtener_marco_de_memoria(int numero_marco);
 void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel);
 void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
+void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 #endif /* MEMORIA_H */

@@ -21,10 +21,7 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
     entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock(
       marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
-    // entrada_segundo_nivel_victima = ejecutar_clock(marcos_asignados_al_proceso,
-    // entrada_segundo_nivel_solicitada_para_acceder);
   } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    // entrada_segundo_nivel_victima = ejecutar_clock_modificado(marcos_asignados_al_proceso, entrada);
     entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(
       marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   }
@@ -71,11 +68,18 @@ void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* pr
   marco_seleccionado->apuntado_por_puntero_de_clock = false;
   proximo_marco_seleccionado->apuntado_por_puntero_de_clock = true;
 
-  xlog(COLOR_TAREA,
-       "[Algoritmo Clock, NºBusqueda %d] avanzó el puntero (numero_marco_anterior=%d, numero_marco_proximo=%d)",
-       CLOCK_M_NUMERO_BUSQUEDA,
-       marco_seleccionado->num_marco,
-       proximo_marco_seleccionado->num_marco);
+  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
+    xlog(COLOR_TAREA,
+         "[Algoritmo Clock] avanzó el puntero (numero_marco_anterior=%d, numero_marco_proximo=%d)",
+         marco_seleccionado->num_marco,
+         proximo_marco_seleccionado->num_marco);
+  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
+    xlog(COLOR_TAREA,
+         "[Algoritmo Clock, NºBusqueda %d] avanzó el puntero (numero_marco_anterior=%d, numero_marco_proximo=%d)",
+         CLOCK_M_NUMERO_BUSQUEDA,
+         marco_seleccionado->num_marco,
+         proximo_marco_seleccionado->num_marco);
+  }
 }
 
 t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos) {
