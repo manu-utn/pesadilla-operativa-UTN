@@ -33,6 +33,11 @@ typedef enum {
 } t_operacion_memoria;
 
 typedef enum {
+  MARCO_LIBRE = 0,
+  MARCO_OCUPADO = 1,
+} t_estado_marco;
+
+typedef enum {
   CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
   CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA = 1,
   CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA = 2,
