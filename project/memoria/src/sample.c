@@ -31,7 +31,8 @@ int main() {
   mostrar_tabla_marcos();
   imprimir_tablas_de_paginas();
 
-  reservar_marcos_2();
+  // reservar_marcos_2();
+  reservar_marcos_3();
 
 
   // simular_solicitud_marco_por_mmu();
@@ -57,8 +58,23 @@ int main() {
 
 
 void simular_solicitud_marco_por_mmu() {
-  int nuevo_marco = 0;
+  int marco = 0;
 
+  // configuración de la simulación para memoria con 4 frames
+
+  int numero_tp_segundo_nivel;
+  // estas peticiones encontrará el frame asignado (pid=1)
+  numero_tp_segundo_nivel = 1;
+  marco = obtener_marco(numero_tp_segundo_nivel, 0);
+  marco = obtener_marco(numero_tp_segundo_nivel, 1);
+  marco = obtener_marco(numero_tp_segundo_nivel, 2);
+  marco = obtener_marco(numero_tp_segundo_nivel, 3);
+  printf("\n");
+
+  numero_tp_segundo_nivel = 2;
+  marco = obtener_marco(numero_tp_segundo_nivel, 0);
+
+  /*
   // en estas cuatro peticiones buscará el primer marco libre asignado al proceso
   nuevo_marco = obtener_marco(1, 1);
   nuevo_marco = obtener_marco(1, 2);
@@ -75,4 +91,5 @@ void simular_solicitud_marco_por_mmu() {
   // con la configuración actual el proceso tiene asignado 4 marcos, y ya usó 4
   nuevo_marco = obtener_marco(2, 1);
   nuevo_marco = obtener_marco(2, 2);
+   */
 }
