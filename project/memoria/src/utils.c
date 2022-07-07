@@ -172,8 +172,8 @@ void reservar_marcos_3() {
   numero_marco = 1, numero_entrada = 1;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 1;
-  algoritmo_clock_puntero_apuntar_al_marco(
-    numero_marco); // importante para el algoritmo clock que el puntero apunte a un marco
+  // TODO: evaluar que ocurriría si el puntero no apunta a ningun marco, por el momento funciona bien así
+  algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
   xlog(
     COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);

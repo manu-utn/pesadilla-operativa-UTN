@@ -674,14 +674,14 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid) {
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada) {
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
     xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_presencia=%d",
+         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_presencia=%d",
          entrada->entrada_segundo_nivel,
          entrada->num_marco,
          entrada->bit_uso,
          entrada->bit_presencia);
   } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
     xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
+         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
          "bit_de_presencia=%d",
          entrada->entrada_segundo_nivel,
          entrada->num_marco,

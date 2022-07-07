@@ -221,10 +221,10 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
   }
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
-  for (; !victima_encontrada; posicion_marco_leido++) {
+  // for (; !victima_encontrada; posicion_marco_leido++)
+  while (!victima_encontrada) {
     t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
     int posicion_proximo_marco = posicion_marco_leido + 1;
-    // int cantidad_marcos_asignados = list_size(marcos_asignados) - 1;
     int cantidad_marcos_asignados = list_size(marcos_asignados);
 
     xlog(COLOR_INFO,
@@ -274,9 +274,9 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
 
     algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
 
-    // TODO: que diferencia hacía hacerlo al principio y en este punto?
+    // TODO: no está haciendo lo que menciona debajo y provoca que ande mal el algoritmo
     // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
-    marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
+    // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
 
     xlog(COLOR_INFO,
          "[Algoritmo Clock] analiza si ir al principio de la cola circular si.. posicion_marco_leido (%d) == "
@@ -292,6 +292,8 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
       xlog(COLOR_TAREA,
            "[Algoritmo Clock] volver al principio de la cola circular (posicion_marco=%d)",
            posicion_proximo_marco);
+    } else {
+      posicion_marco_leido++;
     }
 
     printf("\n");
