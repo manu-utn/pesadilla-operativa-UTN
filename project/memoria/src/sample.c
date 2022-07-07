@@ -18,6 +18,7 @@ int main() {
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba, 2, 32);
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba2, 1, 32);
   eliminar_archivo_swap(1, path_punto_monataje);
+  leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
 
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);

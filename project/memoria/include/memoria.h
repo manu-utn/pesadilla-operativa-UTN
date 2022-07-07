@@ -198,5 +198,6 @@ char* get_filepath(char* file, char* path, int pid);
 void inicializar_archivo_swap(int pid, int tamanio, char* path);
 void eliminar_archivo_swap(int pid, char* path);
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
+void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
 
 #endif /* MEMORIA_H */

@@ -97,3 +97,19 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int taman
 
   fclose(fd);
 }
+
+void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina) {
+  FILE* fd = fopen(filepath, "rb+");
+  void* datos[tamanioPagina];
+  int desplazamiento = numPagina * tamanioPagina;
+
+  log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
+
+  fseek(fd, desplazamiento, SEEK_SET);
+
+  fread(datos, sizeof(char), tamanioPagina, fd);
+
+  log_info(logger, "Leimos %s", (char*)datos);
+
+  fclose(fd);
+}
