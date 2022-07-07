@@ -196,5 +196,6 @@ void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 int crear_punto_de_montaje(char* path);
 void inicializar_archivo_swap(int pid, int tamanio, char* path);
 void eliminar_archivo_swap(int pid, int tamanio, char* path);
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
 
 #endif /* MEMORIA_H */

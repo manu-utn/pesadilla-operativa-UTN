@@ -1,6 +1,11 @@
 #include "libstatic.h"
 #include "memoria.h"
 
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 int crear_punto_de_montaje(char* path) {
   int e;
   struct stat info;
@@ -35,7 +40,7 @@ int crear_punto_de_montaje(char* path) {
 void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   char* filename = string_new();
   char* extension = ".swap";
-  char* contenido = string_repeat('0', tamanio);
+  void* contenido = string_repeat('0', tamanio);
   size_t resultado;
 
   string_append(&filename, path);
@@ -43,13 +48,13 @@ void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   string_append(&filename, string_itoa(pid));
   string_append(&filename, extension);
 
-  FILE* fd = fopen(filename, "w+");
+  FILE* fd = fopen(filename, "wb");
 
   if (fd == NULL) {
     log_error(logger, "Error al crear el archivo swap");
   }
 
-  resultado = fwrite(contenido, sizeof(char*), tamanio, fd);
+  resultado = fwrite(contenido, sizeof(char), tamanio, fd);
 
   if (resultado != tamanio) {
     log_error(logger, "No se ha inicializado correctamente el archivo.");
@@ -76,4 +81,21 @@ void eliminar_archivo_swap(int pid, int tamanio, char* path) {
   } else {
     log_error(logger, "No se pudo eliminar el archivo\n");
   }
+}
+
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina) {
+  FILE* fd = fopen(filepath, "rb+");
+
+  int desplazamiento = numPagina * tamanioPagina;
+  int longitudDatos = string_length((char*)datos);
+
+  log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
+
+  fseek(fd, desplazamiento, SEEK_SET);
+
+  // log_info(logger, "Se quieren escribir %d bytes", sizeof(uint32_t) * tamanioPagina);
+
+  fwrite(datos, sizeof(char), longitudDatos, fd);
+
+  fclose(fd);
 }
