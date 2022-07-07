@@ -206,4 +206,10 @@ void reasignar_marco(int numero_marco, int pid, t_entrada_tabla_segundo_nivel* e
 void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
+char* get_filepath(char* file, char* path, int pid);
+void inicializar_archivo_swap(int pid, int tamanio, char* path);
+void eliminar_archivo_swap(int pid, char* path);
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
+void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
+
 #endif /* MEMORIA_H */
