@@ -128,79 +128,118 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
   while (!victima_encontrada) {
-    while (!victima_encontrada) {
-      int posicion_proximo_marco = posicion_marco_leido + 1;
-      t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
+    // while (!victima_encontrada) {
+    int posicion_proximo_marco = posicion_marco_leido + 1;
+    t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
-      /*
-      t_marco* proximo_marco_seleccionado = (posicion_marco_leido + 1) == list_size(marcos_asignados) ?
-                                              list_get(marcos_asignados, 0) :
-                                              list_get(marcos_asignados, posicion_marco_leido + 1);
-       */
+    xlog(COLOR_INFO,
+         "[Algoritmo Clock Modificado] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)",
+         posicion_marco_leido + 1,
+         cantidad_marcos_asignados);
 
-      // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
-      if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
-        posicion_proximo_marco = 0;
-      }
+    // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
+    if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
+      posicion_proximo_marco = 0;
+    }
 
-      t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_proximo_marco);
+    t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_proximo_marco);
+    t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
 
-      t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
-      algoritmo_clock_entrada_imprimir_bits(entrada_asignada_al_marco);
+    algoritmo_clock_entrada_imprimir_bits(entrada_asignada_al_marco);
 
-      if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
-        // busqueda nº1: buscar el par (U=0, M=0)
-        if (entrada_asignada_al_marco->bit_uso == 0 && entrada_asignada_al_marco->bit_modif == 0) {
-          entrada_victima_elegida = entrada_asignada_al_marco;
+    if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
+      // busqueda nº1: buscar el par (U=0, M=0)
+      if (entrada_asignada_al_marco->bit_uso == 0 && entrada_asignada_al_marco->bit_modif == 0) {
+        entrada_victima_elegida = entrada_asignada_al_marco;
 
-          victima_encontrada = true;
-        }
-      }
+        victima_encontrada = true;
 
-      else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
-        // iteramos sobre todos los marcos, evaluamos si alguno cumple (0,1) + modificamos bit U=1 (si U=1)
-
-        if (entrada_asignada_al_marco->bit_uso == 1) {
-          // podriamos siempre setear U=0, pero para respetar la teoría lo agregamos
-          entrada_asignada_al_marco->bit_uso = 0;
-        }
-        if (entrada_asignada_al_marco->bit_uso == 0 && entrada_asignada_al_marco->bit_modif == 1) {
-          entrada_victima_elegida = entrada_asignada_al_marco;
-
-          victima_encontrada = true;
-        }
-      }
-
-      // movemos el puntero del clock en la cola circular
-      algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
-
-      // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
-      // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
-
-      // volvemos al principio de la cola circular, la siguiente iteración del 2º for
-      // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
-      // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
-      if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
-        posicion_proximo_marco = 0;
-      }
-      else {
-        posicion_marco_leido++;
-      }
-      // si el próximo marco es el mismo del que partimos, entonces llegamos al final
-      // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
-      // de la lista)
-      if (posicion_marco_leido == posicion_primer_marco_leido) {
-        // si la 1º búsqueda no encontró ningún par (U=0, M=0) ==> avanzamos a la 2º búsqueda (U=0, M=1) + modificando
-        // U=0 (si y sólo si U==1)
-        if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
-          CLOCK_M_NUMERO_BUSQUEDA = 2;
-        }
-        // si la 2º búsqueda no encontró ningún par (U=0, M=1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
-        else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
-          CLOCK_M_NUMERO_BUSQUEDA = 1;
-        }
+        xlog(
+          COLOR_TAREA,
+          "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, entrada_numero=%d)",
+          posicion_marco_leido + 1,
+          marco_seleccionado->num_marco,
+          entrada_victima_elegida->entrada_segundo_nivel);
       }
     }
+    // busqueda nº2: buscar el par (U=0, M=1) y modifica U=0
+    else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
+      // iteramos sobre todos los marcos, evaluamos si alguno cumple (0,1) + modificamos bit U=1 (si U=1)
+
+      if (entrada_asignada_al_marco->bit_uso == 1 && entrada_asignada_al_marco->bit_modif == 1) {
+        // podriamos siempre setear U=0, pero para respetar la teoría lo agregamos
+        entrada_asignada_al_marco->bit_uso = 0;
+
+        xlog(COLOR_TAREA,
+             "[Algoritmo Clock Modificado] detectó una entrada con bit_uso=1, le dió otra oportunidad "
+             "(posicion_marco=%d, marco=%d, bit_uso=%d, bit_modificado=%d)",
+             posicion_marco_leido + 1,
+             marco_seleccionado->num_marco,
+             entrada_asignada_al_marco->bit_uso,
+             entrada_asignada_al_marco->bit_modif);
+      } else if (entrada_asignada_al_marco->bit_uso == 0 && entrada_asignada_al_marco->bit_modif == 1) {
+        entrada_victima_elegida = entrada_asignada_al_marco;
+
+        victima_encontrada = true;
+
+        xlog(COLOR_TAREA,
+             "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, "
+             "entrada_numero=%d, bit_uso=%d, bit_modificado=%d)",
+             posicion_marco_leido + 1,
+             marco_seleccionado->num_marco,
+             entrada_victima_elegida->entrada_segundo_nivel,
+             entrada_victima_elegida->bit_uso,
+             entrada_victima_elegida->bit_modif);
+      }
+    }
+
+    // movemos el puntero del clock en la cola circular
+    algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
+
+    // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
+    // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
+
+    xlog(COLOR_INFO,
+         "[Algoritmo Clock] analiza si ir al principio de la cola circular si.. posicion_marco_leido (%d) == "
+         "cantidad_marcos_asignados (%d)",
+         posicion_marco_leido + 1,
+         cantidad_marcos_asignados);
+
+    // volvemos al principio de la cola circular, la siguiente iteración del 2º for
+    // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
+    // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
+    if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
+      posicion_marco_leido = 0;
+
+
+      xlog(COLOR_TAREA,
+           "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)",
+           posicion_proximo_marco);
+    }
+    // else if (posicion_marco_leido < (cantidad_marcos_asignados - 1)) {
+    else {
+      posicion_marco_leido++;
+    }
+
+    // si el próximo marco es el mismo del que partimos, entonces llegamos al final
+    // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
+    // de la lista)
+    if (posicion_marco_leido == posicion_primer_marco_leido) {
+      // si la 1º búsqueda no encontró ningún par (U=0, M=0) ==> avanzamos a la 2º búsqueda (U=0, M=1) + modificando
+      // U=0 (si y sólo si U==1)
+      if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
+        CLOCK_M_NUMERO_BUSQUEDA = 2;
+
+        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] terminó la 1º Búsqueda (u=0, m=1)");
+      }
+      // si la 2º búsqueda no encontró ningún par (U=0, M=1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
+      else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
+        CLOCK_M_NUMERO_BUSQUEDA = 1;
+
+        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] terminó la 2º Búsqueda (u=0, m=1)");
+      }
+    }
+    //}
   }
 
   return entrada_victima_elegida;
