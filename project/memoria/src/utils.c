@@ -164,14 +164,14 @@ void reservar_marcos_3() {
   numero_marco = 0, numero_entrada = 0;
   // t_marco* marco1 = marco_create(1, pid, MARCO_OCUPADO);
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
-  entrada->bit_uso = 1, entrada->bit_modif = 0;
+  entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
   xlog(
     COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 1, numero_entrada = 1;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
-  entrada->bit_uso = 1, entrada->bit_modif = 1;
+  entrada->bit_uso = 1, entrada->bit_modif = 1; // u=1, m=1
   // TODO: evaluar que ocurriría si el puntero no apunta a ningun marco, por el momento funciona bien así
   algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
@@ -180,14 +180,14 @@ void reservar_marcos_3() {
 
   numero_marco = 2, numero_entrada = 2;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
-  entrada->bit_uso = 1, entrada->bit_modif = 0;
+  entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
   xlog(
     COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 3, numero_entrada = 3;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
-  entrada->bit_uso = 1, entrada->bit_modif = 0;
+  entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
   xlog(
     COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);

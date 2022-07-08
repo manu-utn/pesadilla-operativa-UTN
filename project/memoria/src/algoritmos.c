@@ -132,6 +132,14 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     int posicion_proximo_marco = posicion_marco_leido + 1;
     t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
+    if (posicion_marco_leido == posicion_primer_marco_leido) {
+      if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
+        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] empieza la 1º Búsqueda (u=0, m=0)");
+      } else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
+        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] empieza la 2º Búsqueda (u=0, m=1)");
+      }
+    }
+
     xlog(COLOR_INFO,
          "[Algoritmo Clock Modificado] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)",
          posicion_marco_leido + 1,
@@ -166,7 +174,8 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
       // iteramos sobre todos los marcos, evaluamos si alguno cumple (0,1) + modificamos bit U=1 (si U=1)
 
-      if (entrada_asignada_al_marco->bit_uso == 1 && entrada_asignada_al_marco->bit_modif == 1) {
+      // TODO: falta cuando bit_modificado=1 => persistir el cambio en disco..
+      if (entrada_asignada_al_marco->bit_uso == 1) {
         // podriamos siempre setear U=0, pero para respetar la teoría lo agregamos
         entrada_asignada_al_marco->bit_uso = 0;
 
@@ -221,6 +230,10 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       posicion_marco_leido++;
     }
 
+    xlog(COLOR_INFO,
+         "[Algoritmo Clock Modificado] analiza si posicion_marco_leido (%d) == posicion_primer_marco_leido (%d)",
+         posicion_marco_leido + 1,
+         posicion_primer_marco_leido);
     // si el próximo marco es el mismo del que partimos, entonces llegamos al final
     // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
     // de la lista)
@@ -230,7 +243,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
         CLOCK_M_NUMERO_BUSQUEDA = 2;
 
-        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] terminó la 1º Búsqueda (u=0, m=1)");
+        xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] terminó la 1º Búsqueda (u=0, m=0)");
       }
       // si la 2º búsqueda no encontró ningún par (U=0, M=1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
       else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
