@@ -98,7 +98,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
   t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
   t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   bool victima_encontrada = false;
-
+  int cantidad_marcos_asignados = list_size(marcos_asignados);
   t_marco* marco_apuntado_por_algoritmo_clock = algoritmo_clock_puntero_obtener_marco(marcos_asignados);
 
   int posicion_marco_leido = 0;
@@ -114,6 +114,11 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
     // si el algoritmo fué ejecutado, entonces iteramos a partir del marco al que apunte el puntero de clock
     posicion_marco_leido = posicion_primer_marco_leido;
+
+    xlog(COLOR_INFO,
+         "[Algoritmo Clock Modificado] ya había sido ejecutado y reanuda su ejecución (posicion_marco=%d, marco=%d)",
+         posicion_marco_leido + 1,
+         marco_apuntado_por_algoritmo_clock->num_marco);
   }
 
   // Criterios del clock modificado:
@@ -122,21 +127,23 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
   // 3º repetir 1º búsqueda, ...
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
-  for (CLOCK_M_NUMERO_BUSQUEDA = 1; !victima_encontrada;) {
-    for (; !victima_encontrada; posicion_marco_leido++) {
+  while (!victima_encontrada) {
+    while (!victima_encontrada) {
       int posicion_proximo_marco = posicion_marco_leido + 1;
-      // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
-      /*if (posicion_marco_leido == list_size(marcos_asignados)) {
-        posicion_proximo_marco = 0;
-        posicion_marco_leido = 0;
-        continue;
-      }*/
-
       t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
+      /*
       t_marco* proximo_marco_seleccionado = (posicion_marco_leido + 1) == list_size(marcos_asignados) ?
                                               list_get(marcos_asignados, 0) :
                                               list_get(marcos_asignados, posicion_marco_leido + 1);
+       */
+
+      // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
+      if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
+        posicion_proximo_marco = 0;
+      }
+
+      t_marco* proximo_marco_seleccionado = list_get(marcos_asignados, posicion_proximo_marco);
 
       t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco_seleccionado->entrada_segundo_nivel;
       algoritmo_clock_entrada_imprimir_bits(entrada_asignada_al_marco);
@@ -168,30 +175,29 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
 
       // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
-      marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
+      // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
 
       // volvemos al principio de la cola circular, la siguiente iteración del 2º for
       // utilizo el índice en vez de número de marco, ya que estos podrían tener cualquier valor 2,4,9,15,...
       // y ya vienen ordenados por defecto de menor a mayor (implementado en el obtener marcos asignados de un proceso)
-      if (posicion_proximo_marco >= list_size(marcos_asignados)) {
-        posicion_marco_leido = -1;
-        posicion_proximo_marco = posicion_primer_marco_leido;
+      if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
+        posicion_proximo_marco = 0;
       }
-
       // si el próximo marco es el mismo del que partimos, entonces llegamos al final
       // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
       // de la lista)
-      if (posicion_proximo_marco == posicion_primer_marco_leido) {
-        // alternativa usar el operador módulo para tener resultados entre (1,2)
-
+      else if (posicion_marco_leido == posicion_primer_marco_leido) {
         // si la 1º búsqueda no encontró ningún par (U=0, M=0) ==> avanzamos a la 2º búsqueda (U=0, M=1) + modificando
         // U=0 (si y sólo si U==1)
-        if (CLOCK_M_NUMERO_BUSQUEDA == 1)
+        if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
           CLOCK_M_NUMERO_BUSQUEDA = 2;
-
+        }
         // si la 2º búsqueda no encontró ningún par (U=0, M=1) ==> volvemos a la 1º búsqueda (0,0) + sin modificar U
-        else if (CLOCK_M_NUMERO_BUSQUEDA == 2)
+        else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
           CLOCK_M_NUMERO_BUSQUEDA = 1;
+        }
+      } else {
+        posicion_marco_leido++;
       }
     }
   }
