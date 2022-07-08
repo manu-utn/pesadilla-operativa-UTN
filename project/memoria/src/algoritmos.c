@@ -183,10 +183,13 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
         posicion_proximo_marco = 0;
       }
+      else {
+        posicion_marco_leido++;
+      }
       // si el próximo marco es el mismo del que partimos, entonces llegamos al final
       // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
       // de la lista)
-      else if (posicion_marco_leido == posicion_primer_marco_leido) {
+      if (posicion_marco_leido == posicion_primer_marco_leido) {
         // si la 1º búsqueda no encontró ningún par (U=0, M=0) ==> avanzamos a la 2º búsqueda (U=0, M=1) + modificando
         // U=0 (si y sólo si U==1)
         if (CLOCK_M_NUMERO_BUSQUEDA == 1) {
@@ -196,8 +199,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
         else if (CLOCK_M_NUMERO_BUSQUEDA == 2) {
           CLOCK_M_NUMERO_BUSQUEDA = 1;
         }
-      } else {
-        posicion_marco_leido++;
       }
     }
   }
