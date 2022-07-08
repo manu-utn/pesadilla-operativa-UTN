@@ -269,23 +269,37 @@ void execute_read(t_pcb* pcb, t_instruccion* instruccion) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
-  // Aca hay que mostrarlo por pantalla
+  xlog(COLOR_INFO, "OPERACION READ - Dato leido: %d.", dato_leido);
 }
 
 void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
   uint32_t dato_a_escribir = instruccion_obtener_parametro(instruccion, 1);
 
-  int resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
+  uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  // Ver que hago con el resultado y que tipo de resultado puede ser
+  if (resultado < 0) {
+    xlog(COLOR_INFO,
+         "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.",
+         dato_a_escribir,
+         direccion_fisica);
+  } else {
+    xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");
+  }
 }
 
 void execute_copy(t_pcb* pcb, t_instruccion* instruccion, uint32_t dato_a_escribir) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
-  int resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
+  uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  // Ver que hago con el resultado y que tipo de resultado puede ser
+  if (resultado = 1) {
+    xlog(COLOR_INFO,
+         "OPERACION COPY - Dato copiado correctamente. Dato escrito: %d, DF: %d.",
+         dato_a_escribir,
+         direccion_fisica);
+  } else {
+    xlog(COLOR_ERROR, "OPERACION COPY - Error al copiar dato.");
+  }
 }
 
 void execute_exit(t_pcb* pcb, int socket_cliente) {
@@ -295,7 +309,7 @@ void execute_exit(t_pcb* pcb, int socket_cliente) {
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
-int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
+uint32_t escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
   t_escritura_dato_fisico* solicitud = malloc(sizeof(t_escritura_dato_fisico));
 
   solicitud->socket = socket_memoria;
@@ -323,7 +337,7 @@ int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
   recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_escritura_dato_fisico* respuesta = obtener_respuesta_escritura_dato_fisico(paquete_respuesta);
-  int retorno = respuesta->resultado;
+  uint32_t retorno = respuesta->resultado;
 
   free(paquete_respuesta);
   free(respuesta);

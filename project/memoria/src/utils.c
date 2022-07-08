@@ -8,10 +8,11 @@ void inicializar_estructuras() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
 
-  // TODO: validar porque aparece dos veces
   uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
+  tamanio_marco = config_get_int_value(config, "TAM_PAGINA");
 
-  memoria_principal = malloc(obtener_tamanio_memoria_por_config());
+  memoria_principal = malloc(size_memoria);
+
 
   // TODO: validar si deprecar, la nueva implementación no lo está utilizando
   puntero_clock = 0;
