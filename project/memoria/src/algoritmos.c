@@ -128,7 +128,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
   while (!victima_encontrada) {
-    // while (!victima_encontrada) {
     int posicion_proximo_marco = posicion_marco_leido + 1;
     t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
 
@@ -220,7 +219,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
       posicion_marco_leido = 0;
 
-
       xlog(COLOR_TAREA,
            "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)",
            posicion_proximo_marco);
@@ -251,8 +249,9 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
         xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] terminó la 2º Búsqueda (u=0, m=1)");
       }
+
+      printf("\n");
     }
-    //}
   }
 
   return entrada_victima_elegida;
