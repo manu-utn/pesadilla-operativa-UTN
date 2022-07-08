@@ -9,16 +9,14 @@ int main() {
   inicializar_estructuras();
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
-  inicializar_archivo_swap(0, 160, path_punto_monataje);
-  inicializar_archivo_swap(1, 160, path_punto_monataje);
 
-  void* textoPrueba = "123Probaasasa";
+  /*void* textoPrueba = "123Probaasasa";
   void* textoPrueba2 = "caca";
 
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba, 2, 32);
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba2, 1, 32);
   eliminar_archivo_swap(1, path_punto_monataje);
-  leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
+  leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);*/
 
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
@@ -32,7 +30,7 @@ int main() {
   imprimir_tablas_de_paginas();
 
   // reservar_marcos_2();
-  reservar_marcos_3();
+  // reservar_marcos_3();
 
 
   // simular_solicitud_marco_por_mmu();

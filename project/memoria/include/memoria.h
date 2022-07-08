@@ -162,8 +162,6 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabl
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
 int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
 
-void liberar_estructuras_en_swap();
-
 bool algoritmo_reemplazo_cargado_es(char* algoritmo);
 
 // TODO: validar si deprecar, no se utiliza
@@ -207,9 +205,10 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 char* get_filepath(char* file, char* path, int pid);
-void inicializar_archivo_swap(int pid, int tamanio, char* path);
-void eliminar_archivo_swap(int pid, char* path);
+void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio, char* path);
+void eliminar_archivo_swap(uint32_t pid, char* path);
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
 void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
+void liberar_estructuras_en_swap(uint32_t pid);
 
 #endif /* MEMORIA_H */
