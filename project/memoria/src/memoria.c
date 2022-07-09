@@ -61,7 +61,7 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
-        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "ENTRADAS_POR_TABLA");
+        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "PAGINAS_POR_TABLA");
         uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
 
@@ -74,55 +74,7 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_MENSAJE: {
         recibir_mensaje(socket_cliente);
-
-        // t_paquete* paquete = recibir_paquete(cliente_fd);
-        // t_mensaje_handshake_cpu_memoria* mensaje = paquete_obtener_mensaje_handshake(paquete);
-
       } break;
-
-      // TODO: validar porque quedó comentado
-      case READ: {
-        /*log_info(logger, "Comenzando operacion READ...");
-        t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_solicitud_segunda_tabla* read = paquete_obtener_solicitud_tabla_segundo_nivel(paquete);
-
-        log_info(logger, "Paquete recibido...");
-
-        // PROCESO EL VALOR ENVIADO POR CPU, POR AHORA HARDCODEO UN VALOR PARA PROBAR LA CONEXION
-
-        t_respuesta_operacion_read* respuesta_read = malloc(sizeof(t_respuesta_operacion_read));
-        respuesta_read->valor_buscado = 3;
-        t_paquete* paquete_con_respuesta = paquete_create();
-        paquete_add_respuesta_operacion_read(paquete_con_respuesta, respuesta_read);
-        enviar_operacion_read(socket_cliente, paquete_con_respuesta);
-        // DESCOMENTAR PARA RESOLVER SEG FAULT
-        paquete_destroy(paquete_con_respuesta);
-
-        free(respuesta_read);*/
-        break;
-      }
-
-      // TODO: validar porque quedó comentado
-      /*
-      case OPERACION_INICIALIZAR_ESTRUCTURAS: {
-        t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_pcb* pcb = paquete_obtener_pcb(paquete);
-        paquete_destroy(paquete);
-
-        // TODO: resolver cuando se avance el módulo..
-
-        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
-
-        pcb->tabla_primer_nivel = 1;
-        t_paquete* paquete_con_pcb_actualizado = paquete_create();
-        paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
-
-
-        // TODO: deberia agregar al pcb el valor de la tabla de paginas
-        confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
-        paquete_destroy(paquete_con_pcb_actualizado);
-      } break;
-      */
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -135,7 +87,6 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = malloc(sizeof(t_solicitud_segunda_tabla));
 
@@ -143,8 +94,6 @@ void* manejar_nueva_conexion(void* args) {
 
         int numero_TP_segundo_nivel =
           obtener_numero_TP_segundo_nivel(solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel, solicitud_numero_tp_segundo_nivel->entrada_primer_nivel);
-        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
-        // int numero_TP_segundo_nivel = 5;
 
         xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_TP_segundo_nivel);
 
@@ -164,7 +113,6 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_MARCO: {
         xlog(COLOR_CONEXION, "Obteniendo numero de marco");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_marco* solicitud_numero_marco = malloc(sizeof(t_solicitud_marco));
 
@@ -173,8 +121,6 @@ void* manejar_nueva_conexion(void* args) {
 
         // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
         int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
-        // int num_marco = 4;
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
 
@@ -191,7 +137,6 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_DATO: {
         xlog(COLOR_CONEXION, "Obteniendo dato fisico en memoria");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
 
@@ -207,15 +152,10 @@ void* manejar_nueva_conexion(void* args) {
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_dato_fisico* resp = malloc(sizeof(t_respuesta_dato_fisico));
-        // resp->size_dato = 6;
-        // resp->dato_buscado = malloc(7);
         memcpy(&(resp->dato_buscado), &dato_buscado, sizeof(uint32_t));
-        // memcpy(resp->dato_buscado, "holass", 7);
-        // memcpy(resp->dato_buscado + 6, "\0", 1);
         t_buffer* mensaje = crear_mensaje_respuesta_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
 
-        // free(dato_buscado);
         free(paquete_respuesta);
 
         break;
@@ -223,7 +163,6 @@ void* manejar_nueva_conexion(void* args) {
 
       case OPERACION_ESCRIBIR_DATO: {
         xlog(COLOR_CONEXION, "Escribiendo dato en memoria");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
 
@@ -263,7 +202,7 @@ void* manejar_nueva_conexion(void* args) {
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
 
-        // TODO: DEVOLVER LA TABLA DE IMER NIVEL POSTA ASIGNADA AL PROCESO
+        // TODO: DEVOLVER LA TABLA DE PRIMER NIVEL POSTA ASIGNADA AL PROCESO
         pcb->tabla_primer_nivel = 1;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
