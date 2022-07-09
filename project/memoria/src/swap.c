@@ -43,7 +43,7 @@ char* get_filepath(char* file, char* path, int pid) {
   return file;
 }
 
-void inicializar_archivo_swap(int pid, int tamanio, char* path) {
+void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio, char* path) {
   char* filename = string_new();
   void* contenido = string_repeat('0', tamanio);
   size_t resultado;
@@ -69,7 +69,7 @@ void inicializar_archivo_swap(int pid, int tamanio, char* path) {
   }
 }
 
-void eliminar_archivo_swap(int pid, char* path) {
+void eliminar_archivo_swap(uint32_t pid, char* path) {
   char* filename = string_new();
 
   filename = get_filepath(filename, path, pid);
