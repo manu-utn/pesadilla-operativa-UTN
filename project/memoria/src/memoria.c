@@ -106,7 +106,7 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_segunda_tabla(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_respuesta_segunda_tabla(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
         paquete_destroy(paquete);
 
         break;
@@ -131,8 +131,8 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_marco(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_marco(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
-        free(paquete);
+        paquete_destroy(paquete_respuesta);
+        paquete_destroy(paquete);
         break;
       }
       case OPERACION_OBTENER_DATO: {
@@ -156,7 +156,7 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
 
         break;
       }
@@ -180,7 +180,7 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_escritura_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_escribir_dato(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
 
         break;
       }
@@ -214,10 +214,13 @@ void* manejar_nueva_conexion(void* args) {
       } break;
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo de memoria
         liberar_estructuras_en_swap();
 
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
+
+        pcb_destroy(pcb);
         paquete_destroy(paquete);
       } break;
       case -1: {
