@@ -42,13 +42,6 @@ void* escuchar_conexiones() {
   pthread_exit(NULL);
 }
 
-
-// TODO: esto debería estar en swap.c
-// por el momento sólo escuchamos las entradas de memoria,
-void liberar_estructuras_en_swap() {
-  xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
-}
-
 // TODO: validar
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
@@ -270,10 +263,11 @@ void* manejar_nueva_conexion(void* args) {
       } break;
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo de memoria
-        liberar_estructuras_en_swap();
-
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
+        liberar_estructuras_en_swap(pcb->pid);
+
         paquete_destroy(paquete);
       } break;
       case -1: {
@@ -448,6 +442,9 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
+
+  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
+  inicializar_archivo_swap(pid, tam_proceso, path_punto_monataje);
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);

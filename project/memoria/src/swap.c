@@ -113,3 +113,9 @@ void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina) {
 
   fclose(fd);
 }
+
+void liberar_estructuras_en_swap(uint32_t pid) {
+  xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
+  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
+  eliminar_archivo_swap(pid, path_punto_monataje);
+}
