@@ -63,8 +63,7 @@ void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
 
   offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
 
-  offset += sizeof(t_pcb_estado),
-    memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(uint32_t));
+  offset += sizeof(t_pcb_estado), memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(uint32_t));
 
   offset += sizeof(uint32_t);
 
@@ -214,12 +213,9 @@ t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* pa
 
   t_mensaje_handshake_cpu_memoria* mensaje = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
 
-  memcpy(&(mensaje->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
-  offset += sizeof(int);
-  memcpy(&(mensaje->size_mensaje), paquete_serializado->buffer->stream + offset, sizeof(int));
-  offset += sizeof(int);
-  memcpy(&(mensaje->mensaje_handshake), paquete_serializado->buffer->stream + offset, mensaje->size_mensaje);
-  offset += mensaje->size_mensaje;
+  memcpy(&(mensaje->entradas_por_tabla), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  memcpy(&(mensaje->tamanio_pagina), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
 
   return mensaje;
 }
@@ -227,20 +223,16 @@ t_mensaje_handshake_cpu_memoria* paquete_obtener_mensaje_handshake(t_paquete* pa
 void paquete_add_mensaje_handshake(t_paquete* paquete_serializado, t_mensaje_handshake_cpu_memoria* mensaje_handshake) {
   int offset = 0;
 
-  int size_paquete = sizeof(int) + strlen(mensaje_handshake->mensaje_handshake) + 1;
+  int size_paquete = sizeof(uint32_t) * 2;
   paquete_serializado->buffer->stream = malloc(size_paquete);
-  mensaje_handshake->size_mensaje = strlen(mensaje_handshake->mensaje_handshake);
 
-  memcpy(paquete_serializado->buffer->stream, &(mensaje_handshake->size_mensaje), sizeof(int));
+  memcpy(paquete_serializado->buffer->stream, &(mensaje_handshake->entradas_por_tabla), sizeof(uint32_t));
 
-  offset += sizeof(int);
-  memcpy(paquete_serializado->buffer->stream + offset,
-         mensaje_handshake->mensaje_handshake,
-         strlen(mensaje_handshake->mensaje_handshake));
+  offset += sizeof(uint32_t);
+  memcpy(paquete_serializado->buffer->stream + offset, &(mensaje_handshake->tamanio_pagina), sizeof(uint32_t));
 
   paquete_serializado->buffer->size = size_paquete;
-
-  offset += strlen(mensaje_handshake->mensaje_handshake);
+  offset += sizeof(uint32_t);
 }
 
 
@@ -419,7 +411,7 @@ t_solicitud_dato_fisico* obtener_solicitud_dato(t_paquete* paquete_serializado) 
 }
 
 t_escritura_dato_fisico* obtener_solicitud_escritura_dato(t_paquete* paquete_serializado) {
-  int offset = 0;
+  uint32_t offset = 0;
 
   t_escritura_dato_fisico* read = malloc(sizeof(t_escritura_dato_fisico));
   memcpy(&(read->socket), paquete_serializado->buffer->stream + offset, sizeof(int));
@@ -473,12 +465,19 @@ void paquete_add_solicitud_dato_fisico(t_paquete* paquete_serializado, t_solicit
 
 
 t_respuesta_dato_fisico* obtener_respuesta_solicitud_dato_fisico(t_paquete* paquete_serializado) {
-  int offset = 0;
+  uint32_t offset = 0;
 
   t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
-  memcpy(&(respuesta_dato->dato_buscado), paquete_serializado->buffer->stream + offset, sizeof(int));
-  offset += sizeof(int);
+  memcpy(&(respuesta_dato->dato_buscado), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+
   return respuesta_dato;
+  // t_respuesta_dato_fisico* respuesta_dato = malloc(sizeof(t_respuesta_dato_fisico));
+  // respuesta_dato->dato_buscado = malloc(100);
+  // memcpy(&(respuesta_dato->size_dato), paquete_serializado->buffer->stream + offset, sizeof(int));
+  // offset += sizeof(int);
+  // memcpy(respuesta_dato->dato_buscado, paquete_serializado->buffer->stream + offset, respuesta_dato->size_dato);
+  // offset += respuesta_dato->size_dato;
+  // return respuesta_dato;
 }
 
 t_respuesta_escritura_dato_fisico* obtener_respuesta_escritura_dato_fisico(t_paquete* paquete_serializado) {
@@ -503,15 +502,11 @@ void paquete_add_mensaje(t_paquete* paquete, t_buffer* nuevo_mensaje) {
 
     offset += paquete->buffer->size;
     memcpy(paquete->buffer->stream + offset, &(nuevo_mensaje->size), sizeof(int));
-    xlog(COLOR_SERIALIZADO,
-         "Se agregó al buffer del paquete el tamaño de un stream (size=%d)",
-         *(int*)(paquete->buffer->stream + offset));
+    xlog(COLOR_SERIALIZADO, "Se agregó al buffer del paquete el tamaño de un stream (size=%d)", *(int*)(paquete->buffer->stream + offset));
 
     offset += sizeof(int);
     memcpy(paquete->buffer->stream + offset, nuevo_mensaje->stream, nuevo_mensaje->size);
-    xlog(COLOR_SERIALIZADO,
-         "Se agregó al buffer del paquete un stream (stream=%s)",
-         (char*)(paquete->buffer->stream + offset));
+    xlog(COLOR_SERIALIZADO, "Se agregó al buffer del paquete un stream (stream=%s)", (char*)(paquete->buffer->stream + offset));
 
     paquete->buffer->size += mensaje_size;
   }

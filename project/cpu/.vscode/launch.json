@@ -6,7 +6,7 @@
             "name": "(gdb) Iniciar",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/project/memoria/bin/memoria.out",
+            "program": "${workspaceFolder}/bin/cpu.out",
             "cwd": "${workspaceFolder}",
             "args": [],
             "stopAtEntry": true,

@@ -96,9 +96,8 @@ typedef struct {
 } t_pcb;
 
 typedef struct{
-  int socket;
-  int size_mensaje;
-  char* mensaje_handshake;
+  uint32_t entradas_por_tabla;
+  uint32_t tamanio_pagina;
 }t_mensaje_handshake_cpu_memoria;
 
 typedef struct{
@@ -121,8 +120,8 @@ typedef struct{
 
 typedef struct{
 	int socket;
-	int num_tabla_primer_nivel;
-	int entrada_primer_nivel;
+	uint32_t num_tabla_primer_nivel;
+	uint32_t entrada_primer_nivel;
 }t_solicitud_segunda_tabla;
 
 typedef struct{
@@ -147,9 +146,13 @@ typedef struct{
 }t_solicitud_dato_fisico;
 
 typedef struct{
-  int size_dato;
   uint32_t dato_buscado;
 }t_respuesta_dato_fisico;
+
+// typedef struct{
+//   int size_dato;
+//   uint32_t dato_buscado;
+// }t_respuesta_dato_fisico;
 
 typedef struct{
 	int socket;
@@ -158,7 +161,7 @@ typedef struct{
 }t_escritura_dato_fisico;
 
 typedef struct{
-  int resultado;
+  uint32_t resultado;
 }t_respuesta_escritura_dato_fisico;
 
 t_config* iniciar_config(char*);
@@ -187,7 +190,7 @@ void imprimir_instruccion(t_instruccion* instruccion);
 void imprimir_pcb(t_pcb* pcb);
 void pcb_destroy(t_pcb* pcb);
 
-t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje);
+t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(uint32_t entradas_por_tabla, uint32_t tamanio_pagina);
 void imprimir_instrucciones(t_list* lista);
 t_pcb* pcb_fake();
 

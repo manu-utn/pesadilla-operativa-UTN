@@ -63,16 +63,11 @@ void reservar_marcos_mock() {
   t_entrada_tabla_segundo_nivel* entrada5 = entrada_TP_segundo_nivel_create(4, -1, 0, 0, 0);
 
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(1, 1);
-  dictionary_put(
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
-  dictionary_put(
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada2->entrada_segundo_nivel), entrada2);
-  dictionary_put(
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada3->entrada_segundo_nivel), entrada3);
-  dictionary_put(
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada4->entrada_segundo_nivel), entrada4);
-  dictionary_put(
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada5->entrada_segundo_nivel), entrada5);
+  dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada1->entrada_segundo_nivel), entrada1);
+  dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada2->entrada_segundo_nivel), entrada2);
+  dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada3->entrada_segundo_nivel), entrada3);
+  dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada4->entrada_segundo_nivel), entrada4);
+  dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada5->entrada_segundo_nivel), entrada5);
 
   // TODO: (???)
   t_marco_asignado* marco_involucrado1 = malloc(sizeof(t_marco_asignado));

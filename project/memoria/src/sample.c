@@ -5,6 +5,7 @@
 #include <utils.h>
 
 int main() {
+  // TODO: ??? se trajo de una rama vieja de algún conflicto hago suponer...
   // función de la biblioteca static
   inicializar_estructuras();
 
@@ -27,35 +28,15 @@ int main() {
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
 
-  // PARA TESTEAR ALGORITMOS DE REEMPLAZO
-  // reservar_marcos_mock();
-
   inicializar_estructuras_de_este_proceso(0, 500);
 
   mostrar_tabla_marcos();
   imprimir_tablas_de_paginas();
-
   // reservar_marcos_2();
   // simular_asignacion_marcos_1();
   simular_asignacion_marcos_2();
 
   simular_solicitud_marco_por_mmu();
-
-  // comentamos para probar la otra versión
-
-  /*
-    t_entrada_tabla_segundo_nivel* entrada = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-
-    entrada->entrada_segundo_nivel = 5;
-    entrada->num_marco = -1;
-    entrada->bit_uso = 0;
-    entrada->bit_modif = 0;
-    entrada->bit_presencia = 0;
-
-    // int marco_victima = ejecutar_clock(marcos_prueba_clock, entrada);
-    t_entrada_tabla_segundo_nivel* entradaVictima =
-      entrada_victima_elegida_por_algoritmo_clock_modificado(marcos_prueba_clock, entrada);
-  */
 
   return 0;
 }
@@ -119,8 +100,7 @@ void simular_asignacion_marcos_1() {
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 1, numero_entrada = 1;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
@@ -128,23 +108,20 @@ void simular_asignacion_marcos_1() {
   // TODO: evaluar que ocurriría si el puntero no apunta a ningun marco, por el momento funciona bien así
   // algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 2, numero_entrada = 2;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 3, numero_entrada = 3;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   imprimir_entradas_tabla_paginas_segundo_nivel(tabla);
 }
@@ -170,8 +147,7 @@ void simular_asignacion_marcos_2() {
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 1; // u=1, m=1
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 1, numero_entrada = 1;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
@@ -179,22 +155,19 @@ void simular_asignacion_marcos_2() {
   // TODO: evaluar que ocurriría si el puntero no apunta a ningun marco, por el momento funciona bien así
   algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 2, numero_entrada = 2;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   numero_marco = 3, numero_entrada = 3;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 0, entrada->bit_modif = 0; // u=0, m=0
   reasignar_marco(numero_marco, pid, entrada);
-  xlog(
-    COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
+  xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
   imprimir_entradas_tabla_paginas_segundo_nivel(tabla);
 }
