@@ -23,17 +23,20 @@ int main() {
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
    */
 
-  inicializar_estructuras_de_este_proceso(0, 500);
+  pthread_t th1;
+  pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL), pthread_detach(th1);
 
-  mostrar_tabla_marcos();
-  imprimir_tablas_de_paginas();
+  // inicializar_estructuras_de_este_proceso(0, 500);
 
-  // simular_asignacion_marcos_1();
-  simular_asignacion_marcos_2();
+  // mostrar_tabla_marcos();
+  // imprimir_tablas_de_paginas();
 
-  simular_solicitud_marco_por_mmu();
+  // // simular_asignacion_marcos_1();
+  // simular_asignacion_marcos_2();
 
-  return 0;
+  // simular_solicitud_marco_por_mmu();
+
+  pthread_exit(0);
 }
 
 

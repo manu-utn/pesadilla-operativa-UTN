@@ -14,11 +14,11 @@ void inicializar_estructuras() {
   memoria_principal = malloc(size_memoria);
 
 
-  llenar_memoria_mock();
+  // llenar_memoria_mock();
 
   tablas_de_paginas_primer_nivel = dictionary_create();
   tablas_de_paginas_segundo_nivel = dictionary_create();
   tabla_marcos = list_create();
 
-  dividir_memoria_principal_en_marcos();
+  // dividir_memoria_principal_en_marcos();
 }

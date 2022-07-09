@@ -62,8 +62,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
-        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "ENTRADAS_POR_TABLA");
-        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
+        uint32_t entradas_por_tabla = config_get_int_value(config, "ENTRADAS_POR_TABLA");
+        uint32_t tam_pagina = tamanio_marco; // config_get_int_value(config, "TAM_PAGINA");
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
 
         t_paquete* paquete_con_respuesta = paquete_create();
