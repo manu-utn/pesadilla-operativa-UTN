@@ -8,9 +8,7 @@
 
 int CLOCK_M_NUMERO_BUSQUEDA = 1;
 
-int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(
-  int pid,
-  t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder) {
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder) {
   t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   int numero_marco_elegido = 0;
@@ -19,11 +17,9 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(
   algoritmo_reemplazo_imprimir_marcos_asignados(pid);
 
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock(
-      marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
+    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(
-      marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
+    entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   }
 
   numero_marco_elegido = entrada_segundo_nivel_victima->num_marco;
@@ -49,8 +45,7 @@ bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* 
 }
 
 // TODO: evaluar si remover, en la nueva implementación no lo estoy usando, fué una idea inicial
-CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(
-  t_entrada_tabla_segundo_nivel* entrada_elegida) {
+CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida) {
   CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD prioridad_victima = CLOCK_MODIFICADO_NO_ES_VICTIMA;
 
   if (entrada_elegida->bit_uso == 0 && entrada_elegida->bit_modif == 0) {
@@ -69,10 +64,7 @@ void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* pr
   proximo_marco_seleccionado->apuntado_por_puntero_de_clock = true;
 
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    xlog(COLOR_TAREA,
-         "[Algoritmo Clock] avanzó el puntero (marco=%d, proximo_marco=%d)",
-         marco_seleccionado->num_marco,
-         proximo_marco_seleccionado->num_marco);
+    xlog(COLOR_TAREA, "[Algoritmo Clock] avanzó el puntero (marco=%d, proximo_marco=%d)", marco_seleccionado->num_marco, proximo_marco_seleccionado->num_marco);
   } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
     xlog(COLOR_TAREA,
          "[Algoritmo Clock, NºBusqueda %d] avanzó el puntero (numero_marco_anterior=%d, numero_marco_proximo=%d)",
@@ -93,9 +85,7 @@ t_marco* algoritmo_clock_puntero_obtener_marco(t_list* lista_de_marcos) {
 }
 
 // TODO: mucha lógica repetida, evaluar como reducir la lógica repetida con el algoritmo clock común
-t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(
-  t_list* marcos_asignados,
-  t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
+t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
   t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   bool victima_encontrada = false;
   int cantidad_marcos_asignados = list_size(marcos_asignados);
@@ -109,8 +99,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
   if (marco_apuntado_por_algoritmo_clock != NULL) {
     // éste lo usamos para la 1º y 2º búsqueda, se modificará sólo cuando termine alguna de las dos búsquedas (es un
     // ciclo)
-    posicion_primer_marco_leido =
-      obtener_posicion_de_marco_del_listado(marco_apuntado_por_algoritmo_clock, marcos_asignados);
+    posicion_primer_marco_leido = obtener_posicion_de_marco_del_listado(marco_apuntado_por_algoritmo_clock, marcos_asignados);
 
     // si el algoritmo fué ejecutado, entonces iteramos a partir del marco al que apunte el puntero de clock
     posicion_marco_leido = posicion_primer_marco_leido;
@@ -139,10 +128,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       }
     }
 
-    xlog(COLOR_INFO,
-         "[Algoritmo Clock Modificado] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)",
-         posicion_marco_leido + 1,
-         cantidad_marcos_asignados);
+    xlog(COLOR_INFO, "[Algoritmo Clock Modificado] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)", posicion_marco_leido + 1, cantidad_marcos_asignados);
 
     // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
     if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
@@ -161,12 +147,11 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
         victima_encontrada = true;
 
-        xlog(
-          COLOR_TAREA,
-          "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, entrada_numero=%d)",
-          posicion_marco_leido + 1,
-          marco_seleccionado->num_marco,
-          entrada_victima_elegida->entrada_segundo_nivel);
+        xlog(COLOR_TAREA,
+             "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, entrada_numero=%d)",
+             posicion_marco_leido + 1,
+             marco_seleccionado->num_marco,
+             entrada_victima_elegida->entrada_segundo_nivel);
       }
     }
     // busqueda nº2: buscar el par (U=0, M=1) y modifica U=0
@@ -219,19 +204,15 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
       posicion_marco_leido = 0;
 
-      xlog(COLOR_TAREA,
-           "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)",
-           posicion_proximo_marco);
+      xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)", posicion_proximo_marco);
     }
     // else if (posicion_marco_leido < (cantidad_marcos_asignados - 1)) {
     else {
       posicion_marco_leido++;
     }
 
-    xlog(COLOR_INFO,
-         "[Algoritmo Clock Modificado] analiza si posicion_marco_leido (%d) == posicion_primer_marco_leido (%d)",
-         posicion_marco_leido + 1,
-         posicion_primer_marco_leido);
+    xlog(
+      COLOR_INFO, "[Algoritmo Clock Modificado] analiza si posicion_marco_leido (%d) == posicion_primer_marco_leido (%d)", posicion_marco_leido + 1, posicion_primer_marco_leido);
     // si el próximo marco es el mismo del que partimos, entonces llegamos al final
     // (no usamos list_size porque el último de la lista no siempre es el de la última posición, podría ser el segundo
     // de la lista)
@@ -256,9 +237,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
   return entrada_victima_elegida;
 }
-t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
-  t_list* marcos_asignados,
-  t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
+t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
   xlog(COLOR_INFO, "Ejecutando Algoritmo de Reemplazo Clock...");
 
   t_entrada_tabla_segundo_nivel* entrada_victima_elegida = malloc(sizeof(t_entrada_tabla_segundo_nivel));
@@ -285,10 +264,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
     int posicion_proximo_marco = posicion_marco_leido + 1;
     int cantidad_marcos_asignados = list_size(marcos_asignados);
 
-    xlog(COLOR_INFO,
-         "[Algoritmo Clock] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)",
-         posicion_marco_leido + 1,
-         cantidad_marcos_asignados);
+    xlog(COLOR_INFO, "[Algoritmo Clock] analiza posicion_marco_leido (%d) == cantidad_marcos_asignados (%d)", posicion_marco_leido + 1, cantidad_marcos_asignados);
 
     // si el marco leido es el último de la lista => el próximo marco será el primero (por ser una cola circular)
     // necesario para que al obtener el próximo_marco no ocurra un segfault por superar la dimensión de la lista
@@ -347,9 +323,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
     if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
       posicion_marco_leido = 0;
 
-      xlog(COLOR_TAREA,
-           "[Algoritmo Clock] volver al principio de la cola circular (posicion_marco=%d)",
-           posicion_proximo_marco);
+      xlog(COLOR_TAREA, "[Algoritmo Clock] volver al principio de la cola circular (posicion_marco=%d)", posicion_proximo_marco);
     } else {
       posicion_marco_leido++;
     }
@@ -362,8 +336,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(
 
 // TODO: validar si contempla todos los escenarios, por el momento estoy usando
 // entrada_victima_elegida_por_algoritmo_clock
-t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos_asignados,
-                                              t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
+t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
   t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
 
   while (puntero_clock < list_size(marcos_asignados)) {

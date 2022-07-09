@@ -3,6 +3,7 @@
 -include .config/functions.mk
 -include .config/docker.mk
 -include .config/install.mk
+-include .config/deploy.mk
 -include .config/packages-installed.mk
 -include project.cfg
 
@@ -12,6 +13,8 @@ i install: install-virtualbox install-dev-utils install-ctags install-lib-cspec 
 ##@ Desarrollo
 # TODO: need refactor
 compile: ctags-installed libcommons-installed ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
+	echo "#define DIR_BASE \"/home/$(USERNAME)/tp-2022-1c-Sisop-Oh-Yeah/project/\"" > ./project/static/include/dir.h
+
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
