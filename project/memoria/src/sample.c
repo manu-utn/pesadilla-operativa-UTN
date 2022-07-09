@@ -23,6 +23,7 @@ int main() {
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
    */
 
+  /*
   inicializar_estructuras_de_este_proceso(0, 500);
 
   mostrar_tabla_marcos();
@@ -32,6 +33,7 @@ int main() {
   simular_asignacion_marcos_2();
 
   simular_solicitud_marco_por_mmu();
+   */
 
   return 0;
 }

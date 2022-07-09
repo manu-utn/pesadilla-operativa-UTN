@@ -4,6 +4,7 @@
 #include "utils-cliente.h"
 #include "utils-servidor.h"
 #include <commons/collections/dictionary.h>
+#include <commons/memory.h>
 #include <commons/string.h>
 
 // TODO: validar si remover, ya no se está utilizando
@@ -756,15 +757,24 @@ void imprimir_tablas_de_paginas() {
 }
 
 
-// TODO: validar
+// llena el espacio en memoria con ceros
 void llenar_memoria_mock() {
-  int offset = 0;
-  int num_marco = 0;
-  // while (offset < size_memoria_principal) {
-  memset(memoria_principal + offset, 5, obtener_tamanio_memoria_por_config());
-  offset = offset + 64;
-  num_marco += 1;
-  //}
+  int marco = 0, offset = 0;
+
+  xlog(COLOR_TAREA, "Llenando los marcos de memoria con ceros..")
+
+    while (marco < obtener_cantidad_marcos_en_memoria()) {
+    memset(memoria_principal + offset, 0, obtener_tamanio_pagina_por_config());
+    printf("marco=%d, %p + %d = %p", marco, memoria_principal, offset, memoria_principal + offset);
+
+    char* datos_marco = mem_hexstring(memoria_principal + offset, obtener_tamanio_pagina_por_config());
+    printf("%s\n\n", datos_marco);
+
+    marco++;
+    offset = offset + obtener_tamanio_pagina_por_config();
+  }
+
+  printf("\n");
 }
 
 // TODO: validar si aún se requiere

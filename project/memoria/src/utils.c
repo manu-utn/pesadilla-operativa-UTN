@@ -10,7 +10,6 @@ void inicializar_estructuras() {
 
   memoria_principal = malloc(obtener_tamanio_memoria_por_config());
 
-  // TODO: validar
   llenar_memoria_mock();
 
   tablas_de_paginas_primer_nivel = dictionary_create();
