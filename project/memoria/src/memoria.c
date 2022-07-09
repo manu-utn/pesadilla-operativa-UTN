@@ -236,7 +236,7 @@ void* manejar_nueva_conexion(void* args) {
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         // TODO: resolver cuando se avance el módulo..
-
+        // TODO: Escribir en swap paginas con bit M en 1
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
         paquete_destroy(paquete);
@@ -266,6 +266,7 @@ void* manejar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo de memoria
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
+        // TODO: Agregar retardo de swap?
         liberar_estructuras_en_swap(pcb->pid);
 
         paquete_destroy(paquete);
