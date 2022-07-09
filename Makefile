@@ -9,11 +9,12 @@
 
 ##@ Entorno
 i install: install-virtualbox install-dev-utils install-ctags install-lib-cspec install-lib-commons add-user copy-project ## Instalar y configurar entorno (unica vez)
-	echo "#define DIR_BASE \"/home/$(USERNAME)/tp-2022-1c-Sisop-Oh-Yeah/project/\"" > ./project/static/include/dir.h
 
 ##@ Desarrollo
 # TODO: need refactor
 compile: ctags-installed libcommons-installed ## Compilar un módulo por su nombre (si no se especifíca el nombre, se compila el proyecto)
+	echo "#define DIR_BASE \"/home/$(USERNAME)/tp-2022-1c-Sisop-Oh-Yeah/project/\"" > ./project/static/include/dir.h
+
 ifeq ($(COUNT_ARGS), 1)
 	$(info Compilando todos los módulos dentro del contenedor...)
 	@$(foreach modulo, $(DIR_MODULOS), \
