@@ -794,50 +794,10 @@ t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
 
   t_list* marcos_asignados = list_filter(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
 
-  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo
-  // en la cola circular
+  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo en la cola circular
   t_list* marcos_asignados_ordenados_menor_a_mayor_numero = list_sorted(marcos_asignados, (void*)marco_menor_numero);
 
   return marcos_asignados_ordenados_menor_a_mayor_numero;
-
-  // TODO: validar si deprecar, ocurre lo mismo que con encontrar_marcos_en_tabla_segundo_nivel
-  // lo comento mientras tanto
-  /*
-  t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
-
-  for (int i = 0; i < list_size(TP_primer_nivel->entradas_primer_nivel); i++) {
-    t_entrada_tabla_primer_nivel* entrada_primer_nivel = list_get(TP_primer_nivel->entradas_primer_nivel, i);
-
-    if (entrada_primer_nivel->num_tabla_segundo_nivel != NULL) {
-      encontrar_marcos_en_tabla_segundo_nivel(entrada_primer_nivel->num_tabla_segundo_nivel, marcos);
-    }
-  }
-   */
-}
-
-// TODO: validar si es necesario seguir usando,
-// la lista de marcos ya tiene un pid del proceso, y como es asignación fija de marcos por proceso se deberia de elegir
-// los marcos del proceso no de la tabla de paginas
-void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos) {
-  // lo comento mientras tanto
-
-  /*
-  t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel,
-  string_itoa(num_tabla_segundo_nivel));
-
-  for (int i = 0; i < dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel); i++) {
-    // TODO: lo adapté del t_list a t_dictionary
-    t_entrada_tabla_segundo_nivel* entrada = dictionary_get(tabla_segundo_nivel->entradas_segundo_nivel,
-  string_itoa(i));
-
-    if (entrada->num_marco != -1) {
-      t_marco_asignado* marco_asignado = malloc(sizeof(marco_asignado));
-      marco_asignado->marco = entrada->num_marco;
-      //marco_asignado->entrada; // ??? estaba suelto
-      list_add(marcos, marco_asignado);
-    }
-  }
-   */
 }
 
 int cantidad_tablas_paginas_primer_nivel() {

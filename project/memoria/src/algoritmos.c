@@ -6,6 +6,7 @@
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
 
+// necesario para las busquedas del algoritmo clock modificado
 int CLOCK_M_NUMERO_BUSQUEDA = 1;
 
 int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder) {
@@ -37,11 +38,6 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabl
 // útil para diferenciar el criterio que elige este algoritmo de reemplazo como víctima
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida) {
   return entrada_elegida->bit_uso == 0;
-}
-
-// TODO: evaluar si remover, en la nueva implementación no lo estoy usando, fué una idea inicial
-bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida) {
-  return obtener_prioridad_victima_segun_algoritmo_clock_modificado(entrada_elegida) != CLOCK_MODIFICADO_NO_ES_VICTIMA;
 }
 
 // TODO: evaluar si remover, en la nueva implementación no lo estoy usando, fué una idea inicial
@@ -164,8 +160,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
         entrada_asignada_al_marco->bit_uso = 0;
 
         xlog(COLOR_TAREA,
-             "[Algoritmo Clock Modificado] detectó una entrada con bit_uso=1, le dió otra oportunidad "
-             "(posicion_marco=%d, marco=%d, bit_uso=%d, bit_modificado=%d)",
+             "[Algoritmo Clock Modificado] detectó una entrada con bit_uso=1, le dió otra oportunidad (posicion_marco=%d, marco=%d, bit_uso=%d, bit_modificado=%d)",
              posicion_marco_leido + 1,
              marco_seleccionado->num_marco,
              entrada_asignada_al_marco->bit_uso,
@@ -176,8 +171,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
         victima_encontrada = true;
 
         xlog(COLOR_TAREA,
-             "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, "
-             "entrada_numero=%d, bit_uso=%d, bit_modificado=%d)",
+             "[Algoritmo Clock Modificado] detectó una entrada víctima (posicion_marco=%d, marco=%d, entrada_numero=%d, bit_uso=%d, bit_modificado=%d)",
              posicion_marco_leido + 1,
              marco_seleccionado->num_marco,
              entrada_victima_elegida->entrada_segundo_nivel,
@@ -258,7 +252,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
   }
 
   // iterar sobre la cola circular hasta que encuentre una pagina víctima
-  // for (; !victima_encontrada; posicion_marco_leido++)
   while (!victima_encontrada) {
     t_marco* marco_seleccionado = list_get(marcos_asignados, posicion_marco_leido);
     int posicion_proximo_marco = posicion_marco_leido + 1;
@@ -332,30 +325,4 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
   }
 
   return entrada_victima_elegida;
-}
-
-// TODO: validar si contempla todos los escenarios, por el momento estoy usando
-// entrada_victima_elegida_por_algoritmo_clock
-t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
-  t_entrada_tabla_segundo_nivel* entrada_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-
-  while (puntero_clock < list_size(marcos_asignados)) {
-    t_marco_asignado* marco_asignado_a_entrada = list_get(marcos_asignados, puntero_clock);
-
-    if (marco_asignado_a_entrada->entrada->bit_uso != 0) {
-      marco_asignado_a_entrada->entrada->bit_uso = 0;
-    } else {
-      entrada_victima = marco_asignado_a_entrada->entrada;
-      puntero_clock++;
-      break;
-    }
-
-    if (puntero_clock + 1 == list_size(marcos_asignados)) {
-      puntero_clock = 0;
-      continue;
-    }
-    puntero_clock++;
-  }
-
-  return entrada_victima;
 }

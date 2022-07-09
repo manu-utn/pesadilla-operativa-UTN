@@ -5,11 +5,9 @@
 #include <utils.h>
 
 int main() {
-  // TODO: ??? se trajo de una rama vieja de algún conflicto hago suponer...
-  // función de la biblioteca static
   inicializar_estructuras();
 
-  // TODO: comentado temporalmente, pido que se utilizen las macros para las rutas
+  // TODO: comentado temporalmente, pido que se utilicen las macros para las rutas
   /*
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
@@ -25,14 +23,11 @@ int main() {
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
    */
 
-  // pthread_t th;
-  // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
-
   inicializar_estructuras_de_este_proceso(0, 500);
 
   mostrar_tabla_marcos();
   imprimir_tablas_de_paginas();
-  // reservar_marcos_2();
+
   // simular_asignacion_marcos_1();
   simular_asignacion_marcos_2();
 
