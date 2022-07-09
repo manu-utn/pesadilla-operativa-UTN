@@ -85,11 +85,7 @@ int recibir_operacion(int socket_cliente) {
 
   int cod_op = -1;
   if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0) {
-    xlog(COLOR_PAQUETE,
-         "Recibi una operacion (socket=%d, operacion=%d, tipo=%s)",
-         socket_cliente,
-         cod_op,
-         obtener_tipo_operacion(cod_op));
+    xlog(COLOR_PAQUETE, "Recibi una operacion (socket=%d, operacion=%d, tipo=%s)", socket_cliente, cod_op, obtener_tipo_operacion(cod_op));
     return cod_op;
   } else {
     xlog(COLOR_CONEXION, "Se cerró una de las conexiones entrantes (socket=%d)", socket_cliente);
@@ -120,11 +116,7 @@ t_buffer* recibir_mensaje(int socket_cliente) {
   int status = recibir(socket_cliente, buffer);
 
   if (status != -1) {
-    xlog(COLOR_PAQUETE,
-         "Se recibió un mensaje (socket=%d, size=%d, stream=%s)",
-         socket_cliente,
-         buffer->size,
-         (char*)buffer->stream);
+    xlog(COLOR_PAQUETE, "Se recibió un mensaje (socket=%d, size=%d, stream=%s)", socket_cliente, buffer->size, (char*)buffer->stream);
   }
 
   return buffer;

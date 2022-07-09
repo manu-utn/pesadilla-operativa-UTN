@@ -104,10 +104,20 @@ typedef struct{
 
 t_config * config;
 t_log * logger;
-uint32_t size_memoria_principal;
-void* memoria_principal;
-int cant_marcos;
-int tam_marcos;
+// MEMORIA PRINCIPAL
+uint32_t      size_memoria_principal; // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
+void      *   memoria_principal;
+int           cant_marcos;            // ANOTACION GASTON: no se usa en ningun lado (Ya estaba).
+int           tam_marcos;             // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
+uint32_t      tamanio_marco;
+
+uint32_t      buscar_dato_en_memoria  (uint32_t direccion_fisica);
+uint32_t      escribir_dato           (uint32_t direccion_fisica,   uint32_t  valor);
+uint32_t      obtener_byte_inicio     (uint32_t direccion_fisica);
+uint32_t      obtener_marco_dato      (uint32_t direccion_fisica);
+uint32_t      obtener_offset_dato     (uint32_t direccion_fisica);
+// FIN MEMORIA PRINCIPAL
+
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
 int socket_memoria;
@@ -138,8 +148,7 @@ void dividir_memoria_principal_en_marcos();
 void mostrar_tabla_marcos();
 void llenar_memoria_mock();
 
-uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
-int escribir_dato(uint32_t dir_fisica, uint32_t valor);
+
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
