@@ -4,6 +4,7 @@
 #include "utils-cliente.h"
 #include "utils-servidor.h"
 #include <commons/collections/dictionary.h>
+#include <commons/memory.h>
 #include <commons/string.h>
 
 // TODO: validar si remover, ya no se está utilizando
@@ -377,40 +378,6 @@ bool hay_marcos_libres_asignados_al_proceso(int pid) {
   return list_any_satisfy(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
 }
 
-// TODO: validar, creo que ya está cubierto en obtener_marco excepto por los bits de uso/modificado
-int asignar_marco_libre_o_reemplazar_pagina(int num_tabla_segundo_nivel, int entrada_segundo_nivel) {
-  int marco = 0;
-
-  // TODO: validar lo de abajo, agregué algunos "TODO", y otro al comienzo de ésta función
-  /*
-  int es_la_tabla(t_tabla_segundo_nivel * tabla_actual) {
-    return tabla_actual->num_tabla == num_tabla_segundo_nivel;
-  }
-
-  t_tabla_segundo_nivel* tabla_segundo_nivel = list_find(lista_tablas_segundo_nivel, (void*)es_la_tabla);
-  t_entrada_tabla_segundo_nivel* entrada = list_get(tabla_segundo_nivel->entradas_segundo_nivel, entrada_segundo_nivel);
-
-  if (entrada->num_marco != -1) {
-    marco = entrada->num_marco;
-
-    if (strcmp(algoritmo_reemplazo, "CLOCK-M") == 0) {
-      // TODO: el bit de modificado no deberìa estar habilitado sólo si la entrada es de escritura?
-      entrada->bit_modif = 1;
-    }
-
-    // TODO: no deberìa estar en 1 por default cuando se inicializan las entradas al admitir un proceso?
-    entrada->bit_uso = 1;
-  }
-  else if (!hay_marcos_libres_asignados_al_proceso(tabla_segundo_nivel->pid)) {
-    t_entrada_tabla_segundo_nivel* entrada_victima = ejecutar_reemplazo(tabla_segundo_nivel->pid, entrada);
-  } else {
-    marco = buscar_marco_libre();
-  }
-  */
-
-  return marco;
-}
-
 // TODO: validar lógica repetida
 t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   t_tabla_primer_nivel* TP_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
@@ -495,101 +462,6 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
        "TP de primer nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_primer_nivel=%d)",
        tabla_primer_nivel->num_tabla,
        dictionary_size(tablas_de_paginas_primer_nivel));
-
-  // para todo lo de abajo, se delegó comportamiento en varias funciones, para facilitar lectura y mantenimiento y
-  // detectar leaks lo dejo por acá mientras tanto
-
-  /*
-  // TODO: evaluar si remover el tamaño_acumulado, se había pensado para una asignación dinámica de frames
-  int tam_acumulado = 0;
-  int cant_marcos_asignados = 0;
-  int marcos_por_proceso = config_get_int_value(config, "MARCOS_POR_PROCESO");
-
-  // TODO: generar abstraccion crear_tabla_paginas_primer_nivel() y inicializar_tabla_paginas_primer_nivel()
-  t_tabla_primer_nivel* tabla_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
-
-  // TODO: usar una variable global cantidad_tabla_paginas_primer nivel, usar ese valor e incrementar
-  // validar si conviene usar otra manera
-  tabla_primer_nivel->num_tabla = 1;
-
-  // TODO: evaluar si remover el identificador del proceso
-  tabla_primer_nivel->pid = pid;
-
-  // es más fácil acceder con el diccionario por el numero de entrada, evitando iterar sobre la lista preguntando po
-  numero de entrada
-  // tabla_primer_nivel->entradas = list_create();
-  tabla_primer_nivel->entradas_primer_nivel = dictionary_create();
-
-  // agrega a la TP_primer_nivel tantas entradas como se diga por config
-  // cada entrada representa una TP_segundo_nivel
-  for (int i = 0; i < obtener_cantidad_entradas_por_tabla_por_config(); i++) {
-    t_entrada_tabla_primer_nivel* entrada_primer_nivel = malloc(sizeof(t_entrada_tabla_primer_nivel));
-
-    // TODO: esto debería cambiar, sería suficiente con usar el contador del for?
-    // esto identifica cada entrada de TP 1er nivel, la MMU accede a ésta usando
-  floor(numero_pagina_DL/cant_entradas_por_tabla) entrada_primer_nivel->entrada_primer_nivel = 1;
-
-    // TODO: desacoplar y generar abstracción agregar_tabla_paginas_segundo_nivel()
-    t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
-
-    // TODO: evaluar si remover el identificador del proceso
-    tabla_paginas_segundo_nivel->pid = pid;
-
-    // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
-    tabla_paginas_segundo_nivel->num_tabla = 2;
-
-    // cada entrada es del tipo (numero_entrada_TP_primer_nivel, numero_TP_segundo_nivel)
-    tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();
-
-    // agrega a la TP_segundo_nivel tantas entradas como se diga por config
-    // cada entrada representa una entrada de la TP_segundo_nivel
-    for (int j = 0; j < obtener_cantidad_entradas_por_tabla_por_config(); j++) {
-      // TODO: delegar y generar una abstracción validar_marcos_asignados() ò similar
-      // TODO: validar si es necesaria esta validación, porque ahora los marcos se inicializaron en -1
-      if (cant_marcos_asignados <= marcos_por_proceso) {
-        t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
-
-        // TODO: validar en el foro si está ok definirlo asi el valor
-        entrada_tabla_segundo_nivel->entrada_segundo_nivel = j;
-
-        // TODO: delegar, desacoplar y generar abstracción inicializar_tabla_paginas()
-        entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
-
-        entrada_tabla_segundo_nivel->bit_uso = 0;
-        entrada_tabla_segundo_nivel->bit_modif = 0;
-        entrada_tabla_segundo_nivel->bit_presencia = 0;
-
-        dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel,
-  string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel) , entrada_tabla_segundo_nivel);
-        cant_marcos_asignados++;
-
-        // TODO: evaluar si remover, se usaba porque se consideraba una asignación dinámica de frames
-        // tam_proceso += tam_marcos;
-      }
-    }
-    entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
-
-    // agregamos una entrada_primer_nivel a la TP_primer_nivel
-    dictionary_put(tabla_primer_nivel->entradas_primer_nivel, string_itoa(entrada_primer_nivel->entrada_primer_nivel),
-  entrada_primer_nivel);
-
-    // agregamos una TP_segundo_nivel en una estructura global
-    dictionary_put(tablas_de_paginas_segundo_nivel, string_itoa(tabla_paginas_segundo_nivel->num_tabla) ,
-  tabla_paginas_segundo_nivel);
-  }
-
-  // TODO: (???)
-  // dictionary_put(diccionario_paginas, string_itoa(pid), tabla_primer_nivel);
-  // COMENTAR ESTO Y DESCOMENTAR LA DE ARRIBA: SOLO PARA PRUEBAS
-  dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
-  */
-}
-
-// TODO: evaluar si deprecar, no se está usando
-int generar_numero_tabla() {
-  srand(time(NULL));
-  int r = rand();
-  return r;
 }
 
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
@@ -623,21 +495,6 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
   return marco_libre->num_marco;
 }
 
-// TODO: evaluar si deprecar, se staba usando en un mock
-void asignar_marco_al_proceso(int pid, int numero_marco, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
-  int _marco(t_marco * marco) {
-    return marco->num_marco == numero_marco;
-  }
-
-  t_marco* marco_asignado = list_find(tabla_marcos, (void*)_marco);
-  marco_asignado->pid = pid;
-  marco_asignado->ocupado = 1;
-
-  entrada_TP_segundo_nivel->num_marco = marco_asignado->num_marco;
-
-  // para facilitar el algoritmo de reemplazo
-  marco_asignado->entrada_segundo_nivel = entrada_TP_segundo_nivel;
-}
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
        "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
@@ -756,15 +613,24 @@ void imprimir_tablas_de_paginas() {
 }
 
 
-// TODO: validar
+// llena el espacio en memoria con ceros
 void llenar_memoria_mock() {
-  int offset = 0;
-  int num_marco = 0;
-  // while (offset < size_memoria_principal) {
-  memset(memoria_principal + offset, 5, obtener_tamanio_memoria_por_config());
-  offset = offset + 64;
-  num_marco += 1;
-  //}
+  int marco = 0, offset = 0;
+
+  xlog(COLOR_TAREA, "Llenando los marcos de memoria con ceros..")
+
+    while (marco < obtener_cantidad_marcos_en_memoria()) {
+    memset(memoria_principal + offset, 0, obtener_tamanio_pagina_por_config());
+    printf("marco=%d, %p + %d = %p", marco, memoria_principal, offset, memoria_principal + offset);
+
+    char* datos_marco = mem_hexstring(memoria_principal + offset, obtener_tamanio_pagina_por_config());
+    printf("%s\n\n", datos_marco);
+
+    marco++;
+    offset = offset + obtener_tamanio_pagina_por_config();
+  }
+
+  printf("\n");
 }
 
 // TODO: validar si aún se requiere
@@ -794,50 +660,10 @@ t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
 
   t_list* marcos_asignados = list_filter(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
 
-  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo
-  // en la cola circular
+  // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo en la cola circular
   t_list* marcos_asignados_ordenados_menor_a_mayor_numero = list_sorted(marcos_asignados, (void*)marco_menor_numero);
 
   return marcos_asignados_ordenados_menor_a_mayor_numero;
-
-  // TODO: validar si deprecar, ocurre lo mismo que con encontrar_marcos_en_tabla_segundo_nivel
-  // lo comento mientras tanto
-  /*
-  t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
-
-  for (int i = 0; i < list_size(TP_primer_nivel->entradas_primer_nivel); i++) {
-    t_entrada_tabla_primer_nivel* entrada_primer_nivel = list_get(TP_primer_nivel->entradas_primer_nivel, i);
-
-    if (entrada_primer_nivel->num_tabla_segundo_nivel != NULL) {
-      encontrar_marcos_en_tabla_segundo_nivel(entrada_primer_nivel->num_tabla_segundo_nivel, marcos);
-    }
-  }
-   */
-}
-
-// TODO: validar si es necesario seguir usando,
-// la lista de marcos ya tiene un pid del proceso, y como es asignación fija de marcos por proceso se deberia de elegir
-// los marcos del proceso no de la tabla de paginas
-void encontrar_marcos_en_tabla_segundo_nivel(int num_tabla_segundo_nivel, t_list* marcos) {
-  // lo comento mientras tanto
-
-  /*
-  t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel,
-  string_itoa(num_tabla_segundo_nivel));
-
-  for (int i = 0; i < dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel); i++) {
-    // TODO: lo adapté del t_list a t_dictionary
-    t_entrada_tabla_segundo_nivel* entrada = dictionary_get(tabla_segundo_nivel->entradas_segundo_nivel,
-  string_itoa(i));
-
-    if (entrada->num_marco != -1) {
-      t_marco_asignado* marco_asignado = malloc(sizeof(marco_asignado));
-      marco_asignado->marco = entrada->num_marco;
-      //marco_asignado->entrada; // ??? estaba suelto
-      list_add(marcos, marco_asignado);
-    }
-  }
-   */
 }
 
 int cantidad_tablas_paginas_primer_nivel() {
@@ -894,6 +720,8 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
   entrada_tabla_segundo_nivel->bit_uso = 1;
 
   entrada_tabla_segundo_nivel->bit_modif = 0;
+
+  // TODO: evaluar si corresponde que esté inicializado en 0
   entrada_tabla_segundo_nivel->bit_presencia = 0;
 
   entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
