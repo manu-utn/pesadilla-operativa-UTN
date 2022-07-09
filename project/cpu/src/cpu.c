@@ -18,8 +18,8 @@ int main() {
   pthread_create(&th2, NULL, (void*)iniciar_conexion_interrupt, NULL), pthread_detach(th2);
 
   // PARA PRUEBAS - COMENTAR SI NO SE UTILIZA
-  // pthread_t th_test;
-  // pthread_create(&th_test, NULL, (void*)prueba_comunicacion_memoria, NULL), pthread_detach(th_test);
+  pthread_t th_test;
+  pthread_create(&th_test, NULL, (void*)prueba_comunicacion_memoria, NULL), pthread_detach(th_test);
 
   xlog(COLOR_INFO, "CPU - Servidor listo para recibir al cliente Kernel");
 
@@ -315,14 +315,6 @@ uint32_t escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escrib
   solicitud->socket = socket_memoria;
   solicitud->dir_fisica = direccion_fisica;
   solicitud->valor = dato_a_escribir;
-  // t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
-  //                                                      int tam_pagina,
-  //                                                      int cant_entradas_por_tabla,
-  //                                                      int num_pagina,
-  //                                                      uint32_t dir_logica,
-  //                                                      int operacion) {
-  //   log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
-  //   int cod_op = 0;
 
   t_paquete* paquete = paquete_create();
   t_buffer* mensaje = crear_mensaje_escritura_dato_fisico(solicitud);
@@ -536,27 +528,15 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 }
 
 void prueba_comunicacion_memoria() {
-  // typedef struct {
-  //   uint32_t socket;
-  //   uint32_t pid;
-  //   uint32_t tamanio;
-  //   uint32_t estimacion_rafaga;
-  //   uint32_t tiempo_en_ejecucion;
-  //   uint32_t tiempo_de_bloqueado;
-  //   uint32_t program_counter;
-  //   uint32_t tabla_primer_nivel;
-  //   t_pcb_estado estado;
-  //   t_list* instrucciones;
-  // } t_pcb;
-  // typedef struct{
-  //   char* identificador;
-  //   char* params;
-  // } t_instruccion;
   t_instruccion* instruccion = malloc(sizeof(t_instruccion));
   instruccion->identificador = "WRITE";
-  instruccion->params = "4 42";
+  instruccion->params = "10 42";
   t_pcb* pcb = malloc(sizeof(t_pcb));
   pcb->tabla_primer_nivel = 4;
   execute_write(pcb, instruccion);
-  // execute_read(pcb, instruccion);
+
+  t_instruccion* instruccion2 = malloc(sizeof(t_instruccion));
+  instruccion2->identificador = "READ";
+  instruccion2->params = "10";
+  execute_read(pcb, instruccion2);
 }
