@@ -191,57 +191,51 @@ void* manejar_nueva_conexion(void* args) {
         break;
       }
       case OPERACION_OBTENER_DATO: {
-        xlog(COLOR_CONEXION, "Obteniendo dato fisico en memoria");
-        // codigo_operacion = recibir_operacion(socket_memoria);
+        xlog(COLOR_CONEXION, "Buscando dato pedido en MEMORIA PRINCIPAL");
+
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
-
         req = obtener_solicitud_dato(paquete);
 
         uint32_t direccion_fisica = req->dir_fisica;
+        free(req);
 
-        uint32_t dato_buscado = 0;
-        dato_buscado = buscar_dato_en_memoria(direccion_fisica);
-        xlog(COLOR_INFO, "DATO BUSCADO: %d", dato_buscado);
-
-        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+        uint32_t dato_buscado = buscar_dato_en_memoria(direccion_fisica);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_dato_fisico* resp = malloc(sizeof(t_respuesta_dato_fisico));
-        // resp->size_dato = 6;
-        // resp->dato_buscado = malloc(7);
+
         memcpy(&(resp->dato_buscado), &dato_buscado, sizeof(uint32_t));
-        // memcpy(resp->dato_buscado, "holass", 7);
-        // memcpy(resp->dato_buscado + 6, "\0", 1);
+
         t_buffer* mensaje = crear_mensaje_respuesta_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
 
-        // free(dato_buscado);
+        free(resp);
         free(paquete_respuesta);
 
         break;
       }
 
       case OPERACION_ESCRIBIR_DATO: {
-        xlog(COLOR_CONEXION, "Escribiendo dato en memoria");
-        // codigo_operacion = recibir_operacion(socket_memoria);
+        xlog(COLOR_CONEXION, "Escribiendo dato en MEMORIA PRINCIPAL");
+
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
-
         req = obtener_solicitud_escritura_dato(paquete);
 
-        uint32_t dir_fisica = req->dir_fisica;
+        uint32_t direccion_fisica = req->dir_fisica;
         uint32_t valor = req->valor;
+        free(req);
 
-        int resultado_escritura = escribir_dato(dir_fisica, valor);
-
+        uint32_t resultado_escritura = escribir_dato(direccion_fisica, valor);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_escritura_dato_fisico* resp = malloc(sizeof(t_respuesta_escritura_dato_fisico));
-        resp->resultado = 1;
+        resp->resultado = resultado_escritura;
         t_buffer* mensaje = crear_mensaje_respuesta_escritura_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_escribir_dato(socket_cliente, paquete_respuesta);
 
+        free(resp);
         free(paquete_respuesta);
 
         break;

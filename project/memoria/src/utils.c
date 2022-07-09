@@ -8,7 +8,11 @@ void inicializar_estructuras() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
 
-  memoria_principal = malloc(obtener_tamanio_memoria_por_config());
+  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
+  tamanio_marco = config_get_int_value(config, "TAM_PAGINA");
+
+  memoria_principal = malloc(size_memoria);
+
 
   llenar_memoria_mock();
 
