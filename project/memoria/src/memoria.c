@@ -436,7 +436,7 @@ int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
-void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
+void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
   // TODO: validar el comentario de abajo
   /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
