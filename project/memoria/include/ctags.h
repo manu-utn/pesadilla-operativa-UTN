@@ -44,6 +44,7 @@ void algoritmo_reemplazo_imprimir_marco(t_marco * marco);
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 void dividir_memoria_principal_en_marcos();
 void eliminar_archivo_swap(int pid,char * path);
+void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel * entrada);
 void escribir_archivo_swap(char * filepath,void * datos,int numPagina,int tamanioPagina);
 void imprimir_entrada_segundo_nivel(char * __,t_entrada_tabla_segundo_nivel * entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel * tabla_segundo_nivel);

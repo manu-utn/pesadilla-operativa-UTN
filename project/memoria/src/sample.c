@@ -28,8 +28,8 @@ int main() {
   mostrar_tabla_marcos();
   imprimir_tablas_de_paginas();
 
-  // simular_asignacion_marcos_1();
-  simular_asignacion_marcos_2();
+  simular_asignacion_marcos_1();
+  // simular_asignacion_marcos_2();
 
   simular_solicitud_marco_por_mmu();
 
@@ -39,6 +39,8 @@ int main() {
 
 void simular_solicitud_marco_por_mmu() {
   int marco = 0;
+
+  // simulación para OPERACION_OBTENER_MARCO en memoria.c
 
   // configuración de la simulación para memoria con 4 frames
 
@@ -102,7 +104,7 @@ void simular_asignacion_marcos_1() {
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 1; // u=1, m=1
   // TODO: evaluar que ocurriría si el puntero no apunta a ningun marco, por el momento funciona bien así
-  // algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
+  algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
   xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 
@@ -115,7 +117,6 @@ void simular_asignacion_marcos_1() {
   numero_marco = 3, numero_entrada = 3;
   entrada = obtener_entrada_tabla_segundo_nivel(tabla->num_tabla, numero_entrada);
   entrada->bit_uso = 1, entrada->bit_modif = 0; // u=1, m=0
-  algoritmo_clock_puntero_apuntar_al_marco(numero_marco);
   reasignar_marco(numero_marco, pid, entrada);
   xlog(COLOR_INFO, "[MOCK] Marco reasignado (num_marco=%d, pid=%d, numero_entrada=%d)", numero_marco, pid, numero_entrada);
 

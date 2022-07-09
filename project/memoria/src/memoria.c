@@ -497,11 +497,17 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
-       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
+       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d, apuntado_por_algoritmo_clock=%s",
        marco->num_marco,
        marco->pid,
        (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
+       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1,
+       (marco->apuntado_por_puntero_de_clock) ? "SI" : "NO");
+
+  if (marco->entrada_segundo_nivel) {
+    t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco->entrada_segundo_nivel;
+    entrada_asignada_a_marco_imprimir_bits(entrada_asignada_al_marco);
+  }
 }
 
 void algoritmo_reemplazo_imprimir_marco(t_marco* marco) {
@@ -818,6 +824,16 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco) {
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
   xlog(COLOR_INFO,
        "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+       entrada->entrada_segundo_nivel,
+       entrada->num_marco,
+       entrada->bit_uso,
+       entrada->bit_modif,
+       entrada->bit_presencia)
+}
+
+void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
+  xlog(COLOR_INFO,
+       "[MARCO] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
        entrada->entrada_segundo_nivel,
        entrada->num_marco,
        entrada->bit_uso,

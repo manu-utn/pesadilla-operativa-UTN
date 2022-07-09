@@ -37,13 +37,6 @@ typedef enum {
   MARCO_OCUPADO = 1,
 } t_estado_marco;
 
-typedef enum {
-  CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
-  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA = 1,
-  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA = 2,
-  CLOCK_MODIFICADO_VICITMA_PRIORIDAD_BAJA = 3
-} CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD;
-
 typedef struct{
     int puerto_escucha;
     int tam_memoria;
@@ -184,7 +177,6 @@ int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos);
 
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
-CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel_create(int num_entrada, int num_marco, int bit_uso, int bit_modif, int bit_presencia);
 void simular_solicitud_marco_por_mmu();
 void imprimir_marco(t_marco* marco);
@@ -196,6 +188,7 @@ int cantidad_marcos_libres_asignados_al_proceso(int pid);
 void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
+void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 
 //SWAP
 int crear_punto_de_montaje(char* path);
@@ -211,5 +204,4 @@ void inicializar_archivo_swap(int pid, int tamanio, char* path);
 void eliminar_archivo_swap(int pid, char* path);
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
 void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
-
 #endif /* MEMORIA_H */
