@@ -23,7 +23,6 @@ int main() {
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
    */
 
-  /*
   inicializar_estructuras_de_este_proceso(0, 500);
 
   mostrar_tabla_marcos();
@@ -33,7 +32,6 @@ int main() {
   simular_asignacion_marcos_2();
 
   simular_solicitud_marco_por_mmu();
-   */
 
   return 0;
 }
@@ -55,6 +53,7 @@ void simular_solicitud_marco_por_mmu() {
 
   numero_tp_segundo_nivel = 2;
   marco = obtener_marco(numero_tp_segundo_nivel, 0);
+  // marco = obtener_marco(numero_tp_segundo_nivel, 1);
 
   /*
   // en estas cuatro peticiones buscará el primer marco libre asignado al proceso

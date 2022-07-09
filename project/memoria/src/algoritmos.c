@@ -40,21 +40,6 @@ bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_ele
   return entrada_elegida->bit_uso == 0;
 }
 
-// TODO: evaluar si remover, en la nueva implementación no lo estoy usando, fué una idea inicial
-CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida) {
-  CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD prioridad_victima = CLOCK_MODIFICADO_NO_ES_VICTIMA;
-
-  if (entrada_elegida->bit_uso == 0 && entrada_elegida->bit_modif == 0) {
-    prioridad_victima = CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA;
-  } else if (entrada_elegida->bit_uso == 0 && entrada_elegida->bit_modif == 1) {
-    prioridad_victima = CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA;
-  } else if (entrada_elegida->bit_uso == 1 && entrada_elegida->bit_modif == 1) {
-    prioridad_victima = CLOCK_MODIFICADO_VICITMA_PRIORIDAD_BAJA;
-  }
-
-  return prioridad_victima;
-}
-
 void algoritmo_clock_actualizar_puntero(t_marco* marco_seleccionado, t_marco* proximo_marco_seleccionado) {
   marco_seleccionado->apuntado_por_puntero_de_clock = false;
   proximo_marco_seleccionado->apuntado_por_puntero_de_clock = true;
