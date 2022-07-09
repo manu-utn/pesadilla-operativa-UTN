@@ -7,6 +7,9 @@
 int main() {
   // función de la biblioteca static
   inicializar_estructuras();
+
+  // TODO: comentado temporalmente, pido que se utilizen las macros para las rutas
+  /*
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
   inicializar_archivo_swap(0, 160, path_punto_monataje);
@@ -19,6 +22,7 @@ int main() {
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba2, 1, 32);
   eliminar_archivo_swap(1, path_punto_monataje);
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);
+   */
 
   // pthread_t th;
   // pthread_create(&th, NULL, escuchar_conexiones, NULL), pthread_detach(th);
@@ -35,8 +39,7 @@ int main() {
   // simular_asignacion_marcos_1();
   simular_asignacion_marcos_2();
 
-
-  // simular_solicitud_marco_por_mmu();
+  simular_solicitud_marco_por_mmu();
 
   // comentamos para probar la otra versión
 
