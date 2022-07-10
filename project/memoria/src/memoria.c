@@ -235,8 +235,18 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
         // TODO: Escribir en swap paginas con bit M en 1
+
+        t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
+
+        bool marco_modificado(t_marco * marco) {
+          return marco->t_entrada_tabla_segundo_nivel->bit_modif == 1;
+        }
+
+        t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
+
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
         paquete_destroy(paquete);
@@ -431,6 +441,10 @@ char* obtener_algoritmo_reemplazo_por_config() {
   return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 
+char* obtener_path_archivos_swap() {
+  return config_get_string_value(config, "PATH_SWAP");
+}
+
 bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
   return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
 }
@@ -446,8 +460,7 @@ void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
 
-  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
-  inicializar_archivo_swap(pid, tam_proceso, path_punto_monataje);
+  inicializar_archivo_swap(pid, tam_proceso);
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);

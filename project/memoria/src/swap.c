@@ -43,9 +43,11 @@ char* get_filepath(char* file, char* path, int pid) {
   return file;
 }
 
-void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio, char* path) {
+void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio) {
   char* filename = string_new();
   void* contenido = string_repeat('0', tamanio);
+  char* path = obtener_path_archivos_swap();
+
   size_t resultado;
 
   filename = get_filepath(filename, path, pid);
@@ -69,8 +71,9 @@ void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio, char* path) {
   }
 }
 
-void eliminar_archivo_swap(uint32_t pid, char* path) {
+void eliminar_archivo_swap(uint32_t pid) {
   char* filename = string_new();
+  char* path = obtener_path_archivos_swap();
 
   filename = get_filepath(filename, path, pid);
 
@@ -81,7 +84,8 @@ void eliminar_archivo_swap(uint32_t pid, char* path) {
   }
 }
 
-void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina) {
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
+  int tamanioPagina = obtener_tamanio_pagina_por_config();  
   FILE* fd = fopen(filepath, "rb+");
 
   int desplazamiento = numPagina * tamanioPagina;
@@ -98,9 +102,11 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int taman
   fclose(fd);
 }
 
-void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina) {
+void leer_archivo_swap(char* filepath, int numPagina) {
   FILE* fd = fopen(filepath, "rb+");
+  int tamanioPagina = obtener_tamanio_pagina_por_config();
   void* datos[tamanioPagina];
+
   int desplazamiento = numPagina * tamanioPagina;
 
   log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
@@ -116,6 +122,31 @@ void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina) {
 
 void liberar_estructuras_en_swap(uint32_t pid) {
   xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
-  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
-  eliminar_archivo_swap(pid, path_punto_monataje);
+  eliminar_archivo_swap(pid);
+}
+
+void escribir_datos_de_marcos_en_swap(t_list* marcos) {
+  list_iterate(marcos, (void*)escribir_marco_en_swap);
+}
+
+void escribir_marco_en_swap(t_marco marco) {
+  int tamanioPagina = obtener_tamanio_pagina_por_config();
+  void* datos[tamanioPagina];
+
+  for(int i = 0; i < tamanioPagina; i++) {
+    uint32_t dato = buscar_dato_en_memoria(marco->direccion + i);
+    datos[i] = dato;
+  }
+
+  char* filename = string_new();
+  char* path = obtener_path_archivos_swap();
+
+  filename = get_filepath(filename, path, marco->pid);
+
+  int num_pagina = marco->entrada_segundo_nivel->entrada_segundo_nivel;
+
+  escribir_archivo_swap(filename, (void*) datos, num_pagina);
+
+  marco->pid = 0;
+  marco->ocupado = 0;
 }

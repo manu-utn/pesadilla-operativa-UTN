@@ -182,6 +182,7 @@ int obtener_cantidad_entradas_por_tabla_por_config();
 int obtener_tamanio_memoria_por_config();
 int obtener_cantidad_marcos_por_proceso_por_config();
 char* obtener_algoritmo_reemplazo_por_config();
+char* obtener_path_archivos_swap();
 int obtener_tamanio_pagina_por_config();
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
@@ -214,10 +215,10 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 char* get_filepath(char* file, char* path, int pid);
-void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio, char* path);
-void eliminar_archivo_swap(uint32_t pid, char* path);
-void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
-void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
+void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
+void eliminar_archivo_swap(uint32_t pid);
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina);
+void leer_archivo_swap(char* filepath, int numPagina);
 void liberar_estructuras_en_swap(uint32_t pid);
 
 #endif /* MEMORIA_H */
