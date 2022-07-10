@@ -37,13 +37,6 @@ typedef enum {
   MARCO_OCUPADO = 1,
 } t_estado_marco;
 
-typedef enum {
-  CLOCK_MODIFICADO_NO_ES_VICTIMA = 0,
-  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_ALTA = 1,
-  CLOCK_MODIFICADO_VICTIMA_PRIORIDAD_MEDIA = 2,
-  CLOCK_MODIFICADO_VICITMA_PRIORIDAD_BAJA = 3
-} CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD;
-
 typedef struct{
     int puerto_escucha;
     int tam_memoria;
@@ -73,6 +66,7 @@ typedef struct{
     int bit_uso;
     int bit_modif;
     int bit_presencia;
+    int numero_tabla_segundo_nivel;
 }t_entrada_tabla_segundo_nivel;
 
 typedef struct {
@@ -83,6 +77,7 @@ typedef struct {
 
   // para facilitar el algoritmo de reemplazo
   bool apuntado_por_puntero_de_clock;
+  int numero_tabla_segundo_nivel;
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel;
 } t_marco;
 
@@ -167,7 +162,7 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 bool hay_marcos_libres_asignados_al_proceso(int pid);
 
 t_list* obtener_marcos_asignados_a_este_proceso(int pid);
-int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder);
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tabla_segundo_nivel, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder);
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
 int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
 
@@ -192,7 +187,6 @@ int obtener_posicion_de_marco_del_listado(t_marco* marco, t_list* lista_marcos);
 
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modificado(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
-CLOCK_MODIFICADO_VICTIMA_NIVEL_PRIORIDAD obtener_prioridad_victima_segun_algoritmo_clock_modificado(t_entrada_tabla_segundo_nivel* entrada_elegida);
 t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel_create(int num_entrada, int num_marco, int bit_uso, int bit_modif, int bit_presencia);
 void simular_solicitud_marco_por_mmu();
 void imprimir_marco(t_marco* marco);
@@ -204,6 +198,8 @@ int cantidad_marcos_libres_asignados_al_proceso(int pid);
 void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
+void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
+int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada);
 
 //SWAP
 int crear_punto_de_montaje(char* path);

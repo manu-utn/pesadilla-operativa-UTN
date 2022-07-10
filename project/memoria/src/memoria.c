@@ -55,8 +55,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
-        uint32_t entradas_por_tabla = config_get_int_value(config, "ENTRADAS_POR_TABLA");
-        uint32_t tam_pagina = tamanio_marco; // config_get_int_value(config, "TAM_PAGINA");
+        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "PAGINAS_POR_TABLA");
+        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
 
         t_paquete* paquete_con_respuesta = paquete_create();
@@ -68,55 +68,7 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_MENSAJE: {
         recibir_mensaje(socket_cliente);
-
-        // t_paquete* paquete = recibir_paquete(cliente_fd);
-        // t_mensaje_handshake_cpu_memoria* mensaje = paquete_obtener_mensaje_handshake(paquete);
-
       } break;
-
-      // TODO: validar porque quedó comentado
-      case READ: {
-        /*log_info(logger, "Comenzando operacion READ...");
-        t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_solicitud_segunda_tabla* read = paquete_obtener_solicitud_tabla_segundo_nivel(paquete);
-
-        log_info(logger, "Paquete recibido...");
-
-        // PROCESO EL VALOR ENVIADO POR CPU, POR AHORA HARDCODEO UN VALOR PARA PROBAR LA CONEXION
-
-        t_respuesta_operacion_read* respuesta_read = malloc(sizeof(t_respuesta_operacion_read));
-        respuesta_read->valor_buscado = 3;
-        t_paquete* paquete_con_respuesta = paquete_create();
-        paquete_add_respuesta_operacion_read(paquete_con_respuesta, respuesta_read);
-        enviar_operacion_read(socket_cliente, paquete_con_respuesta);
-        // DESCOMENTAR PARA RESOLVER SEG FAULT
-        paquete_destroy(paquete_con_respuesta);
-
-        free(respuesta_read);*/
-        break;
-      }
-
-      // TODO: validar porque quedó comentado
-      /*
-      case OPERACION_INICIALIZAR_ESTRUCTURAS: {
-        t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_pcb* pcb = paquete_obtener_pcb(paquete);
-        paquete_destroy(paquete);
-
-        // TODO: resolver cuando se avance el módulo..
-
-        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
-
-        pcb->tabla_primer_nivel = 1;
-        t_paquete* paquete_con_pcb_actualizado = paquete_create();
-        paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
-
-
-        // TODO: deberia agregar al pcb el valor de la tabla de paginas
-        confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
-        paquete_destroy(paquete_con_pcb_actualizado);
-      } break;
-      */
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Se recibió solicitud para finalizar ejecución");
 
@@ -129,7 +81,6 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = malloc(sizeof(t_solicitud_segunda_tabla));
 
@@ -137,8 +88,6 @@ void* manejar_nueva_conexion(void* args) {
 
         int numero_TP_segundo_nivel =
           obtener_numero_TP_segundo_nivel(solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel, solicitud_numero_tp_segundo_nivel->entrada_primer_nivel);
-        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
-        // int numero_TP_segundo_nivel = 5;
 
         xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_TP_segundo_nivel);
 
@@ -151,14 +100,13 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_segunda_tabla(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_respuesta_segunda_tabla(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
         paquete_destroy(paquete);
 
         break;
       }
       case OPERACION_OBTENER_MARCO: {
         xlog(COLOR_CONEXION, "Obteniendo numero de marco");
-        // codigo_operacion = recibir_operacion(socket_memoria);
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_marco* solicitud_numero_marco = malloc(sizeof(t_solicitud_marco));
 
@@ -167,8 +115,6 @@ void* manejar_nueva_conexion(void* args) {
 
         // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
         int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
-        // int num_marco = 4;
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
 
@@ -179,13 +125,12 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_marco(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_marco(socket_cliente, paquete_respuesta);
 
-        free(paquete_respuesta);
-        free(paquete);
+        paquete_destroy(paquete_respuesta);
+        paquete_destroy(paquete);
         break;
       }
       case OPERACION_OBTENER_DATO: {
-        xlog(COLOR_CONEXION, "Buscando dato pedido en MEMORIA PRINCIPAL");
-
+        xlog(COLOR_CONEXION, "Obteniendo dato fisico en memoria");
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
         req = obtener_solicitud_dato(paquete);
@@ -197,21 +142,17 @@ void* manejar_nueva_conexion(void* args) {
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_dato_fisico* resp = malloc(sizeof(t_respuesta_dato_fisico));
-
         memcpy(&(resp->dato_buscado), &dato_buscado, sizeof(uint32_t));
-
         t_buffer* mensaje = crear_mensaje_respuesta_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_obtener_dato(socket_cliente, paquete_respuesta);
 
-        free(resp);
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
 
         break;
       }
 
       case OPERACION_ESCRIBIR_DATO: {
-        xlog(COLOR_CONEXION, "Escribiendo dato en MEMORIA PRINCIPAL");
-
+        xlog(COLOR_CONEXION, "Escribiendo dato en memoria");
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
         req = obtener_solicitud_escritura_dato(paquete);
@@ -228,8 +169,7 @@ void* manejar_nueva_conexion(void* args) {
         t_buffer* mensaje = crear_mensaje_respuesta_escritura_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_escribir_dato(socket_cliente, paquete_respuesta);
 
-        free(resp);
-        free(paquete_respuesta);
+        paquete_destroy(paquete_respuesta);
 
         break;
       }
@@ -257,20 +197,14 @@ void* manejar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
 
-        // TODO: resolver cuando se avance el módulo..
-
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
-        inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
 
-        // TODO: DEVOLVER LA TABLA DE IMER NIVEL POSTA ASIGNADA AL PROCESO
-        t_tabla_primer_nivel* tabla_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pcb->pid);
-        pcb->tabla_primer_nivel = tabla_primer_nivel->num_tabla;
-
+        // TODO: validar si no se está contemplando algo más aparte de agregar el numero de TP de 1º nivel al PCB
+        int numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
+        pcb->tabla_primer_nivel = numero_tabla_primer_nivel;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
 
-
-        // TODO: deberia agregar al pcb el valor de la tabla de paginas
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
         paquete_destroy(paquete_con_pcb_actualizado);
       } break;
@@ -279,9 +213,8 @@ void* manejar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo de memoria
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
-        // TODO: Agregar retardo de swap?
-        liberar_estructuras_en_swap(pcb->pid);
 
+        pcb_destroy(pcb);
         paquete_destroy(paquete);
       } break;
       case -1: {
@@ -301,7 +234,6 @@ bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
 
-// TODO: validar
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
   int marco = 0;
   xlog(COLOR_TAREA, "Buscando un marco disponible... (TP_2do_nivel=%d, numero_entrada=%d)", numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
@@ -345,7 +277,8 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
         entrada_segundo_nivel->bit_uso = 1;
     } else {
       // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
-      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      // marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
 
       xlog(COLOR_TAREA,
            "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
@@ -460,6 +393,7 @@ void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
+  int numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
 
   inicializar_archivo_swap(pid, tam_proceso);
 
@@ -470,6 +404,8 @@ void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
        "TP de primer nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_primer_nivel=%d)",
        tabla_primer_nivel->num_tabla,
        dictionary_size(tablas_de_paginas_primer_nivel));
+
+  return numero_tabla_primer_nivel;
 }
 
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
@@ -501,123 +437,6 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
   marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 
   return marco_libre->num_marco;
-}
-
-void imprimir_marco(t_marco* marco) {
-  xlog(COLOR_INFO,
-       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
-       marco->num_marco,
-       marco->pid,
-       (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
-}
-
-void algoritmo_reemplazo_imprimir_marco(t_marco* marco) {
-  xlog(COLOR_INFO,
-       "[Algoritmo Reemplazo] [MARCO] numero_marco=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
-       marco->num_marco,
-       marco->pid,
-       (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
-}
-
-void mostrar_tabla_marcos() {
-  xlog(COLOR_INFO, "Imprimiendo datos de los marcos en memoria...");
-
-  list_iterate(tabla_marcos, (void*)imprimir_marco);
-}
-
-void algoritmo_reemplazo_imprimir_marcos_asignados(int pid) {
-  xlog(COLOR_INFO, "[Algoritmo Reemplazo] Imprimiendo datos de los marcos asignados a un proceso... (pid=%d)", pid);
-
-  t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
-  list_iterate(marcos_asignados_al_proceso, (void*)imprimir_marco);
-}
-
-void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada) {
-  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_presencia);
-  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-}
-
-void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada) {
-  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    xlog(COLOR_INFO,
-         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_presencia);
-  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    xlog(COLOR_INFO,
-         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-}
-
-void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel) {
-  xlog(COLOR_INFO, "[TP_SEGUNDO_NIVEL] tp_numero=%d, cantidad_entradas=%d", tabla_segundo_nivel->num_tabla, dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
-
-  void imprimir_entrada_segundo_nivel(char* ___, t_entrada_tabla_segundo_nivel* entrada) {
-    xlog(COLOR_INFO,
-         "..[ENTRADA_SEGUNDO_NIVEL] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-
-  dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
-}
-
-void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
-  xlog(COLOR_INFO,
-       "[TP_PRIMER_NIVEL] tp_numero=%d, pid=%d, cantidad_entradas=%d",
-       tabla_primer_nivel->num_tabla,
-       tabla_primer_nivel->pid,
-       dictionary_size(tabla_primer_nivel->entradas_primer_nivel));
-
-  void imprimir_entrada_primer_segundo_nivel(char* ___, t_entrada_tabla_primer_nivel* entrada_primer_nivel) {
-    t_tabla_segundo_nivel* tabla_segundo_nivel = obtener_TP_segundo_nivel(tabla_primer_nivel->num_tabla, entrada_primer_nivel->entrada_primer_nivel);
-
-    xlog(COLOR_INFO,
-         "..[ENTRADA_PRIMER_NIVEL] entrada_numero=%d, tp_segundo_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
-         entrada_primer_nivel->entrada_primer_nivel,
-         tabla_segundo_nivel->num_tabla,
-         tabla_segundo_nivel->pid,
-         dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
-
-    dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
-  }
-
-  dictionary_iterator(tabla_primer_nivel->entradas_primer_nivel, (void*)imprimir_entrada_primer_segundo_nivel);
-}
-
-void imprimir_tablas_de_paginas() {
-  xlog(COLOR_INFO, "Imprimiendo datos de las tablas de paginas...");
-
-  dictionary_iterator(tablas_de_paginas_primer_nivel, (void*)imprimir_tabla_paginas_primer_nivel);
 }
 
 
@@ -749,6 +568,9 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
     t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
     entrada_tabla_segundo_nivel->entrada_segundo_nivel = numero_entrada_segundo_nivel;
 
+    // necesario como metadata para los marcos, algoritmos de sustitución..
+    entrada_tabla_segundo_nivel->numero_tabla_segundo_nivel = numero_tabla_segundo_nivel;
+
     inicializar_entrada_de_tabla_paginas(entrada_tabla_segundo_nivel);
 
     dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel), entrada_tabla_segundo_nivel);
@@ -823,12 +645,16 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco) {
   marco->apuntado_por_puntero_de_clock = true;
 }
 
-void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
-  xlog(COLOR_INFO,
-       "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
-       entrada->entrada_segundo_nivel,
-       entrada->num_marco,
-       entrada->bit_uso,
-       entrada->bit_modif,
-       entrada->bit_presencia)
+
+int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada) {
+  int numero_marco = entrada_victima->num_marco;
+  t_marco* marco = obtener_marco_de_memoria(numero_marco);
+
+  entrada_victima->num_marco = -1;
+  nueva_entrada->num_marco = numero_marco;
+
+  marco->entrada_segundo_nivel = nueva_entrada;
+  marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
+
+  return numero_marco;
 }
