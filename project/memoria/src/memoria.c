@@ -249,10 +249,12 @@ void* manejar_nueva_conexion(void* args) {
         // TODO: resolver cuando se avance el módulo..
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
-
+        inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
 
         // TODO: DEVOLVER LA TABLA DE IMER NIVEL POSTA ASIGNADA AL PROCESO
-        pcb->tabla_primer_nivel = 1;
+        t_tabla_primer_nivel* tabla_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pcb->pid);
+        pcb->tabla_primer_nivel = tabla_primer_nivel->num_tabla;
+
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
 
