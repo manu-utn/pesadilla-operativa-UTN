@@ -20,18 +20,20 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabl
 
   if (algoritmo_reemplazo_cargado_es("CLOCK")) {
     entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
-  }
-  else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
+  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
     entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   }
 
+  // TODO: no se esta considerando ok este cambio
   // para ambos algoritmos ocurría
-  entrada_segundo_nivel_solicitada_para_acceder->bit_uso = 1;
+  // entrada_segundo_nivel_solicitada_para_acceder->bit_uso = 1;
 
-  numero_marco_elegido = entrada_segundo_nivel_victima->num_marco;
+  numero_marco_elegido = reemplazar_entrada_en_marco_de_memoria(entrada_segundo_nivel_victima, entrada_segundo_nivel_solicitada_para_acceder);
+
+  // numero_marco_elegido = entrada_segundo_nivel_victima->num_marco;
 
   // le asignamos el marco de la página víctima y la cargamos a memoria principal
-  entrada_segundo_nivel_solicitada_para_acceder->num_marco = numero_marco_elegido;
+  // entrada_segundo_nivel_solicitada_para_acceder->num_marco = numero_marco_elegido;
   entrada_segundo_nivel_solicitada_para_acceder->bit_presencia = 1;
 
   xlog(COLOR_INFO, "[Algoritmo Reemplazo] ESTADO FINAL");

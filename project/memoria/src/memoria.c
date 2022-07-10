@@ -828,7 +828,7 @@ void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrad
        entrada->num_marco,
        entrada->bit_uso,
        entrada->bit_modif,
-       entrada->bit_presencia)
+       entrada->bit_presencia);
 }
 
 void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
@@ -838,5 +838,17 @@ void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entra
        entrada->num_marco,
        entrada->bit_uso,
        entrada->bit_modif,
-       entrada->bit_presencia)
+       entrada->bit_presencia);
+}
+
+int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada) {
+  int numero_marco = entrada_victima->num_marco;
+  t_marco* marco = obtener_marco_de_memoria(numero_marco);
+
+  entrada_victima->num_marco = -1;
+  nueva_entrada->num_marco = numero_marco;
+
+  marco->entrada_segundo_nivel = nueva_entrada;
+
+  return numero_marco;
 }

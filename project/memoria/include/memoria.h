@@ -189,6 +189,7 @@ void algoritmo_reemplazo_imprimir_marco(t_marco* marco);
 void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada);
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
+int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada);
 
 //SWAP
 int crear_punto_de_montaje(char* path);
