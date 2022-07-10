@@ -246,6 +246,7 @@ void* manejar_nueva_conexion(void* args) {
         }
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
+        escribir_datos_de_marcos_en_swap(marcos_modificados);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);

@@ -85,8 +85,8 @@ void eliminar_archivo_swap(uint32_t pid) {
 }
 
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
-  int tamanioPagina = obtener_tamanio_pagina_por_config();  
   FILE* fd = fopen(filepath, "rb+");
+  int tamanioPagina = obtener_tamanio_pagina_por_config();
 
   int desplazamiento = numPagina * tamanioPagina;
   int longitudDatos = string_length((char*)datos);
@@ -147,6 +147,8 @@ void escribir_marco_en_swap(t_marco marco) {
 
   escribir_archivo_swap(filename, (void*) datos, num_pagina);
 
+  marco->entrada_segundo_nivel->entrada_segundo_nivel->bit_modif = 0;
+  //TODO Evaluar si deberia cambiar el bit de uso y el bit de presencia
   marco->pid = 0;
   marco->ocupado = 0;
 }
