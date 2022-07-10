@@ -299,7 +299,6 @@ bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
 
-// TODO: validar
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
   int marco = 0;
   xlog(COLOR_TAREA, "Buscando un marco disponible... (TP_2do_nivel=%d, numero_entrada=%d)", numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
@@ -855,7 +854,6 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
 
   marco->entrada_segundo_nivel = nueva_entrada;
   marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
-  // marco->numero_tabla_segundo_nivel;
 
   return numero_marco;
 }

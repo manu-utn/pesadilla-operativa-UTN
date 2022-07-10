@@ -24,8 +24,7 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tab
     entrada_segundo_nivel_victima = entrada_victima_elegida_por_algoritmo_clock_modificado(marcos_asignados_al_proceso, entrada_segundo_nivel_solicitada_para_acceder);
   }
 
-  // TODO: no se esta considerando ok este cambio
-  // para ambos algoritmos ocurría
+  // TODO: evaluar si ya no es necesario esto (para ambos algoritmos)
   // entrada_segundo_nivel_solicitada_para_acceder->bit_uso = 1;
 
   numero_marco_elegido = reemplazar_entrada_en_marco_de_memoria(entrada_segundo_nivel_victima, entrada_segundo_nivel_solicitada_para_acceder);
@@ -40,6 +39,7 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tab
   algoritmo_reemplazo_imprimir_marcos_asignados(pid);
 
   // TODO: falta pasar la entrada a swap
+  // TODO: evaluar si conviene hacerlo aca
   entrada_segundo_nivel_victima->bit_presencia = 0;
 
   return numero_marco_elegido;
@@ -178,9 +178,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     // movemos el puntero del clock en la cola circular
     algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
 
-    // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
-    // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
-
     xlog(COLOR_INFO,
          "[Algoritmo Clock] analiza si ir al principio de la cola circular si.. posicion_marco_leido (%d) == "
          "cantidad_marcos_asignados (%d)",
@@ -195,7 +192,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
 
       xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)", posicion_proximo_marco);
     }
-    // else if (posicion_marco_leido < (cantidad_marcos_asignados - 1)) {
     else {
       posicion_marco_leido++;
     }
@@ -296,10 +292,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
 
     algoritmo_clock_actualizar_puntero(marco_seleccionado, proximo_marco_seleccionado);
 
-    // TODO: no está haciendo lo que menciona debajo y provoca que ande mal el algoritmo
-    // esto facilita el uso del algoritmo de reemplazo clock, que cada marco guarde la entrada a la que apunta
-    // marco_seleccionado->entrada_segundo_nivel = entrada_solicitada_para_acceder;
-
     xlog(COLOR_INFO,
          "[Algoritmo Clock] analiza si ir al principio de la cola circular si.. posicion_marco_leido (%d) == "
          "cantidad_marcos_asignados (%d)",
@@ -307,7 +299,6 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_lis
          cantidad_marcos_asignados);
 
     // volvemos al principio de la cola circular, el for seguirá iterando
-    // if (posicion_proximo_marco == cantidad_marcos_asignados)
     if (posicion_marco_leido == (cantidad_marcos_asignados - 1)) {
       posicion_marco_leido = 0;
 

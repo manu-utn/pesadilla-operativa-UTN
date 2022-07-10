@@ -41,7 +41,6 @@ void simular_solicitud_marco_por_mmu() {
   int marco = 0;
 
   // simulación para OPERACION_OBTENER_MARCO en memoria.c
-
   // configuración de la simulación para memoria con 4 frames
 
   int numero_tp_segundo_nivel;
@@ -55,26 +54,10 @@ void simular_solicitud_marco_por_mmu() {
 
   numero_tp_segundo_nivel = 2;
   marco = obtener_marco(numero_tp_segundo_nivel, 0);
-  // marco = obtener_marco(numero_tp_segundo_nivel, 1);
 
-  /*
-  // en estas cuatro peticiones buscará el primer marco libre asignado al proceso
-  nuevo_marco = obtener_marco(1, 1);
-  nuevo_marco = obtener_marco(1, 2);
-  nuevo_marco = obtener_marco(1, 3);
-  nuevo_marco = obtener_marco(1, 4);
+  numero_tp_segundo_nivel = 2;
   printf("\n");
-
-  // en estas dos peticiones buscará el marco ya asignado a esas entradas
-  nuevo_marco = obtener_marco(1, 1);
-  nuevo_marco = obtener_marco(1, 2);
-  printf("\n");
-
-  // en estas dos peticiones ejecutará el algoritmo de reemplazo,
-  // con la configuración actual el proceso tiene asignado 4 marcos, y ya usó 4
-  nuevo_marco = obtener_marco(2, 1);
-  nuevo_marco = obtener_marco(2, 2);
-   */
+  marco = obtener_marco(numero_tp_segundo_nivel, 2);
 }
 
 void simular_asignacion_marcos_1() {
