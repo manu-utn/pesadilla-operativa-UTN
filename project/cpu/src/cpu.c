@@ -78,8 +78,7 @@ int conectarse_a_memoria() {
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
-    log_error(
-      logger, "No se pudo establecer la conexión con MEMORIA, inicie el servidor con %s e intente nuevamente", puerto);
+    log_error(logger, "No se pudo establecer la conexión con MEMORIA, inicie el servidor con %s e intente nuevamente", puerto);
 
     return -1;
   } else {
@@ -269,23 +268,31 @@ void execute_read(t_pcb* pcb, t_instruccion* instruccion) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
-  // Aca hay que mostrarlo por pantalla
+  xlog(COLOR_INFO, "OPERACION READ - Dato leido: %d.", dato_leido);
 }
 
 void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
   uint32_t dato_a_escribir = instruccion_obtener_parametro(instruccion, 1);
 
-  int resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
+  uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  // Ver que hago con el resultado y que tipo de resultado puede ser
+  if (resultado < 0) {
+    xlog(COLOR_INFO, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
+  } else {
+    xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");
+  }
 }
 
 void execute_copy(t_pcb* pcb, t_instruccion* instruccion, uint32_t dato_a_escribir) {
   uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
-  int resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
+  uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  // Ver que hago con el resultado y que tipo de resultado puede ser
+  if (resultado = 1) {
+    xlog(COLOR_INFO, "OPERACION COPY - Dato copiado correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
+  } else {
+    xlog(COLOR_ERROR, "OPERACION COPY - Error al copiar dato.");
+  }
 }
 
 void execute_exit(t_pcb* pcb, int socket_cliente) {
@@ -295,20 +302,12 @@ void execute_exit(t_pcb* pcb, int socket_cliente) {
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
 
-int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
+uint32_t escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
   t_escritura_dato_fisico* solicitud = malloc(sizeof(t_escritura_dato_fisico));
 
   solicitud->socket = socket_memoria;
   solicitud->dir_fisica = direccion_fisica;
   solicitud->valor = dato_a_escribir;
-  // t_operacion_respuesta_fetch_operands* fetch_operands(t_pcb* pcb,
-  //                                                      int tam_pagina,
-  //                                                      int cant_entradas_por_tabla,
-  //                                                      int num_pagina,
-  //                                                      uint32_t dir_logica,
-  //                                                      int operacion) {
-  //   log_info(logger, "La pagina no se ecnuentra en la TLB, enviando solicitud a Memoria");
-  //   int cod_op = 0;
 
   t_paquete* paquete = paquete_create();
   t_buffer* mensaje = crear_mensaje_escritura_dato_fisico(solicitud);
@@ -323,7 +322,7 @@ int escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escribir) {
   recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_escritura_dato_fisico* respuesta = obtener_respuesta_escritura_dato_fisico(paquete_respuesta);
-  int retorno = respuesta->resultado;
+  uint32_t retorno = respuesta->resultado;
 
   free(paquete_respuesta);
   free(respuesta);
@@ -433,8 +432,7 @@ uint32_t obtener_tabla_segundo_nivel(uint32_t tabla_primer_nivel, uint32_t entra
   // RECIBO RESPUESTA DE MEMORIA
   recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
-  t_respuesta_solicitud_segunda_tabla* respuesta_solicitud =
-    obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
+  t_respuesta_solicitud_segunda_tabla* respuesta_solicitud = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
   uint32_t retorno = respuesta_solicitud->num_tabla_segundo_nivel;
 
   free(paquete_respuesta);
@@ -522,27 +520,19 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
 }
 
 void prueba_comunicacion_memoria() {
-  // typedef struct {
-  //   uint32_t socket;
-  //   uint32_t pid;
-  //   uint32_t tamanio;
-  //   uint32_t estimacion_rafaga;
-  //   uint32_t tiempo_en_ejecucion;
-  //   uint32_t tiempo_de_bloqueado;
-  //   uint32_t program_counter;
-  //   uint32_t tabla_primer_nivel;
-  //   t_pcb_estado estado;
-  //   t_list* instrucciones;
-  // } t_pcb;
-  // typedef struct{
-  //   char* identificador;
-  //   char* params;
-  // } t_instruccion;
-  t_instruccion* instruccion = malloc(sizeof(t_instruccion));
-  instruccion->identificador = "WRITE";
-  instruccion->params = "4 42";
-  t_pcb* pcb = malloc(sizeof(t_pcb));
-  pcb->tabla_primer_nivel = 4;
-  execute_write(pcb, instruccion);
-  // execute_read(pcb, instruccion);
+  // t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+  // instruccion->identificador = "WRITE";
+  // instruccion->params = "96 42";
+  // t_pcb* pcb = malloc(sizeof(t_pcb));
+  // pcb->tabla_primer_nivel = 4;
+  // execute_write(pcb, instruccion);
+
+  // t_instruccion* instruccion2 = malloc(sizeof(t_instruccion));
+  // instruccion2->identificador = "READ";
+  // instruccion2->params = "96";
+  // execute_read(pcb, instruccion2);
+
+  escribir_dato_memoria(96, 5000);
+
+  obtener_dato_fisico(96);
 }

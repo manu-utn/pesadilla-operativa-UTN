@@ -99,10 +99,20 @@ typedef struct{
 
 t_config * config;
 t_log * logger;
-uint32_t size_memoria_principal;
-void* memoria_principal;
-int cant_marcos;
-int tam_marcos;
+// MEMORIA PRINCIPAL
+uint32_t      size_memoria_principal; // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
+void      *   memoria_principal;
+int           cant_marcos;            // ANOTACION GASTON: no se usa en ningun lado (Ya estaba).
+int           tam_marcos;             // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
+uint32_t      tamanio_marco;
+
+uint32_t      buscar_dato_en_memoria  (uint32_t direccion_fisica);
+uint32_t      escribir_dato           (uint32_t direccion_fisica,   uint32_t  valor);
+uint32_t      obtener_byte_inicio     (uint32_t direccion_fisica);
+uint32_t      obtener_marco_dato      (uint32_t direccion_fisica);
+uint32_t      obtener_offset_dato     (uint32_t direccion_fisica);
+// FIN MEMORIA PRINCIPAL
+
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
 int socket_memoria;
@@ -128,13 +138,12 @@ t_dictionary* tablas_de_paginas_segundo_nivel;
 
 t_list* marcos_prueba_clock;
 
-int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
+void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso);
 void dividir_memoria_principal_en_marcos();
 void mostrar_tabla_marcos();
 void llenar_memoria_mock();
 
-uint32_t buscar_dato_en_memoria(uint32_t dir_fisica);
-int escribir_dato(uint32_t dir_fisica, uint32_t valor);
+
 
 t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
@@ -157,8 +166,6 @@ int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tab
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
 int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
 
-void liberar_estructuras_en_swap();
-
 bool algoritmo_reemplazo_cargado_es(char* algoritmo);
 
 // TODO: validar si deprecar, no se utiliza
@@ -170,6 +177,7 @@ int obtener_cantidad_entradas_por_tabla_por_config();
 int obtener_tamanio_memoria_por_config();
 int obtener_cantidad_marcos_por_proceso_por_config();
 char* obtener_algoritmo_reemplazo_por_config();
+char* obtener_path_archivos_swap();
 int obtener_tamanio_pagina_por_config();
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
@@ -203,8 +211,12 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco);
 void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel);
 char* get_filepath(char* file, char* path, int pid);
-void inicializar_archivo_swap(int pid, int tamanio, char* path);
-void eliminar_archivo_swap(int pid, char* path);
-void escribir_archivo_swap(char* filepath, void* datos, int numPagina, int tamanioPagina);
-void leer_archivo_swap(char* filepath, int numPagina, int tamanioPagina);
+void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
+void eliminar_archivo_swap(uint32_t pid);
+void escribir_archivo_swap(char* filepath, void* datos, int numPagina);
+void leer_archivo_swap(char* filepath, int numPagina);
+void liberar_estructuras_en_swap(uint32_t pid);
+void escribir_datos_de_marcos_en_swap(t_list* marcos);
+void escribir_marco_en_swap(t_marco marco);
+
 #endif /* MEMORIA_H */
