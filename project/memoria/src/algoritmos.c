@@ -1,8 +1,5 @@
 #include "libstatic.h"
 #include "memoria.h"
-#include "serializado.h"
-#include "utils-cliente.h"
-#include "utils-servidor.h"
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
 
@@ -191,8 +188,7 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
       posicion_marco_leido = 0;
 
       xlog(COLOR_TAREA, "[Algoritmo Clock Modificado] volver al principio de la cola circular (posicion_marco=%d)", posicion_proximo_marco);
-    }
-    else {
+    } else {
       posicion_marco_leido++;
     }
 

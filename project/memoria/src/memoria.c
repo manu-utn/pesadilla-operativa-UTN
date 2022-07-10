@@ -362,30 +362,6 @@ void dividir_memoria_principal_en_marcos() {
   }
 }
 
-int obtener_cantidad_entradas_por_tabla_por_config() {
-  return config_get_int_value(config, "PAGINAS_POR_TABLA");
-}
-
-int obtener_tamanio_memoria_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_cantidad_marcos_por_proceso_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_tamanio_pagina_por_config() {
-  return config_get_int_value(config, "TAM_PAGINA");
-}
-
-char* obtener_algoritmo_reemplazo_por_config() {
-  return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-}
-
-bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
-  return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
-}
-
 int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
@@ -435,129 +411,6 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
   marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 
   return marco_libre->num_marco;
-}
-
-void imprimir_marco(t_marco* marco) {
-  xlog(COLOR_INFO,
-       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d, apuntado_por_algoritmo_clock=%s",
-       marco->num_marco,
-       marco->pid,
-       (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1,
-       (marco->apuntado_por_puntero_de_clock) ? "SI" : "NO");
-
-  if (marco->entrada_segundo_nivel) {
-    t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco->entrada_segundo_nivel;
-    entrada_asignada_a_marco_imprimir_bits(entrada_asignada_al_marco);
-  }
-}
-
-void algoritmo_reemplazo_imprimir_marco(t_marco* marco) {
-  xlog(COLOR_INFO,
-       "[Algoritmo Reemplazo] [MARCO] numero_marco=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
-       marco->num_marco,
-       marco->pid,
-       (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
-}
-
-void mostrar_tabla_marcos() {
-  xlog(COLOR_INFO, "Imprimiendo datos de los marcos en memoria...");
-
-  list_iterate(tabla_marcos, (void*)imprimir_marco);
-}
-
-void algoritmo_reemplazo_imprimir_marcos_asignados(int pid) {
-  xlog(COLOR_INFO, "[Algoritmo Reemplazo] Imprimiendo datos de los marcos asignados a un proceso... (pid=%d)", pid);
-
-  t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
-  list_iterate(marcos_asignados_al_proceso, (void*)imprimir_marco);
-}
-
-void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_nivel* entrada) {
-  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_presencia);
-  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    xlog(COLOR_INFO,
-         "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-}
-
-void imprimir_entrada_segundo_nivel(char* __, t_entrada_tabla_segundo_nivel* entrada) {
-  if (algoritmo_reemplazo_cargado_es("CLOCK")) {
-    xlog(COLOR_INFO,
-         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_presencia);
-  } else if (algoritmo_reemplazo_cargado_es("CLOCK-M")) {
-    xlog(COLOR_INFO,
-         "....[TP_SEGUNDO_NIVEL] entrada_numero=%d, numero_marco=%d, bit_de_uso=%d, bit_de_modificado=%d, "
-         "bit_de_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-}
-
-void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_segundo_nivel) {
-  xlog(COLOR_INFO, "[TP_SEGUNDO_NIVEL] tp_numero=%d, cantidad_entradas=%d", tabla_segundo_nivel->num_tabla, dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
-
-  void imprimir_entrada_segundo_nivel(char* ___, t_entrada_tabla_segundo_nivel* entrada) {
-    xlog(COLOR_INFO,
-         "..[ENTRADA_SEGUNDO_NIVEL] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
-         entrada->entrada_segundo_nivel,
-         entrada->num_marco,
-         entrada->bit_uso,
-         entrada->bit_modif,
-         entrada->bit_presencia);
-  }
-
-  dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
-}
-
-void imprimir_tabla_paginas_primer_nivel(char* __, t_tabla_primer_nivel* tabla_primer_nivel) {
-  xlog(COLOR_INFO,
-       "[TP_PRIMER_NIVEL] tp_numero=%d, pid=%d, cantidad_entradas=%d",
-       tabla_primer_nivel->num_tabla,
-       tabla_primer_nivel->pid,
-       dictionary_size(tabla_primer_nivel->entradas_primer_nivel));
-
-  void imprimir_entrada_primer_segundo_nivel(char* ___, t_entrada_tabla_primer_nivel* entrada_primer_nivel) {
-    t_tabla_segundo_nivel* tabla_segundo_nivel = obtener_TP_segundo_nivel(tabla_primer_nivel->num_tabla, entrada_primer_nivel->entrada_primer_nivel);
-
-    xlog(COLOR_INFO,
-         "..[ENTRADA_PRIMER_NIVEL] entrada_numero=%d, tp_segundo_nivel_numero=%d, pid=%d, cantidad_entradas=%d",
-         entrada_primer_nivel->entrada_primer_nivel,
-         tabla_segundo_nivel->num_tabla,
-         tabla_segundo_nivel->pid,
-         dictionary_size(tabla_segundo_nivel->entradas_segundo_nivel));
-
-    dictionary_iterator(tabla_segundo_nivel->entradas_segundo_nivel, (void*)imprimir_entrada_segundo_nivel);
-  }
-
-  dictionary_iterator(tabla_primer_nivel->entradas_primer_nivel, (void*)imprimir_entrada_primer_segundo_nivel);
-}
-
-void imprimir_tablas_de_paginas() {
-  xlog(COLOR_INFO, "Imprimiendo datos de las tablas de paginas...");
-
-  dictionary_iterator(tablas_de_paginas_primer_nivel, (void*)imprimir_tabla_paginas_primer_nivel);
 }
 
 
@@ -766,26 +619,6 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco) {
   marco->apuntado_por_puntero_de_clock = true;
 }
 
-void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
-  xlog(COLOR_INFO,
-       "[Algoritmo Reemplazo] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
-       entrada->entrada_segundo_nivel,
-       entrada->num_marco,
-       entrada->bit_uso,
-       entrada->bit_modif,
-       entrada->bit_presencia);
-}
-
-void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
-  xlog(COLOR_INFO,
-       "[MARCO] [ENTRADA] tp_segundo_nivel_numero=%d, entrada_numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
-       entrada->numero_tabla_segundo_nivel,
-       entrada->entrada_segundo_nivel,
-       entrada->num_marco,
-       entrada->bit_uso,
-       entrada->bit_modif,
-       entrada->bit_presencia);
-}
 
 int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada) {
   int numero_marco = entrada_victima->num_marco;
