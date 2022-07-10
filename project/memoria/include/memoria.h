@@ -66,6 +66,7 @@ typedef struct{
     int bit_uso;
     int bit_modif;
     int bit_presencia;
+    int numero_tabla_segundo_nivel;
 }t_entrada_tabla_segundo_nivel;
 
 typedef struct {
@@ -76,6 +77,7 @@ typedef struct {
 
   // para facilitar el algoritmo de reemplazo
   bool apuntado_por_puntero_de_clock;
+  int numero_tabla_segundo_nivel;
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel;
 } t_marco;
 
@@ -151,7 +153,7 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 bool hay_marcos_libres_asignados_al_proceso(int pid);
 
 t_list* obtener_marcos_asignados_a_este_proceso(int pid);
-int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder);
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tabla_segundo_nivel, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder);
 t_entrada_tabla_segundo_nivel* ejecutar_clock(t_list* marcos, t_entrada_tabla_segundo_nivel* entrada);
 int entrada_TP_segundo_nivel_marco_asignado(int num_tabla_segundo_nivel, int entrada_segundo_nivel);
 

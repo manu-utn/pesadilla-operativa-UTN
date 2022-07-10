@@ -9,7 +9,7 @@
 // necesario para las busquedas del algoritmo clock modificado
 int CLOCK_M_NUMERO_BUSQUEDA = 1;
 
-int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder) {
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid, int numero_tabla_segundo_nivel, t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_solicitada_para_acceder) {
   t_list* marcos_asignados_al_proceso = obtener_marcos_asignados_a_este_proceso(pid);
   t_entrada_tabla_segundo_nivel* entrada_segundo_nivel_victima = malloc(sizeof(t_entrada_tabla_segundo_nivel));
   int numero_marco_elegido = 0;

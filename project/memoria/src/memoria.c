@@ -343,7 +343,8 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
         entrada_segundo_nivel->bit_uso = 1;
     } else {
       // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
-      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      // marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
 
       xlog(COLOR_TAREA,
            "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
@@ -747,6 +748,9 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
     t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
     entrada_tabla_segundo_nivel->entrada_segundo_nivel = numero_entrada_segundo_nivel;
 
+    // necesario como metadata para los marcos, algoritmos de sustitución..
+    entrada_tabla_segundo_nivel->numero_tabla_segundo_nivel = numero_tabla_segundo_nivel;
+
     inicializar_entrada_de_tabla_paginas(entrada_tabla_segundo_nivel);
 
     dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel), entrada_tabla_segundo_nivel);
@@ -833,7 +837,8 @@ void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrad
 
 void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
   xlog(COLOR_INFO,
-       "[MARCO] [ENTRADA] numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+       "[MARCO] [ENTRADA] tp_segundo_nivel_numero=%d, entrada_numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+       entrada->numero_tabla_segundo_nivel,
        entrada->entrada_segundo_nivel,
        entrada->num_marco,
        entrada->bit_uso,
@@ -849,6 +854,8 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
   nueva_entrada->num_marco = numero_marco;
 
   marco->entrada_segundo_nivel = nueva_entrada;
+  marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
+  // marco->numero_tabla_segundo_nivel;
 
   return numero_marco;
 }

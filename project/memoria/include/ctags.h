@@ -18,7 +18,7 @@ int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 int obtener_posicion_de_marco_del_listado(t_marco * marco,t_list * lista_marcos);
 int obtener_tamanio_memoria_por_config();
 int obtener_tamanio_pagina_por_config();
-int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid,t_entrada_tabla_segundo_nivel * entrada_segundo_nivel_solicitada_para_acceder);
+int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid,int numero_tabla_segundo_nivel,t_entrada_tabla_segundo_nivel * entrada_segundo_nivel_solicitada_para_acceder);
 int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid,t_entrada_tabla_segundo_nivel * entrada_TP_segundo_nivel);
 int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel * entrada_victima,t_entrada_tabla_segundo_nivel * nueva_entrada);
 t_entrada_tabla_segundo_nivel * entrada_TP_segundo_nivel_create(int num_entrada,int num_marco,int bit_uso,int bit_modif,int bit_presencia);
