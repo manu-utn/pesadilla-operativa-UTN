@@ -241,7 +241,6 @@ bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
 
-// TODO: validar
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
   int marco = 0;
   xlog(COLOR_TAREA, "Buscando un marco disponible... (TP_2do_nivel=%d, numero_entrada=%d)", numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
@@ -285,7 +284,8 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
         entrada_segundo_nivel->bit_uso = 1;
     } else {
       // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
-      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      // marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
+      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
 
       xlog(COLOR_TAREA,
            "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
@@ -439,11 +439,17 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
-       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d",
+       "[MARCO] numero=%d, pid=%d, ocupado=%s, numero_entrada_segundo_nivel=%d, apuntado_por_algoritmo_clock=%s",
        marco->num_marco,
        marco->pid,
        (marco->ocupado) ? "SI" : "NO",
-       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1);
+       (marco->entrada_segundo_nivel) ? marco->entrada_segundo_nivel->entrada_segundo_nivel : -1,
+       (marco->apuntado_por_puntero_de_clock) ? "SI" : "NO");
+
+  if (marco->entrada_segundo_nivel) {
+    t_entrada_tabla_segundo_nivel* entrada_asignada_al_marco = marco->entrada_segundo_nivel;
+    entrada_asignada_a_marco_imprimir_bits(entrada_asignada_al_marco);
+  }
 }
 
 void algoritmo_reemplazo_imprimir_marco(t_marco* marco) {
@@ -683,6 +689,9 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segun
     t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
     entrada_tabla_segundo_nivel->entrada_segundo_nivel = numero_entrada_segundo_nivel;
 
+    // necesario como metadata para los marcos, algoritmos de sustitución..
+    entrada_tabla_segundo_nivel->numero_tabla_segundo_nivel = numero_tabla_segundo_nivel;
+
     inicializar_entrada_de_tabla_paginas(entrada_tabla_segundo_nivel);
 
     dictionary_put(tabla_paginas_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_tabla_segundo_nivel->entrada_segundo_nivel), entrada_tabla_segundo_nivel);
@@ -764,5 +773,29 @@ void algoritmo_clock_entrada_imprimir_bits(t_entrada_tabla_segundo_nivel* entrad
        entrada->num_marco,
        entrada->bit_uso,
        entrada->bit_modif,
-       entrada->bit_presencia)
+       entrada->bit_presencia);
+}
+
+void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada) {
+  xlog(COLOR_INFO,
+       "[MARCO] [ENTRADA] tp_segundo_nivel_numero=%d, entrada_numero=%d, marco=%d, bit_uso=%d, bit_modificado=%d, bit_presencia=%d",
+       entrada->numero_tabla_segundo_nivel,
+       entrada->entrada_segundo_nivel,
+       entrada->num_marco,
+       entrada->bit_uso,
+       entrada->bit_modif,
+       entrada->bit_presencia);
+}
+
+int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada) {
+  int numero_marco = entrada_victima->num_marco;
+  t_marco* marco = obtener_marco_de_memoria(numero_marco);
+
+  entrada_victima->num_marco = -1;
+  nueva_entrada->num_marco = numero_marco;
+
+  marco->entrada_segundo_nivel = nueva_entrada;
+  marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
+
+  return numero_marco;
 }
