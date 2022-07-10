@@ -128,7 +128,7 @@ t_dictionary* tablas_de_paginas_segundo_nivel;
 
 t_list* marcos_prueba_clock;
 
-void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
+int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
 void dividir_memoria_principal_en_marcos();
 void mostrar_tabla_marcos();
 void llenar_memoria_mock();

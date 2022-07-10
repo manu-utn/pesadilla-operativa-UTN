@@ -198,18 +198,14 @@ void* manejar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         paquete_destroy(paquete);
 
-        // TODO: resolver cuando se avance el módulo..
-
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
-
-        // TODO: DEVOLVER LA TABLA DE PRIMER NIVEL POSTA ASIGNADA AL PROCESO
-        pcb->tabla_primer_nivel = 1;
+        // TODO: validar si no se está contemplando algo más aparte de agregar el numero de TP de 1º nivel al PCB
+        int numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
+        pcb->tabla_primer_nivel = numero_tabla_primer_nivel;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
 
-
-        // TODO: deberia agregar al pcb el valor de la tabla de paginas
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
         paquete_destroy(paquete_con_pcb_actualizado);
       } break;
@@ -366,12 +362,13 @@ int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
-void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
+int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   // TODO: validar el comentario de abajo
   /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
+  int numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
@@ -380,6 +377,8 @@ void inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
        "TP de primer nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_primer_nivel=%d)",
        tabla_primer_nivel->num_tabla,
        dictionary_size(tablas_de_paginas_primer_nivel));
+
+  return numero_tabla_primer_nivel;
 }
 
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
