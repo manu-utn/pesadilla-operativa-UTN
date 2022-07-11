@@ -52,6 +52,9 @@ typedef struct{
 typedef struct{
     int entrada_primer_nivel;
     int num_tabla_segundo_nivel;
+
+    // para facilitar el destroy del diccionario
+    int num_tabla_primer_nivel;
 }t_entrada_tabla_primer_nivel;
 
 typedef struct{
@@ -145,7 +148,7 @@ void llenar_memoria_mock();
 
 
 
-t_tabla_primer_nivel* tabla_paginas_primer_nivel_create();
+t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid);
 t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
 void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
 int cantidad_tablas_paginas_primer_nivel();
@@ -200,6 +203,10 @@ void algoritmo_reemplazo_imprimir_entrada_segundo_nivel(t_entrada_tabla_segundo_
 void algoritmo_reemplazo_imprimir_marcos_asignados(int pid);
 void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel* entrada);
 int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada);
+void liberar_estructuras_en_memoria_de_este_proceso(int pid);
+void tabla_paginas_primer_nivel_destroy(t_tabla_primer_nivel* tabla_paginas_primer_nivel);
+void entrada_primer_nivel_destroy(t_entrada_tabla_primer_nivel* entrada_primer_nivel);
+void entrada_segundo_nivel_destroy(t_entrada_tabla_segundo_nivel* entrada_segundo_nivel);
 
 //SWAP
 int crear_punto_de_montaje(char* path);
