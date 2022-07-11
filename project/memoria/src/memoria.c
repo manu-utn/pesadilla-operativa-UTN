@@ -175,18 +175,13 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        // t_pcb* pcb = paquete_obtener_pcb(paquete);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
         // TODO: Escribir en swap paginas con bit M en 1
-
-        /*t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
-
-        bool marco_modificado(t_marco * marco) {
-          return marco->t_entrada_tabla_segundo_nivel->bit_modif == 1;
-        }
+        t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
-        escribir_datos_de_marcos_en_swap(marcos_modificados);*/
+        escribir_datos_de_marcos_en_swap(marcos_modificados);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
@@ -228,6 +223,10 @@ void* manejar_nueva_conexion(void* args) {
     }
   }
   pthread_exit(NULL);
+}
+
+bool marco_modificado(t_marco* marco) {
+  return marco->entrada_segundo_nivel->bit_modif == 1;
 }
 
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {

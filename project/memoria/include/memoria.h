@@ -218,5 +218,6 @@ void leer_archivo_swap(char* filepath, int numPagina);
 void liberar_estructuras_en_swap(uint32_t pid);
 void escribir_datos_de_marcos_en_swap(t_list* marcos);
 void escribir_marco_en_swap(t_marco* marco);
+bool marco_modificado(t_marco* marco);
 
 #endif /* MEMORIA_H */
