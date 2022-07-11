@@ -29,8 +29,7 @@ int main() {
   // mostrar_tabla_marcos();
   // imprimir_tablas_de_paginas();
 
-  // TODO: Rompe en la funcion de abajo
-  // simular_asignacion_marcos_1();
+  // simular_asignacion_marcos_1(); => SEGMENTACION FAULT
   // simular_asignacion_marcos_2();
 
   // simular_solicitud_marco_por_mmu();

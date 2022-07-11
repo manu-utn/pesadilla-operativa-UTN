@@ -120,7 +120,7 @@ void leer_archivo_swap(char* filepath, int numPagina) {
   fclose(fd);
 }
 
-void liberar_estructuras_en_swap(uint32_t pid) {
+void liberar_estructuras_en_swap(int pid) {
   xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
   eliminar_archivo_swap(pid);
 }
