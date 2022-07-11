@@ -8,13 +8,17 @@ void inicializar_estructuras() {
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
 
-  memoria_principal = malloc(obtener_tamanio_memoria_por_config());
+  uint32_t size_memoria = config_get_int_value(config, "TAM_MEMORIA");
+  tamanio_marco = config_get_int_value(config, "TAM_PAGINA");
 
-  llenar_memoria_mock();
+  memoria_principal = malloc(size_memoria);
+
+
+  // llenar_memoria_mock();
 
   tablas_de_paginas_primer_nivel = dictionary_create();
   tablas_de_paginas_segundo_nivel = dictionary_create();
   tabla_marcos = list_create();
 
-  dividir_memoria_principal_en_marcos();
+  // dividir_memoria_principal_en_marcos();
 }

@@ -42,13 +42,6 @@ void* escuchar_conexiones() {
   pthread_exit(NULL);
 }
 
-
-// TODO: esto debería estar en swap.c
-// por el momento sólo escuchamos las entradas de memoria,
-void liberar_estructuras_en_swap() {
-  xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
-}
-
 // TODO: validar
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
@@ -173,16 +166,12 @@ void* manejar_nueva_conexion(void* args) {
         xlog(COLOR_CONEXION, "Obteniendo dato fisico en memoria");
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
-
         req = obtener_solicitud_dato(paquete);
 
         uint32_t direccion_fisica = req->dir_fisica;
+        free(req);
 
-        uint32_t dato_buscado = 0;
-        dato_buscado = buscar_dato_en_memoria(direccion_fisica);
-        xlog(COLOR_INFO, "DATO BUSCADO: %d", dato_buscado);
-
-        /// HACER LOS LLAMADOS A LOS METODOS CORRESPONDIENTES PARA OBTENER EL NUM DE TABLA
+        uint32_t dato_buscado = buscar_dato_en_memoria(direccion_fisica);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_dato_fisico* resp = malloc(sizeof(t_respuesta_dato_fisico));
@@ -199,18 +188,17 @@ void* manejar_nueva_conexion(void* args) {
         xlog(COLOR_CONEXION, "Escribiendo dato en memoria");
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
-
         req = obtener_solicitud_escritura_dato(paquete);
 
-        uint32_t dir_fisica = req->dir_fisica;
+        uint32_t direccion_fisica = req->dir_fisica;
         uint32_t valor = req->valor;
+        free(req);
 
-        int resultado_escritura = escribir_dato(dir_fisica, valor);
-
+        uint32_t resultado_escritura = escribir_dato(direccion_fisica, valor);
 
         t_paquete* paquete_respuesta = paquete_create();
         t_respuesta_escritura_dato_fisico* resp = malloc(sizeof(t_respuesta_escritura_dato_fisico));
-        resp->resultado = 1;
+        resp->resultado = resultado_escritura;
         t_buffer* mensaje = crear_mensaje_respuesta_escritura_dato_fisico(resp);
         paquete_cambiar_mensaje(paquete_respuesta, mensaje), enviar_operacion_escribir_dato(socket_cliente, paquete_respuesta);
 
@@ -220,7 +208,18 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
+        // TODO: Escribir en swap paginas con bit M en 1
+
+        t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
+
+        bool marco_modificado(t_marco * marco) {
+          return marco->t_entrada_tabla_segundo_nivel->bit_modif == 1;
+        }
+
+        t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
+        escribir_datos_de_marcos_en_swap(marcos_modificados);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
@@ -395,16 +394,47 @@ void dividir_memoria_principal_en_marcos() {
   }
 }
 
+int obtener_cantidad_entradas_por_tabla_por_config() {
+  return config_get_int_value(config, "PAGINAS_POR_TABLA");
+}
+
+int obtener_tamanio_memoria_por_config() {
+  return config_get_int_value(config, "TAM_MEMORIA");
+}
+
+int obtener_cantidad_marcos_por_proceso_por_config() {
+  return config_get_int_value(config, "TAM_MEMORIA");
+}
+
+int obtener_tamanio_pagina_por_config() {
+  return config_get_int_value(config, "TAM_PAGINA");
+}
+
+char* obtener_algoritmo_reemplazo_por_config() {
+  return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
+}
+
+char* obtener_path_archivos_swap() {
+  return config_get_string_value(config, "PATH_SWAP");
+}
+
+bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
+  return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
+}
+
 int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
-// TODO: no se está utilizando el tamaño del proceso, es requerido?
+// comentado temporalmente, un merge de swap generò conflictos en memoria
+// void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso)
 int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create(pid);
   int numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
+
+  inicializar_archivo_swap(pid, tam_proceso);
 
   // agregamos una TP_primer_nivel en una estructura global
   dictionary_put(tablas_de_paginas_primer_nivel, string_itoa(tabla_primer_nivel->num_tabla), tabla_primer_nivel);
