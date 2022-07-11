@@ -125,6 +125,7 @@ void liberar_estructuras_en_swap(int pid) {
   eliminar_archivo_swap(pid);
 }
 
+// Funciones que se usan para la suspension
 
 void escribir_datos_de_marcos_en_swap(t_list* marcos) {
   list_iterate(marcos, (void*)escribir_marco_en_swap);
@@ -151,5 +152,5 @@ void escribir_marco_en_swap(t_marco* marco) {
   marco->entrada_segundo_nivel->bit_modif = 0;
   // TODO Evaluar si deberia cambiar el bit de uso y el bit de presencia
   marco->pid = 0;
-  marco->ocupado = 0;
+  marco->ocupado = MARCO_LIBRE;
 }

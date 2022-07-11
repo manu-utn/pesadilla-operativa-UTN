@@ -208,14 +208,14 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        /*
+
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
         // TODO: Escribir en swap paginas con bit M en 1
         t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
-        escribir_datos_de_marcos_en_swap(marcos_modificados);*/
+        escribir_datos_de_marcos_en_swap(marcos_modificados);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
@@ -558,7 +558,6 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid) {
 
   // requerido para liberar estructuras en memoria, cuando un proceso finalizar
   tabla_paginas_primer_nivel->pid = pid;
-
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
   for (int numero_entrada_primer_nivel = 0; numero_entrada_primer_nivel < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_primer_nivel++) {
@@ -570,7 +569,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid) {
     entrada_primer_nivel->num_tabla_primer_nivel = numero_tabla_primer_nivel;
 
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
-    t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, 1);
+    t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, pid);
 
     // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel, string_itoa(tabla_paginas_segundo_nivel->num_tabla), tabla_paginas_segundo_nivel);

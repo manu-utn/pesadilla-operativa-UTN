@@ -1,6 +1,7 @@
 bool algoritmo_reemplazo_cargado_es(char * algoritmo);
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel * entrada_elegida);
 bool hay_marcos_libres_asignados_al_proceso(int pid);
+bool marco_modificado(t_marco * marco);
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel * entrada);
 char * get_filepath(char * file,char * path,int pid);
 char * obtener_algoritmo_reemplazo_por_config();
@@ -54,6 +55,8 @@ void entrada_asignada_a_marco_imprimir_bits(t_entrada_tabla_segundo_nivel * entr
 void entrada_primer_nivel_destroy(t_entrada_tabla_primer_nivel * entrada_primer_nivel);
 void entrada_segundo_nivel_destroy(t_entrada_tabla_segundo_nivel * entrada_segundo_nivel);
 void escribir_archivo_swap(char * filepath,void * datos,int numPagina);
+void escribir_datos_de_marcos_en_swap(t_list * marcos);
+void escribir_marco_en_swap(t_marco * marco);
 void imprimir_entrada_segundo_nivel(char * __,t_entrada_tabla_segundo_nivel * entrada);
 void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel * tabla_segundo_nivel);
 void imprimir_marco(t_marco * marco);
