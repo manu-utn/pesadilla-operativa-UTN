@@ -212,7 +212,11 @@ void* manejar_nueva_conexion(void* args) {
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        // TODO: resolver cuando se avance el módulo de memoria
+
+        // TODO: falta validar con valgrind
+        liberar_estructuras_en_memoria_de_este_proceso(pcb->pid);
+
+        // TODO: resolver cuando se avance el módulo de swap
         liberar_estructuras_en_swap();
 
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
@@ -362,12 +366,11 @@ int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
+// TODO: no se está utilizando el tamaño del proceso, es requerido?
 int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
-  // TODO: validar el comentario de abajo
-  /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
-  t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create();
+  t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create(pid);
   int numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
 
   // agregamos una TP_primer_nivel en una estructura global
@@ -379,6 +382,46 @@ int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
        dictionary_size(tablas_de_paginas_primer_nivel));
 
   return numero_tabla_primer_nivel;
+}
+
+void liberar_estructuras_en_memoria_de_este_proceso(int pid) {
+  t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
+  int numero_tabla_primer_nivel = TP_primer_nivel->num_tabla;
+
+  dictionary_remove_and_destroy(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel), (void*)tabla_paginas_primer_nivel_destroy);
+}
+
+void tabla_paginas_primer_nivel_destroy(t_tabla_primer_nivel* tabla_paginas_primer_nivel) {
+  dictionary_destroy_and_destroy_elements(tabla_paginas_primer_nivel->entradas_primer_nivel, (void*)entrada_primer_nivel_destroy);
+
+  xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados a la tabla de primer nivel (tp_primer_nivel=%d)", tabla_paginas_primer_nivel->num_tabla);
+
+  free(tabla_paginas_primer_nivel);
+}
+
+void entrada_primer_nivel_destroy(t_entrada_tabla_primer_nivel* entrada_primer_nivel) {
+  int numero_tabla_primer_nivel = entrada_primer_nivel->num_tabla_primer_nivel;
+  int numero_entrada_primer_nivel = entrada_primer_nivel->entrada_primer_nivel;
+
+  t_tabla_segundo_nivel* TP_segundo_nivel = obtener_TP_segundo_nivel(numero_tabla_primer_nivel, numero_entrada_primer_nivel);
+
+  dictionary_destroy_and_destroy_elements(TP_segundo_nivel->entradas_segundo_nivel, (void*)entrada_segundo_nivel_destroy);
+
+  xlog(COLOR_RECURSOS,
+       "Se liberaron con éxito los recursos asignados a la entrada de primer nivel (tp_primer_nivel=%d, entrada=%d)",
+       entrada_primer_nivel->num_tabla_primer_nivel,
+       entrada_primer_nivel->entrada_primer_nivel);
+
+  free(entrada_primer_nivel);
+}
+
+void entrada_segundo_nivel_destroy(t_entrada_tabla_segundo_nivel* entrada_segundo_nivel) {
+  xlog(COLOR_RECURSOS,
+       "Se liberaron con éxito los recursos asignados a la entrada de segundo nivel (tp_segundo_nivel=%d, entrada=%d)",
+       entrada_segundo_nivel->numero_tabla_segundo_nivel,
+       entrada_segundo_nivel->entrada_segundo_nivel);
+
+  free(entrada_segundo_nivel);
 }
 
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
@@ -433,8 +476,6 @@ void llenar_memoria_mock() {
   printf("\n");
 }
 
-// TODO: validar si aún se requiere
-// se estaba usando para encontrar_marcos_asignados_por_procesos pero las tp_segundo_nivel ya tienen el pid
 t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
   t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
 
@@ -470,16 +511,18 @@ int cantidad_tablas_paginas_primer_nivel() {
   return dictionary_size(tablas_de_paginas_primer_nivel);
 }
 
-t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
+t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid) {
   t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
 
-  xlog(COLOR_TAREA, "Creando TP de primer nivel...");
   // TODO: validar si conviene usar otra manera
   // contamos la cantidad de elementos en la estructura global (en el diccionario) y le sumamos uno
-  tabla_paginas_primer_nivel->num_tabla = cantidad_tablas_paginas_primer_nivel() + 1;
+  int numero_tabla_primer_nivel = cantidad_tablas_paginas_primer_nivel() + 1;
 
-  // TODO: evaluar porque se necesitaba el pid en la TP de 1er nivel
-  tabla_paginas_primer_nivel->pid = -1;
+  xlog(COLOR_TAREA, "Creando TP de primer nivel... (pid=%d, numero=%d)", pid, numero_tabla_primer_nivel);
+  tabla_paginas_primer_nivel->num_tabla = numero_tabla_primer_nivel;
+
+  // requerido para liberar estructuras en memoria, cuando un proceso finalizar
+  tabla_paginas_primer_nivel->pid = pid;
 
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
@@ -489,6 +532,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create() {
     // esto identifica cada entrada de TP 1er nivel, la MMU accede a ésta usando
     // floor(numero_pagina_DL/cant_entradas_por_tabla)
     entrada_primer_nivel->entrada_primer_nivel = numero_entrada_primer_nivel;
+    entrada_primer_nivel->num_tabla_primer_nivel = numero_tabla_primer_nivel;
 
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
     t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, 1);
