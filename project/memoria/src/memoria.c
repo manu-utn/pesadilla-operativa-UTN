@@ -119,11 +119,32 @@ void* manejar_nueva_conexion(void* args) {
 
         solicitud_numero_marco = obtener_solicitud_marco(paquete);
 
-
         // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
-        int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-        xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
+        int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
+        int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
 
+        int num_marco;
+
+        // se entiende que si el marco es -1 entonces no se encontró,
+        // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
+        if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel))) {
+          num_marco = -1;
+        } else {
+          // TODO: no se está considerando el numero de TP de 1er nivel, debería???
+          // tp_primer_nivel -> entrada_primer_nivel (referencia a la tp 2do nivel, y esta tiene entradas de 2do nivel)
+          t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel));
+
+          if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_segundo_nivel))) {
+            num_marco = -1;
+          } else {
+            num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+          }
+        }
+
+        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
+        // num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+
+        xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
         // TODO: validar si no hay una función que agregue el contenido más fácil ó crear una abstracción
         t_paquete* paquete_respuesta = paquete_create();
