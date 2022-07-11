@@ -125,15 +125,16 @@ void liberar_estructuras_en_swap(uint32_t pid) {
   eliminar_archivo_swap(pid);
 }
 
+/*
 void escribir_datos_de_marcos_en_swap(t_list* marcos) {
   list_iterate(marcos, (void*)escribir_marco_en_swap);
 }
 
-void escribir_marco_en_swap(t_marco marco) {
+void escribir_marco_en_swap(t_marco* marco) {
   int tamanioPagina = obtener_tamanio_pagina_por_config();
   void* datos[tamanioPagina];
 
-  for(int i = 0; i < tamanioPagina; i++) {
+  for (int i = 0; i < tamanioPagina; i++) {
     uint32_t dato = buscar_dato_en_memoria(marco->direccion + i);
     datos[i] = dato;
   }
@@ -145,10 +146,10 @@ void escribir_marco_en_swap(t_marco marco) {
 
   int num_pagina = marco->entrada_segundo_nivel->entrada_segundo_nivel;
 
-  escribir_archivo_swap(filename, (void*) datos, num_pagina);
+  escribir_archivo_swap(filename, (void*)datos, num_pagina);
 
-  marco->entrada_segundo_nivel->entrada_segundo_nivel->bit_modif = 0;
-  //TODO Evaluar si deberia cambiar el bit de uso y el bit de presencia
+  // marco->entrada_segundo_nivel->entrada_segundo_nivel->bit_modif = 0;
+  // TODO Evaluar si deberia cambiar el bit de uso y el bit de presencia
   marco->pid = 0;
   marco->ocupado = 0;
-}
+}*/

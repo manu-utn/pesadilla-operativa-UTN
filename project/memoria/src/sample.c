@@ -12,7 +12,7 @@ int main() {
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
 
-  /*void* textoPrueba = "123Probaasasa";
+  void* textoPrueba = "123Probaasasa";
   void* textoPrueba2 = "caca";
 
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba, 2, 32);
@@ -21,14 +21,16 @@ int main() {
   leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);*/
 
   pthread_t th1;
-  pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL), pthread_detach(th1);
+  pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL);
+  pthread_detach(th1);
 
   // inicializar_estructuras_de_este_proceso(0, 500);
 
   // mostrar_tabla_marcos();
   // imprimir_tablas_de_paginas();
 
-  simular_asignacion_marcos_1();
+  // TODO: Rompe en la funcion de abajo
+  // simular_asignacion_marcos_1();
   // simular_asignacion_marcos_2();
 
   // simular_solicitud_marco_por_mmu();

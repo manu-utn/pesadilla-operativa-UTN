@@ -175,18 +175,18 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_pcb* pcb = paquete_obtener_pcb(paquete);
+        // t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
         // TODO: Escribir en swap paginas con bit M en 1
 
-        t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
+        /*t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         bool marco_modificado(t_marco * marco) {
           return marco->t_entrada_tabla_segundo_nivel->bit_modif == 1;
         }
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
-        escribir_datos_de_marcos_en_swap(marcos_modificados);
+        escribir_datos_de_marcos_en_swap(marcos_modificados);*/
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
@@ -355,39 +355,11 @@ void dividir_memoria_principal_en_marcos() {
   }
 }
 
-int obtener_cantidad_entradas_por_tabla_por_config() {
-  return config_get_int_value(config, "PAGINAS_POR_TABLA");
-}
-
-int obtener_tamanio_memoria_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_cantidad_marcos_por_proceso_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_tamanio_pagina_por_config() {
-  return config_get_int_value(config, "TAM_PAGINA");
-}
-
-char* obtener_algoritmo_reemplazo_por_config() {
-  return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-}
-
-char* obtener_path_archivos_swap() {
-  return config_get_string_value(config, "PATH_SWAP");
-}
-
-bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
-  return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
-}
-
 int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
-void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
+int inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso) {
   // TODO: validar el comentario de abajo
   /// ESTA FUNCION DEBE DEVOLVER EL NUM DE TABLA DE PRIMER NIVEL ASIGNADA
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
