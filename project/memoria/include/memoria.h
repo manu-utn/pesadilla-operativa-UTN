@@ -141,7 +141,7 @@ t_dictionary* tablas_de_paginas_segundo_nivel;
 
 t_list* marcos_prueba_clock;
 
-void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso);
+int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
 void dividir_memoria_principal_en_marcos();
 void mostrar_tabla_marcos();
 void llenar_memoria_mock();
@@ -222,7 +222,7 @@ void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
 void eliminar_archivo_swap(uint32_t pid);
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina);
 void leer_archivo_swap(char* filepath, int numPagina);
-void liberar_estructuras_en_swap(uint32_t pid);
+void liberar_estructuras_en_swap(int pid);
 void escribir_datos_de_marcos_en_swap(t_list* marcos);
 void escribir_marco_en_swap(t_marco marco);
 

@@ -12,7 +12,7 @@ int main() {
   char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
   crear_punto_de_montaje(path_punto_monataje);
 
-  /*void* textoPrueba = "123Probaasasa";
+  void* textoPrueba = "123Probaasasa";
   void* textoPrueba2 = "caca";
 
   escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba, 2, 32);
@@ -28,7 +28,7 @@ int main() {
   // mostrar_tabla_marcos();
   // imprimir_tablas_de_paginas();
 
-  simular_asignacion_marcos_1();
+  // simular_asignacion_marcos_1(); => SEGMENTACION FAULT
   // simular_asignacion_marcos_2();
 
   // simular_solicitud_marco_por_mmu();

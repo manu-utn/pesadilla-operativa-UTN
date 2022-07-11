@@ -208,6 +208,7 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        /*
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
         // TODO: Escribir en swap paginas con bit M en 1
@@ -219,7 +220,7 @@ void* manejar_nueva_conexion(void* args) {
         }
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
-        escribir_datos_de_marcos_en_swap(marcos_modificados);
+        escribir_datos_de_marcos_en_swap(marcos_modificados);*/
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
@@ -249,7 +250,7 @@ void* manejar_nueva_conexion(void* args) {
         liberar_estructuras_en_memoria_de_este_proceso(pcb->pid);
 
         // TODO: resolver cuando se avance el módulo de swap
-        liberar_estructuras_en_swap();
+        liberar_estructuras_en_swap(pcb->pid);
 
         xlog(COLOR_CONEXION, "Memoria/Swap recibió solicitud de Kernel para liberar las estructuras de un proceso");
 
@@ -392,34 +393,6 @@ void dividir_memoria_principal_en_marcos() {
 
     list_add(tabla_marcos, marco);
   }
-}
-
-int obtener_cantidad_entradas_por_tabla_por_config() {
-  return config_get_int_value(config, "PAGINAS_POR_TABLA");
-}
-
-int obtener_tamanio_memoria_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_cantidad_marcos_por_proceso_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
-}
-
-int obtener_tamanio_pagina_por_config() {
-  return config_get_int_value(config, "TAM_PAGINA");
-}
-
-char* obtener_algoritmo_reemplazo_por_config() {
-  return config_get_string_value(config, "ALGORITMO_REEMPLAZO");
-}
-
-char* obtener_path_archivos_swap() {
-  return config_get_string_value(config, "PATH_SWAP");
-}
-
-bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
-  return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
 }
 
 int obtener_cantidad_marcos_en_memoria() {

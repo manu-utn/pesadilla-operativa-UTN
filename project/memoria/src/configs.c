@@ -25,3 +25,7 @@ char* obtener_algoritmo_reemplazo_por_config() {
 bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
   return strcmp(obtener_algoritmo_reemplazo_por_config(), algoritmo) == 0;
 }
+
+char* obtener_path_archivos_swap() {
+  return config_get_string_value(config, "PATH_SWAP");
+}
