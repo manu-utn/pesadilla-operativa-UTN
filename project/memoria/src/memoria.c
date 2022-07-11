@@ -89,14 +89,27 @@ void* manejar_nueva_conexion(void* args) {
       case OPERACION_OBTENER_SEGUNDA_TABLA: {
         xlog(COLOR_CONEXION, "Obteniendo numero de tabla de segundo nivel");
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = malloc(sizeof(t_solicitud_segunda_tabla));
+        t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = obtener_solicitud_tabla_segundo_nivel(paquete);
 
-        solicitud_numero_tp_segundo_nivel = obtener_solicitud_tabla_segundo_nivel(paquete);
+        int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
 
-        int numero_TP_segundo_nivel =
-          obtener_numero_TP_segundo_nivel(solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel, solicitud_numero_tp_segundo_nivel->entrada_primer_nivel);
+        int numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
+        int entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
 
-        xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_TP_segundo_nivel);
+        if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel))) {
+          numero_TP_segundo_nivel = -1;
+        } else {
+          t_tabla_primer_nivel* tabla_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
+
+          if (!dictionary_has_key(tabla_primer_nivel->entradas_primer_nivel, string_itoa(entrada_primer_nivel))) {
+            numero_TP_segundo_nivel = -1;
+          } else {
+            numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
+          }
+        }
+
+        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
+        // numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
 
         // TODO: validar si no hay una función que agregue el contenido más fácil ó crear una abstracción
         t_paquete* paquete_respuesta = paquete_create();
@@ -119,11 +132,10 @@ void* manejar_nueva_conexion(void* args) {
 
         solicitud_numero_marco = obtener_solicitud_marco(paquete);
 
-        // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
         int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
         int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
 
-        int num_marco;
+        int num_marco = -1; // por defecto, en caso q no se encuentre
 
         // se entiende que si el marco es -1 entonces no se encontró,
         // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
