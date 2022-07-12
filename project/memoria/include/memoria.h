@@ -111,9 +111,10 @@ uint32_t      tamanio_marco;
 
 uint32_t      buscar_dato_en_memoria  (uint32_t direccion_fisica);
 uint32_t      escribir_dato           (uint32_t direccion_fisica,   uint32_t  valor);
-uint32_t      obtener_byte_inicio     (uint32_t direccion_fisica);
+uint32_t      obtener_byte_inicio     (uint32_t direccion_fisica,    uint32_t bit_modificado);
 uint32_t      obtener_marco_dato      (uint32_t direccion_fisica);
 uint32_t      obtener_offset_dato     (uint32_t direccion_fisica);
+void          actualizar_bits         (uint32_t numero_marco,       uint32_t bit_modificado);
 // FIN MEMORIA PRINCIPAL
 
 bool estado_conexion_memoria;
