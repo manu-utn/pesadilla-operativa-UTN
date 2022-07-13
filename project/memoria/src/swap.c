@@ -86,9 +86,9 @@ void eliminar_archivo_swap(uint32_t pid) {
 
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
   FILE* fd = fopen(filepath, "rb+");
-  int tamanioPagina = obtener_tamanio_pagina_por_config();
+  int tamanio_pagina = obtener_tamanio_pagina_por_config();
 
-  int desplazamiento = numPagina * tamanioPagina;
+  int desplazamiento = numPagina * tamanio_pagina;
   int longitudDatos = string_length((char*)datos);
 
   log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
@@ -104,16 +104,16 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
 
 void leer_archivo_swap(char* filepath, int numPagina) {
   FILE* fd = fopen(filepath, "rb+");
-  int tamanioPagina = obtener_tamanio_pagina_por_config();
-  void* datos[tamanioPagina];
+  int tamanio_pagina = obtener_tamanio_pagina_por_config();
+  void* datos[tamanio_pagina];
 
-  int desplazamiento = numPagina * tamanioPagina;
+  int desplazamiento = numPagina * tamanio_pagina;
 
   log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
 
   fseek(fd, desplazamiento, SEEK_SET);
 
-  fread(datos, sizeof(char), tamanioPagina, fd);
+  fread(datos, sizeof(char), tamanio_pagina, fd);
 
   log_info(logger, "Leimos %s", (char*)datos);
 
@@ -132,12 +132,17 @@ void escribir_datos_de_marcos_en_swap(t_list* marcos) {
 }
 
 void escribir_marco_en_swap(t_marco* marco) {
-  int tamanioPagina = obtener_tamanio_pagina_por_config();
-  uint32_t datos[tamanioPagina];
+  int tamanio_pagina = obtener_tamanio_pagina_por_config();
+  int limite = tamanio_pagina / 4;
+  int i = 0;
+  uint32_t direccion = marco->num_marco * tamanio_pagina;
 
-  for (int i = 0; i < tamanioPagina; i++) {
-    uint32_t dato = buscar_dato_en_memoria(marco->direccion + i);
+  uint32_t datos[tamanio_pagina];
+
+  while(i < limite) {
+    uint32_t dato = buscar_dato_en_memoria(direccion + i);
     datos[i] = dato;
+    i += 4;
   }
 
   char* filename = string_new();
@@ -145,12 +150,14 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   filename = get_filepath(filename, path, marco->pid);
 
-  int num_pagina = marco->entrada_segundo_nivel->entrada_segundo_nivel;
+  int numero_tabla_segundo_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
+  int numero_entrada_segundo_nivel = marco->entrada_segundo_nivel->entrada_segundo_nivel;
+  int cantidad_entradas_segundo_nivel = obtener_cantidad_entradas_por_tabla_por_config();
+
+  int num_pagina = numero_tabla_segundo_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
 
   escribir_archivo_swap(filename, (void*)datos, num_pagina);
 
-  marco->entrada_segundo_nivel->bit_modif = 0;
-  // TODO Evaluar si deberia cambiar el bit de uso y el bit de presencia
   marco->pid = 0;
   marco->ocupado = MARCO_LIBRE;
 }

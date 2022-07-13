@@ -210,8 +210,7 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
 
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        // TODO: resolver cuando se avance el módulo..
-        // TODO: Escribir en swap paginas con bit M en 1
+        
         t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
