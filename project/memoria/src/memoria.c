@@ -210,7 +210,7 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
 
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        
+
         t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
@@ -699,6 +699,11 @@ void algoritmo_clock_puntero_apuntar_al_marco(int numero_marco) {
 int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrada_victima, t_entrada_tabla_segundo_nivel* nueva_entrada) {
   int numero_marco = entrada_victima->num_marco;
   t_marco* marco = obtener_marco_de_memoria(numero_marco);
+
+  // Si tiene bit de M en 1, lo paso al archivo swap
+  if (marco->entrada_segundo_nivel->bit_modif == 1) {
+    escribir_marco_en_swap(marco);
+  }
 
   entrada_victima->num_marco = -1;
   nueva_entrada->num_marco = numero_marco;

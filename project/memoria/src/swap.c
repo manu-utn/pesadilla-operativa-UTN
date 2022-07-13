@@ -139,7 +139,7 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   uint32_t datos[tamanio_pagina];
 
-  while(i < limite) {
+  while (i < limite) {
     uint32_t dato = buscar_dato_en_memoria(direccion + i);
     datos[i] = dato;
     i += 4;
@@ -158,6 +158,7 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   escribir_archivo_swap(filename, (void*)datos, num_pagina);
 
+  marco->entrada_segundo_nivel->bit_modif = 0;
   marco->pid = 0;
   marco->ocupado = MARCO_LIBRE;
 }
