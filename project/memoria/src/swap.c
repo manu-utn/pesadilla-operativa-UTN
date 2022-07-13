@@ -150,11 +150,11 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   filename = get_filepath(filename, path, marco->pid);
 
-  int numero_tabla_segundo_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
+  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
   int numero_entrada_segundo_nivel = marco->entrada_segundo_nivel->entrada_segundo_nivel;
   int cantidad_entradas_segundo_nivel = obtener_cantidad_entradas_por_tabla_por_config();
 
-  int num_pagina = numero_tabla_segundo_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
+  int num_pagina = numero_entrada_primer_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
 
   escribir_archivo_swap(filename, (void*)datos, num_pagina);
 
