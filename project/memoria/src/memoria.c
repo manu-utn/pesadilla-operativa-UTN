@@ -318,6 +318,10 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
       // marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
       marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
 
+      // Escribo en el marco asignado la data que hay en swap
+      t_marco* nuevo_marco = obtener_marco_de_memoria(marco);
+      escribir_datos_de_swap_en_marco(nuevo_marco);
+
       xlog(COLOR_TAREA,
            "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
            "TP_2do_nivel=%d, "
@@ -485,6 +489,9 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 
   // para facilitar el algoritmo de reemplazo
   marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
+
+  // Deberia escribir en el marco la informacion que tiene la pagina en swap
+  escribir_datos_de_swap_en_marco(marco_libre);
 
   return marco_libre->num_marco;
 }

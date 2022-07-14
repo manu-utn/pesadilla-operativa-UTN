@@ -102,7 +102,7 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
   fclose(fd);
 }
 
-void leer_archivo_swap(char* filepath, int numPagina) {
+char* leer_archivo_swap(char* filepath, int numPagina) {
   FILE* fd = fopen(filepath, "rb+");
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
   void* datos[tamanio_pagina];
@@ -118,11 +118,43 @@ void leer_archivo_swap(char* filepath, int numPagina) {
   log_info(logger, "Leimos %s", (char*)datos);
 
   fclose(fd);
+
+  char* datosLeidos = (char*)datos;
+
+  return datosLeidos;
 }
 
 void liberar_estructuras_en_swap(int pid) {
   xlog(COLOR_CONEXION, "SWAP recibió solicitud de Kernel para liberar recursos de un proceso");
   eliminar_archivo_swap(pid);
+}
+
+void escribir_datos_de_swap_en_marco(t_marco* marco) {
+  int tamanio_pagina = obtener_tamanio_pagina_por_config();
+  char* datos;
+  char* filename = string_new();
+  char* path = obtener_path_archivos_swap();
+
+  filename = get_filepath(filename, path, marco->pid);
+
+  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
+  int numero_entrada_segundo_nivel = marco->entrada_segundo_nivel->entrada_segundo_nivel;
+  int cantidad_entradas_segundo_nivel = obtener_cantidad_entradas_por_tabla_por_config();
+
+  int num_pagina = numero_entrada_primer_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
+
+  datos = leer_archivo_swap(filename, num_pagina);
+  // char* datosTexto = (char*)datos;
+
+  int limite = tamanio_pagina / 4;
+  int i = 0;
+  uint32_t direccion = marco->num_marco * tamanio_pagina;
+
+  while (i < limite) {
+    uint32_t dato = datos[i];
+    escribir_dato(direccion + i, dato);
+    i += 4;
+  }
 }
 
 // Funciones que se usan para la suspension
@@ -158,6 +190,7 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   escribir_archivo_swap(filename, (void*)datos, num_pagina);
 
+  marco->entrada_segundo_nivel->bit_presencia = 0;
   marco->entrada_segundo_nivel->bit_modif = 0;
   marco->pid = 0;
   marco->ocupado = MARCO_LIBRE;
