@@ -85,6 +85,10 @@ void eliminar_archivo_swap(uint32_t pid) {
 }
 
 void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
+  int retardo = obtener_retardo_swap();
+  xlog(COLOR_INFO, "Retardo de escribir archivo swap en milisegundos: %d", retardo);
+  usleep(retardo * 1000);
+
   FILE* fd = fopen(filepath, "rb+");
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
 
@@ -103,6 +107,10 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
 }
 
 char* leer_archivo_swap(char* filepath, int numPagina) {
+  int retardo = obtener_retardo_swap();
+  xlog(COLOR_INFO, "Retardo de leer archivo swap en milisegundos: %d", retardo);
+  usleep(retardo * 1000);
+
   FILE* fd = fopen(filepath, "rb+");
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
   void* datos[tamanio_pagina];

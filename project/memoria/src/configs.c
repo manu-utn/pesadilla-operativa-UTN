@@ -29,3 +29,7 @@ bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
 char* obtener_path_archivos_swap() {
   return config_get_string_value(config, "PATH_SWAP");
 }
+
+int obtener_retardo_swap() {
+  return config_get_int_value(config, "RETARDO_SWAP");
+}
