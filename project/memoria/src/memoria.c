@@ -281,7 +281,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
          marco);
   } else if (hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(
                pid)) { // Aca revisa si hay marcos libres sin asignar a otros procesos sin superar el maximo de marcos por proceso
-    marco = obtener_y_asignar_primer_marco_libre(entrada_segundo_nivel);
+    marco = obtener_y_asignar_primer_marco_libre(pid, entrada_segundo_nivel);
 
     xlog(COLOR_TAREA,
          "Se obtuvo el primer marco libre SIN ASIGNAR A NINGUN PROCESO para a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, marco= %d)",
@@ -423,11 +423,13 @@ void liberar_memoria_asignada_a_proceso(int pid) {
 
 void liberar_marco(t_marco* marco) {
   marco->ocupado = 0;
+
+  xlog(COLOR_RECURSOS, "Se libera el marco: %d, con el proceso: %d", marco->num_marco, marco->pid);
+
   marco->pid = -1;
   marco->numero_tabla_segundo_nivel = 0;
+  marco->entrada_segundo_nivel->bit_presencia = 0;
   marco->entrada_segundo_nivel = NULL;
-
-  xlog(COLOR_RECURSOS, "Se libera el marco: %d, con el proceso: %d", marco->pid, marco->num_marco)
 }
 
 void liberar_estructuras_en_memoria_de_este_proceso(int pid) {
@@ -498,6 +500,7 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
 
   t_marco* marco_libre = list_find(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
   marco_libre->ocupado = 1;
+  marco_libre->pid = pid;
 
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
   entrada_TP_segundo_nivel->bit_presencia = 1;
@@ -507,13 +510,14 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
   return marco_libre->num_marco;
 }
 
-int obtener_y_asignar_primer_marco_libre(t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
+int obtener_y_asignar_primer_marco_libre(int pid, t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
   int marco_libre_sin_proceso_asignado(t_marco * marco) {
     return marco->pid == -1 && marco->ocupado == 0;
   }
 
   t_marco* marco_libre = list_find(tabla_marcos, (void*)marco_libre_sin_proceso_asignado);
   marco_libre->ocupado = 1;
+  marco_libre->pid = pid;
 
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
   entrada_TP_segundo_nivel->bit_presencia = 1;
