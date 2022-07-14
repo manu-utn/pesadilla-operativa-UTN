@@ -171,6 +171,7 @@ void escribir_datos_de_marcos_en_swap(t_list* marcos) {
   list_iterate(marcos, (void*)escribir_marco_en_swap);
 }
 
+// TODO: REVISAR QUE ESTA MAL PENSADA CONCEPTUALMENTE LA FUNCION (VA A BUSCAR DE BYTE Y RECIBE 4 B)
 void escribir_marco_en_swap(t_marco* marco) {
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
   int limite = tamanio_pagina / 4;

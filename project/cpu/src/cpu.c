@@ -170,12 +170,16 @@ void ciclo_instruccion(t_pcb* pcb, uint32_t socket_cliente) {
 
     uint32_t fetch_operands_necesaria = decode(instruccion);
 
-    uint32_t dato_leido_copy;
+    int dato_leido_copy = 0;
     if (fetch_operands_necesaria == 0) {
       dato_leido_copy = fetch_operands(pcb, instruccion);
     }
 
-    execute(pcb, instruccion, socket_cliente, dato_leido_copy);
+    if (dato_leido_copy < 0) {
+      xlog(COLOR_ERROR, "CPU - no se realiza el EXECUTE ya que ocurrio un error con el fetch operands");
+    } else {
+      execute(pcb, instruccion, socket_cliente, dato_leido_copy);
+    }
 
     check_interrupt(pcb, socket_cliente);
   }
@@ -193,8 +197,13 @@ uint32_t decode(t_instruccion* instruccion) {
   return (strcmp(instruccion->identificador, "COPY"));
 }
 
-uint32_t fetch_operands(t_pcb* pcb, t_instruccion* instruccion) {
-  uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 1); // parametro 1
+int fetch_operands(t_pcb* pcb, t_instruccion* instruccion) {
+  int direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 1); // parametro 1
+
+  if (direccion_fisica < 0) {
+    xlog(COLOR_ERROR, "FETCH OPERANDS - Error al intentar obtener datos de memoria. Direccion fisica negativa.");
+    return direccion_fisica;
+  }
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
   return dato_leido;
@@ -265,19 +274,31 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente)
 }
 
 void execute_read(t_pcb* pcb, t_instruccion* instruccion) {
-  uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+  int direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+
+  if (direccion_fisica < 0) {
+    xlog(COLOR_ERROR, "OPERACION READ - Error al intentar obtener datos de memoria. Direccion fisica negativa.");
+    return;
+  }
+
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
   xlog(COLOR_INFO, "OPERACION READ - Dato leido: %d.", dato_leido);
 }
 
 void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
-  uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+  int direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+
+  if (direccion_fisica < 0) {
+    xlog(COLOR_ERROR, "OPERACION WRITE - Error al intentar obtener datos de memoria. Direccion fisica negativa.");
+    return;
+  }
+
   uint32_t dato_a_escribir = instruccion_obtener_parametro(instruccion, 1);
 
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  if (resultado < 0) {
+  if (resultado = 1) {
     xlog(COLOR_INFO, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");
@@ -285,7 +306,13 @@ void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
 }
 
 void execute_copy(t_pcb* pcb, t_instruccion* instruccion, uint32_t dato_a_escribir) {
-  uint32_t direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+  int direccion_fisica = obtener_direccion_fisica_memoria(pcb, instruccion, 0); // parametro 0
+
+  if (direccion_fisica < 0) {
+    xlog(COLOR_ERROR, "OPERACION COPY - Error al intentar obtener datos de memoria. Direccion fisica negativa.");
+    return;
+  }
+
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
   if (resultado = 1) {
@@ -330,17 +357,23 @@ uint32_t escribir_dato_memoria(uint32_t direccion_fisica, uint32_t dato_a_escrib
   return retorno;
 }
 
-uint32_t obtener_direccion_fisica_memoria(t_pcb* pcb, t_instruccion* instruccion, uint32_t numero_parametro) {
+int obtener_direccion_fisica_memoria(t_pcb* pcb, t_instruccion* instruccion, uint32_t numero_parametro) {
   uint32_t direccion_logica = instruccion_obtener_parametro(instruccion, numero_parametro);
   uint32_t numero_pagina = obtener_numero_pagina(direccion_logica);
   int existe_pagina = existe_pagina_en_tlb(numero_pagina);
-  uint32_t marco;
+  int marco;
 
   if (existe_pagina == -1) { // Si no esta la pagina en la tlb
     marco = obtener_marco_memoria(pcb->tabla_primer_nivel, numero_pagina);
   } else {
     marco = obtener_marco_tlb(existe_pagina);
   }
+
+  if (marco < 0) {
+    xlog(COLOR_ERROR, "Ocurrio un error al consultar el marco a memoria. MMU no calcula la direccion fisica");
+    return marco;
+  }
+
 
   agregar_pagina_marco_tlb(numero_pagina, marco, pcb->pid);
 
@@ -350,11 +383,22 @@ uint32_t obtener_direccion_fisica_memoria(t_pcb* pcb, t_instruccion* instruccion
   return direccion_fisica;
 }
 
-uint32_t obtener_marco_memoria(uint32_t tabla_primer_nivel, uint32_t numero_pagina) {
+int obtener_marco_memoria(uint32_t tabla_primer_nivel, uint32_t numero_pagina) {
   uint32_t entrada_primer_nivel = obtener_entrada_1er_nivel(numero_pagina, entradas_por_tabla);
-  uint32_t tabla_segundo_nivel = obtener_tabla_segundo_nivel(tabla_primer_nivel, entrada_primer_nivel);
+  int tabla_segundo_nivel = obtener_tabla_segundo_nivel(tabla_primer_nivel, entrada_primer_nivel);
+
+  if (tabla_segundo_nivel < 0) {
+    xlog(COLOR_ERROR, "Ocurrio un error al consultar la tabla de segundo nivel a memoria. Respuesta: %d", tabla_segundo_nivel);
+    return tabla_segundo_nivel;
+  }
+
   uint32_t entrada_segundo_nivel = obtener_entrada_2do_nivel(numero_pagina, entradas_por_tabla);
-  uint32_t marco = obtener_marco(tabla_segundo_nivel, entrada_segundo_nivel);
+  int marco = obtener_marco(tabla_segundo_nivel, entrada_segundo_nivel);
+
+  if (marco < 0) {
+    xlog(COLOR_ERROR, "Ocurrio un error al consultar el marco a memoria. Respuesta: %d", marco);
+  }
+
   return marco;
 }
 
@@ -385,7 +429,7 @@ uint32_t obtener_dato_fisico(uint32_t direccion_fisica) {
   return retorno;
 }
 
-uint32_t obtener_marco(uint32_t tabla_segundo_nivel, uint32_t entrada_segundo_nivel) {
+int obtener_marco(int tabla_segundo_nivel, uint32_t entrada_segundo_nivel) {
   t_solicitud_marco* solicitud = malloc(sizeof(t_solicitud_marco));
 
   solicitud->socket = socket_memoria;
@@ -405,7 +449,7 @@ uint32_t obtener_marco(uint32_t tabla_segundo_nivel, uint32_t entrada_segundo_ni
   recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_marco* respuesta = obtener_respuesta_solicitud_marco(paquete_respuesta);
-  uint32_t retorno = respuesta->num_marco;
+  int retorno = respuesta->num_marco;
 
   free(paquete_respuesta);
   free(respuesta);
@@ -413,7 +457,7 @@ uint32_t obtener_marco(uint32_t tabla_segundo_nivel, uint32_t entrada_segundo_ni
   return retorno;
 }
 
-uint32_t obtener_tabla_segundo_nivel(uint32_t tabla_primer_nivel, uint32_t entrada_primer_nivel) {
+int obtener_tabla_segundo_nivel(uint32_t tabla_primer_nivel, uint32_t entrada_primer_nivel) {
   t_solicitud_segunda_tabla* solicitud = malloc(sizeof(t_solicitud_segunda_tabla));
 
   solicitud->socket = socket_memoria;
@@ -433,7 +477,7 @@ uint32_t obtener_tabla_segundo_nivel(uint32_t tabla_primer_nivel, uint32_t entra
   recibir_operacion(socket_memoria);
   t_paquete* paquete_respuesta = recibir_paquete(socket_memoria);
   t_respuesta_solicitud_segunda_tabla* respuesta_solicitud = obtener_respuesta_solicitud_tabla_segundo_nivel(paquete_respuesta);
-  uint32_t retorno = respuesta_solicitud->num_tabla_segundo_nivel;
+  int retorno = respuesta_solicitud->num_tabla_segundo_nivel;
 
   free(paquete_respuesta);
   free(respuesta_solicitud);
@@ -479,17 +523,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
         case OPERACION_INTERRUPT: {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
-          /*
-          t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
-          paquete_con_pcb = recibir_paquete(socket_cliente);
-          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
 
-          pcb_deserializado->program_counter++;
-          t_paquete* paquete_respuesta = paquete_create();
-          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, 0);
-          paquete_cambiar_mensaje(paquete_respuesta, mensaje);
-          enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
-          */
           HAY_INTERRUPCION_ = 1;
           paquete_destroy(paquete);
         } break;
