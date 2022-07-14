@@ -298,7 +298,7 @@ void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
 
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  if (resultado < 0) {
+  if (resultado = 1) {
     xlog(COLOR_INFO, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");

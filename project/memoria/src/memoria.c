@@ -25,15 +25,7 @@ void* escuchar_conexiones() {
 
   while (estado_conexion_memoria) {
     int cliente_fd = esperar_cliente(socket_memoria);
-    /*
-        if (cliente_fd != -1) {
-          t_paquete* paquete = paquete_create();
-          t_buffer* mensaje = crear_mensaje("Conexión aceptada por MEMORIA");
 
-          paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-          // paquete_add_mensaje(paquete, mensaje);
-        }
-    */
     pthread_t th;
     pthread_create(&th, NULL, manejar_nueva_conexion, &cliente_fd), pthread_detach(th);
   }
@@ -195,7 +187,6 @@ void* manejar_nueva_conexion(void* args) {
       case OPERACION_INICIALIZAR_ESTRUCTURAS: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        paquete_destroy(paquete);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
@@ -360,6 +351,8 @@ t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int 
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
 
+  int prueba = dictionary_size(tablas_de_paginas_primer_nivel);
+
   if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel))) {
     xlog(COLOR_ERROR, "Buscando tabla segundo nivel, no encuentra la TP de primer nivel: %d", numero_TP_primer_nivel);
     return numero_TP_segundo_nivel;
@@ -443,12 +436,15 @@ void liberar_estructuras_en_memoria_de_este_proceso(int pid) {
   t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
   int numero_tabla_primer_nivel = TP_primer_nivel->num_tabla;
 
-  dictionary_remove_and_destroy(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel), (void*)tabla_paginas_primer_nivel_destroy);
+  tabla_paginas_primer_nivel_destroy(TP_primer_nivel);
+  dictionary_remove(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
+  free(TP_primer_nivel);
+  // dictionary_remove_and_destroy(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel), (void*)tabla_paginas_primer_nivel_destroy);
 }
 
 void tabla_paginas_primer_nivel_destroy(t_tabla_primer_nivel* tabla_paginas_primer_nivel) {
   dictionary_destroy_and_destroy_elements(tabla_paginas_primer_nivel->entradas_primer_nivel, (void*)entrada_primer_nivel_destroy);
-
+  // dictionary_remove_and_destroy(tabla_paginas_primer_nivel->entradas_primer_nivel, (void*)entrada_primer_nivel_destroy);
   xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados a la tabla de primer nivel (tp_primer_nivel=%d)", tabla_paginas_primer_nivel->num_tabla);
 
   free(tabla_paginas_primer_nivel);
