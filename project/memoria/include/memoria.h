@@ -122,7 +122,8 @@ t_tabla_primer_nivel  *   tabla_paginas_primer_nivel_create         (uint32_t pi
 t_tabla_segundo_nivel *   tabla_paginas_segundo_nivel_create        (uint32_t pid);
 void                      inicializar_entrada_de_tabla_paginas      (t_entrada_tabla_segundo_nivel  *   entrada_tabla_segundo_nivel);
 int                       obtener_numero_TP_segundo_nivel           (int numero_TP_primer_nivel,        int entrada_tabla);
-
+int                       obtener_y_asignar_primer_marco_libre      (t_entrada_tabla_segundo_nivel  *   entrada_TP_segundo_nivel);
+bool                      hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(int pid);
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
 int socket_memoria;

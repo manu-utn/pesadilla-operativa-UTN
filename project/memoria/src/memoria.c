@@ -125,26 +125,7 @@ void* manejar_nueva_conexion(void* args) {
         int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
         int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
 
-        int num_marco = -1; // por defecto, en caso q no se encuentre
-
-        // se entiende que si el marco es -1 entonces no se encontró,
-        // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
-        if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel))) {
-          num_marco = -1;
-        } else {
-          // TODO: no se está considerando el numero de TP de 1er nivel, debería???
-          // tp_primer_nivel -> entrada_primer_nivel (referencia a la tp 2do nivel, y esta tiene entradas de 2do nivel)
-          t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel));
-
-          if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_segundo_nivel))) {
-            num_marco = -1;
-          } else {
-            num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-          }
-        }
-
-        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
-        // num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+        int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
 
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
@@ -272,62 +253,85 @@ bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
 
+// // se entiende que si el marco es -1 entonces no se encontró,
+// // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
+// if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel))) {
+//   num_marco = -1;
+// } else {
+//   // TODO: no se está considerando el numero de TP de 1er nivel, debería???
+//   // tp_primer_nivel -> entrada_primer_nivel (referencia a la tp 2do nivel, y esta tiene entradas de 2do nivel)
+//   t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel));
+
+//   if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_segundo_nivel))) {
+//     num_marco = -1;
+//   } else {
+//     num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+//   }
+// }
+
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
-  int marco = 0;
+  int marco = -1; // Se entiende que si el marco es -1 entonces ocurrió un problema.
   xlog(COLOR_TAREA, "Buscando un marco disponible... (TP_2do_nivel=%d, numero_entrada=%d)", numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
 
-  // TODO: evaluar más en detalle como manejar este error, por el momento retornamos -1
-  if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel))) {
-    return -1;
+  if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_paginas_segundo_nivel))) {
+    xlog(COLOR_ERROR, "Buscando marco disponible, no encuentra la TP de segundo nivel: %d", numero_tabla_paginas_segundo_nivel);
+    return marco;
+  }
+
+  t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_paginas_segundo_nivel));
+
+  if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel))) {
+    xlog(COLOR_ERROR, "Buscando marco disponible, no encuentra la entrada de TP de segundo nivel: %d", numero_entrada_TP_segundo_nivel);
+    return marco;
+  }
+
+  t_entrada_tabla_segundo_nivel* entrada_segundo_nivel = dictionary_get(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
+  int pid = tabla_segundo_nivel->pid;
+
+  if (pid < 0) {
+    xlog(COLOR_ERROR, "Buscando marco disponible, pid invalido: %d", pid);
+    return marco;
+  }
+
+  if (tiene_marco_asignado_entrada_TP(entrada_segundo_nivel)) {
+    marco = entrada_segundo_nivel->num_marco;
+
+    xlog(COLOR_TAREA,
+         "Se encontró el marco asignado a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, pid= %d, marco= %d)",
+         numero_tabla_paginas_segundo_nivel,
+         numero_entrada_TP_segundo_nivel,
+         pid,
+         marco);
+  } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
+    marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
+
+    xlog(COLOR_TAREA,
+         "Se obtuvo el primer marco libre ASIGNADO AL PROCESO (%d) para a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, marco= %d)",
+         pid,
+         numero_tabla_paginas_segundo_nivel,
+         numero_entrada_TP_segundo_nivel,
+         marco);
+  } else if (hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(
+               pid)) { // Aca revisa si hay marcos libres sin asignar a otros procesos sin superar el maximo de marcos por proceso
+    marco = obtener_y_asignar_primer_marco_libre(entrada_segundo_nivel);
+
+    xlog(COLOR_TAREA,
+         "Se obtuvo el primer marco libre SIN ASIGNAR A NINGUN PROCESO para a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, marco= %d)",
+         numero_tabla_paginas_segundo_nivel,
+         numero_entrada_TP_segundo_nivel,
+         marco);
   } else {
-    t_entrada_tabla_segundo_nivel* entrada_segundo_nivel = obtener_entrada_tabla_segundo_nivel(numero_tabla_paginas_segundo_nivel, numero_entrada_TP_segundo_nivel);
-    int pid = obtener_pid_asignado_TP_segundo_nivel(numero_entrada_TP_segundo_nivel);
-
-    if (tiene_marco_asignado_entrada_TP(entrada_segundo_nivel)) {
-      marco = entrada_segundo_nivel->num_marco;
-
-      xlog(COLOR_TAREA,
-           "Se encontró el marco asignado a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, pid=%d, "
-           "numero_marco=%d)",
-           numero_tabla_paginas_segundo_nivel,
-           numero_entrada_TP_segundo_nivel,
-           pid,
-           marco);
-    } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
-      xlog(COLOR_TAREA,
-           "Buscando alguno de los marcos libre de los asignados al proceso... (pid=%d, cantidad_marcos_disponibles=%d)",
-           pid,
-           cantidad_marcos_libres_asignados_al_proceso(pid));
-
-      marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
-
-      xlog(COLOR_TAREA,
-           "Se obtuvo el primer marco libre para a la entrada solicitada (TP_2do_nivel=%d, numero_entrada=%d, "
-           "numero_marco=%d)",
-           numero_tabla_paginas_segundo_nivel,
-           numero_entrada_TP_segundo_nivel,
-           marco);
-
-      // según los algoritmos de reemplazo (clock/clock modificado): si bit_de_uso == 0 && bit_de_presencia == 1,
-      // entonces bit_de_uso=1 (se habilita de nuevo) podríamos siempre setearlo a 1, pero agregamos éste condicional
-      // para recordar/relacionar con la teoría
-      if (entrada_segundo_nivel->bit_uso == 0)
-        entrada_segundo_nivel->bit_uso = 1;
-    } else {
-      // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
-      // marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, entrada_segundo_nivel);
-      marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
-
-      xlog(COLOR_TAREA,
-           "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
-           "TP_2do_nivel=%d, "
-           "numero_entrada=%d, "
-           "numero_marco=%d)",
-           obtener_algoritmo_reemplazo_por_config(),
-           numero_tabla_paginas_segundo_nivel,
-           numero_entrada_TP_segundo_nivel,
-           marco);
-    }
+    // si no tiene marcos libres => ejecutar algoritmo de sustitución de páginas
+    marco = obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(pid, numero_tabla_paginas_segundo_nivel, entrada_segundo_nivel);
+    xlog(COLOR_TAREA,
+         "Se aplicó algoritmo de reemplazo y se obtuvo un marco para a la entrada solicitada (algoritmo=%s, "
+         "TP_2do_nivel=%d, "
+         "numero_entrada=%d, "
+         "numero_marco=%d)",
+         obtener_algoritmo_reemplazo_por_config(),
+         numero_tabla_paginas_segundo_nivel,
+         numero_entrada_TP_segundo_nivel,
+         marco);
   }
 
   return marco;
@@ -349,6 +353,24 @@ bool hay_marcos_libres_asignados_al_proceso(int pid) {
   }
 
   return list_any_satisfy(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
+}
+
+bool hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(int pid) {
+  bool marcos_asignados_al_proceso(t_marco * marco) {
+    return marco->pid == pid && marco->ocupado == 1;
+  }
+
+  bool marco_libre_sin_asignar(t_marco * marco) {
+    return marco->pid == -1 && marco->ocupado == 0;
+  }
+
+  int marcos_ocupados = list_count_satisfying(tabla_marcos, (void*)marcos_asignados_al_proceso);
+
+  if (marcos_ocupados >= obtener_cantidad_marcos_por_proceso_por_config()) {
+    return false;
+  }
+
+  return list_any_satisfy(tabla_marcos, (void*)marco_libre_sin_asignar);
 }
 
 // TODO: validar lógica repetida
@@ -462,6 +484,7 @@ t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP
   return entrada_segundo_nivel;
 }
 
+// TODO: Borrar no se utiliza mas
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel) {
   t_tabla_segundo_nivel* TP_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_entrada_TP_segundo_nivel));
 
@@ -479,7 +502,23 @@ int obtener_y_asignar_primer_marco_libre_asignado_al_proceso(int pid, t_entrada_
   marco_libre->ocupado = 1;
 
   entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
+  entrada_TP_segundo_nivel->bit_presencia = 1;
+  // para facilitar el algoritmo de reemplazo
+  marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 
+  return marco_libre->num_marco;
+}
+
+int obtener_y_asignar_primer_marco_libre(t_entrada_tabla_segundo_nivel* entrada_TP_segundo_nivel) {
+  int marco_libre_sin_proceso_asignado(t_marco * marco) {
+    return marco->pid == -1 && marco->ocupado == 0;
+  }
+
+  t_marco* marco_libre = list_find(tabla_marcos, (void*)marco_libre_sin_proceso_asignado);
+  marco_libre->ocupado = 1;
+
+  entrada_TP_segundo_nivel->num_marco = marco_libre->num_marco;
+  entrada_TP_segundo_nivel->bit_presencia = 1;
   // para facilitar el algoritmo de reemplazo
   marco_libre->entrada_segundo_nivel = entrada_TP_segundo_nivel;
 

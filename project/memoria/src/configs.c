@@ -11,7 +11,7 @@ int obtener_tamanio_memoria_por_config() {
 }
 
 int obtener_cantidad_marcos_por_proceso_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
+  return config_get_int_value(config, "MARCOS_POR_PROCESO");
 }
 
 int obtener_tamanio_pagina_por_config() {

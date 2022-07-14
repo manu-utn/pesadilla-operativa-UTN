@@ -55,9 +55,7 @@ int conectarse_a_cpu(char* conexion_puerto) {
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
-    xlog(COLOR_ERROR,
-         "No se pudo establecer la conexión con CPU, inicie el servidor con %s e intente nuevamente",
-         conexion_puerto);
+    xlog(COLOR_ERROR, "No se pudo establecer la conexión con CPU, inicie el servidor con %s e intente nuevamente", conexion_puerto);
 
     return -1;
   } else {
