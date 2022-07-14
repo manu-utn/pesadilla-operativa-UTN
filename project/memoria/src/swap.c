@@ -130,12 +130,13 @@ void escribir_datos_de_marcos_en_swap(t_list* marcos) {
   list_iterate(marcos, (void*)escribir_marco_en_swap);
 }
 
+// TODO: REVISAR QUE ESTA MAL PENSADA CONCEPTUALMENTE LA FUNCION (VA A BUSCAR DE BYTE Y RECIBE 4 B)
 void escribir_marco_en_swap(t_marco* marco) {
   int tamanioPagina = obtener_tamanio_pagina_por_config();
   uint32_t datos[tamanioPagina];
 
   for (int i = 0; i < tamanioPagina; i++) {
-    uint32_t dato = buscar_dato_en_memoria(marco->direccion + i);
+    uint32_t dato = buscar_dato_en_memoria((marco->num_marco * tamanioPagina) + i);
     datos[i] = dato;
   }
 

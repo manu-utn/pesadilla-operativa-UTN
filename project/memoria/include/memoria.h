@@ -49,6 +49,12 @@ typedef struct{
     char* path_swap;
 }t_configuracion;
 
+typedef struct {
+  int num_tabla;
+  int pid;
+  t_dictionary* entradas_primer_nivel;
+} t_tabla_primer_nivel;
+
 typedef struct{
     int entrada_primer_nivel;
     int num_tabla_segundo_nivel;
@@ -74,7 +80,6 @@ typedef struct{
 
 typedef struct {
   int num_marco;
-  uint32_t direccion;
   int pid;
   int ocupado;
 
@@ -89,33 +94,33 @@ typedef struct {
   t_entrada_tabla_segundo_nivel* entrada;
 } t_marco_asignado;
 
-typedef struct {
-  int num_tabla;
-  int pid;
-  t_dictionary* entradas_primer_nivel;
-} t_tabla_primer_nivel;
-
 typedef struct{
     t_list* marcos;
     t_entrada_tabla_segundo_nivel* entrada_nueva;
 }t_algoritmo_reemplazo;
 
-t_config * config;
-t_log * logger;
-// MEMORIA PRINCIPAL
-uint32_t      size_memoria_principal; // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
-void      *   memoria_principal;
-int           cant_marcos;            // ANOTACION GASTON: no se usa en ningun lado (Ya estaba).
-int           tam_marcos;             // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
-uint32_t      tamanio_marco;
+t_config              *   config;
+t_log                 *   logger;
 
-uint32_t      buscar_dato_en_memoria  (uint32_t direccion_fisica);
-uint32_t      escribir_dato           (uint32_t direccion_fisica,   uint32_t  valor);
-uint32_t      obtener_byte_inicio     (uint32_t direccion_fisica,    uint32_t bit_modificado);
-uint32_t      obtener_marco_dato      (uint32_t direccion_fisica);
-uint32_t      obtener_offset_dato     (uint32_t direccion_fisica);
-void          actualizar_bits         (uint32_t numero_marco,       uint32_t bit_modificado);
+int                       ULTIMO_ID_1er_nivel;
+int                       ULTIMO_ID_2do_nivel;
+
+// MEMORIA PRINCIPAL
+void                  *   memoria_principal;
+
+uint32_t                  buscar_dato_en_memoria                    (uint32_t direccion_fisica);
+uint32_t                  escribir_dato                             (uint32_t direccion_fisica,       uint32_t  valor);
+uint32_t                  obtener_byte_inicio                       (uint32_t direccion_fisica,       uint32_t bit_modificado);
+uint32_t                  obtener_marco_dato                        (uint32_t direccion_fisica);
+uint32_t                  obtener_offset_dato                       (uint32_t direccion_fisica);
+void                      actualizar_bits                           (uint32_t numero_marco,           uint32_t bit_modificado);
+void                      dividir_memoria_principal_en_marcos();
 // FIN MEMORIA PRINCIPAL
+
+uint32_t                  inicializar_estructuras_de_este_proceso   (uint32_t pid,                    uint32_t tam_proceso);
+t_tabla_primer_nivel  *   tabla_paginas_primer_nivel_create         (uint32_t pid);
+t_tabla_segundo_nivel *   tabla_paginas_segundo_nivel_create        (uint32_t pid);
+void                      inicializar_entrada_de_tabla_paginas      (t_entrada_tabla_segundo_nivel  *   entrada_tabla_segundo_nivel);
 
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
@@ -142,16 +147,16 @@ t_dictionary* tablas_de_paginas_segundo_nivel;
 
 t_list* marcos_prueba_clock;
 
-int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso);
-void dividir_memoria_principal_en_marcos();
+
+
 void mostrar_tabla_marcos();
 void llenar_memoria_mock();
 
 
 
-t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid);
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid);
-void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel);
+
+
+
 int cantidad_tablas_paginas_primer_nivel();
 
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabla);

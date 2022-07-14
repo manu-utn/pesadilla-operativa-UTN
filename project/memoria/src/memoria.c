@@ -55,8 +55,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
-        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "PAGINAS_POR_TABLA");
-        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
+        uint32_t entradas_por_tabla = obtener_cantidad_entradas_por_tabla_por_config();
+        uint32_t tam_pagina = obtener_tamanio_pagina_por_config();
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
 
         t_paquete* paquete_con_respuesta = paquete_create();
@@ -229,7 +229,7 @@ void* manejar_nueva_conexion(void* args) {
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
         // TODO: validar si no se está contemplando algo más aparte de agregar el numero de TP de 1º nivel al PCB
-        int numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
+        uint32_t numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
         pcb->tabla_primer_nivel = numero_tabla_primer_nivel;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
@@ -380,7 +380,6 @@ void dividir_memoria_principal_en_marcos() {
   for (int numero_marco = 0; numero_marco < obtener_cantidad_marcos_en_memoria(); numero_marco++) {
     t_marco* marco = malloc(sizeof(t_marco));
     marco->num_marco = numero_marco;
-    marco->direccion = 0;
     marco->pid = -1; // porque no tiene un proceso asignado al principio
 
     // para simular un bitmap de marcos libres/ocupados
@@ -398,13 +397,11 @@ int obtener_cantidad_marcos_en_memoria() {
   return obtener_tamanio_memoria_por_config() / obtener_tamanio_pagina_por_config();
 }
 
-// comentado temporalmente, un merge de swap generò conflictos en memoria
-// void inicializar_estructuras_de_este_proceso(uint32_t pid, int tam_proceso)
-int inicializar_estructuras_de_este_proceso(int pid, int tam_proceso) {
+uint32_t inicializar_estructuras_de_este_proceso(uint32_t pid, uint32_t tam_proceso) {
   xlog(COLOR_TAREA, "Inicializando estructuras en memoria para un proceso (pid=%d, tamanio_bytes=%d)", pid, tam_proceso);
 
   t_tabla_primer_nivel* tabla_primer_nivel = tabla_paginas_primer_nivel_create(pid);
-  int numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
+  uint32_t numero_tabla_primer_nivel = tabla_primer_nivel->num_tabla;
 
   inicializar_archivo_swap(pid, tam_proceso);
 
@@ -546,19 +543,15 @@ int cantidad_tablas_paginas_primer_nivel() {
   return dictionary_size(tablas_de_paginas_primer_nivel);
 }
 
-t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid) {
+t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(uint32_t pid) {
   t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
 
-  // TODO: validar si conviene usar otra manera
-  // contamos la cantidad de elementos en la estructura global (en el diccionario) y le sumamos uno
-  int numero_tabla_primer_nivel = cantidad_tablas_paginas_primer_nivel() + 1;
-
+  int numero_tabla_primer_nivel = ULTIMO_ID_1er_nivel++;
   xlog(COLOR_TAREA, "Creando TP de primer nivel... (pid=%d, numero=%d)", pid, numero_tabla_primer_nivel);
-  tabla_paginas_primer_nivel->num_tabla = numero_tabla_primer_nivel;
 
+  tabla_paginas_primer_nivel->num_tabla = numero_tabla_primer_nivel;
   // requerido para liberar estructuras en memoria, cuando un proceso finalizar
   tabla_paginas_primer_nivel->pid = pid;
-
   tabla_paginas_primer_nivel->entradas_primer_nivel = dictionary_create();
 
   for (int numero_entrada_primer_nivel = 0; numero_entrada_primer_nivel < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_primer_nivel++) {
@@ -569,16 +562,15 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(int pid) {
     entrada_primer_nivel->entrada_primer_nivel = numero_entrada_primer_nivel;
     entrada_primer_nivel->num_tabla_primer_nivel = numero_tabla_primer_nivel;
 
-    // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
-    t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, 1);
+    t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(pid);
 
     // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel, string_itoa(tabla_paginas_segundo_nivel->num_tabla), tabla_paginas_segundo_nivel);
+
     xlog(COLOR_TAREA,
          "TP de segundo nivel agregada a una estructura global (numero_TP=%d, cantidad_TP_segundo_nivel=%d)",
          tabla_paginas_segundo_nivel->num_tabla,
          dictionary_size(tablas_de_paginas_segundo_nivel));
-
 
     entrada_primer_nivel->num_tabla_segundo_nivel = tabla_paginas_segundo_nivel->num_tabla;
 
@@ -600,18 +592,17 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
 
   entrada_tabla_segundo_nivel->bit_modif = 0;
 
-  // TODO: evaluar si corresponde que esté inicializado en 0
   entrada_tabla_segundo_nivel->bit_presencia = 0;
 
   entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
 }
 
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_tabla_segundo_nivel, int pid) {
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(uint32_t pid) {
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
 
+  int numero_tabla_segundo_nivel = ULTIMO_ID_2do_nivel++;
   xlog(COLOR_TAREA, "Creando TP de segundo nivel... (numero_TP=%d)", numero_tabla_segundo_nivel);
 
-  // TODO: esto debe coincidir con num_tabla_segundo_nivel que tiene la entrada de la TP de primer nivel
   tabla_paginas_segundo_nivel->num_tabla = numero_tabla_segundo_nivel;
   tabla_paginas_segundo_nivel->pid = pid;
   tabla_paginas_segundo_nivel->entradas_segundo_nivel = dictionary_create();

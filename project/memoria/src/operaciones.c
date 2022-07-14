@@ -30,15 +30,15 @@ uint32_t obtener_byte_inicio(uint32_t direccion_fisica, uint32_t bit_modificado)
 
   actualizar_bits(marco_buscado, bit_modificado);
 
-  return (marco_buscado * tamanio_marco) + offset_buscado;
+  return (marco_buscado * obtener_tamanio_pagina_por_config()) + offset_buscado;
 }
 
 uint32_t obtener_marco_dato(uint32_t direccion_fisica) {
-  return direccion_fisica / tamanio_marco;
+  return direccion_fisica / obtener_tamanio_pagina_por_config();
 }
 
 uint32_t obtener_offset_dato(uint32_t direccion_fisica) {
-  return direccion_fisica % tamanio_marco;
+  return direccion_fisica % obtener_tamanio_pagina_por_config();
 }
 
 void actualizar_bits(uint32_t numero_marco, uint32_t bit_modificado) {
