@@ -84,22 +84,12 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = obtener_solicitud_tabla_segundo_nivel(paquete);
 
-        int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
-
         uint32_t numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
         uint32_t entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
 
-        if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel))) {
-          numero_TP_segundo_nivel = -1;
-        } else {
-          t_tabla_primer_nivel* tabla_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
+        int numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
 
-          if (!dictionary_has_key(tabla_primer_nivel->entradas_primer_nivel, string_itoa(entrada_primer_nivel))) {
-            numero_TP_segundo_nivel = -1;
-          } else {
-            numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
-          }
-        }
+        xlog(COLOR_INFO, "NUMERO TABLA DE SEGUNDO NIVEL: %d", numero_TP_segundo_nivel);
 
         // TODO: validar si no hay una función que agregue el contenido más fácil ó crear una abstracción
         t_paquete* paquete_respuesta = paquete_create();
@@ -186,6 +176,9 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
+        t_pcb* pcb = paquete_obtener_pcb(paquete);
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         /*
         t_pcb* pcb = paquete_obtener_pcb(paquete);
         // TODO: resolver cuando se avance el módulo..
@@ -194,8 +187,8 @@ void* manejar_nueva_conexion(void* args) {
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
         escribir_datos_de_marcos_en_swap(marcos_modificados);*/
+        liberar_memoria_asignada_a_proceso(pcb->pid);
 
-        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
         paquete_destroy(paquete);
       } break;
@@ -252,22 +245,6 @@ bool marco_modificado(t_marco* marco) {
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
   return entrada->num_marco != -1;
 }
-
-// // se entiende que si el marco es -1 entonces no se encontró,
-// // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
-// if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel))) {
-//   num_marco = -1;
-// } else {
-//   // TODO: no se está considerando el numero de TP de 1er nivel, debería???
-//   // tp_primer_nivel -> entrada_primer_nivel (referencia a la tp 2do nivel, y esta tiene entradas de 2do nivel)
-//   t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel));
-
-//   if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_segundo_nivel))) {
-//     num_marco = -1;
-//   } else {
-//     num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-//   }
-// }
 
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {
   int marco = -1; // Se entiende que si el marco es -1 entonces ocurrió un problema.
@@ -373,20 +350,29 @@ bool hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(int pid) {
   return list_any_satisfy(tabla_marcos, (void*)marco_libre_sin_asignar);
 }
 
-// TODO: validar lógica repetida
 t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
-  t_tabla_primer_nivel* TP_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
-  t_entrada_tabla_primer_nivel* entrada_primer_nivel = dictionary_get(TP_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel));
-
-  t_tabla_segundo_nivel* TP_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(entrada_primer_nivel->num_tabla_segundo_nivel));
+  int num_tabla_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_TP_primer_nivel, numero_entrada_TP_primer_nivel);
+  t_tabla_segundo_nivel* TP_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(num_tabla_segundo_nivel));
 
   return TP_segundo_nivel;
 }
 
-// TODO: validar lógica repetida
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
-  t_tabla_primer_nivel* TP_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
-  t_entrada_tabla_primer_nivel* entrada_primer_nivel = dictionary_get(TP_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel));
+  int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
+
+  if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel))) {
+    xlog(COLOR_ERROR, "Buscando tabla segundo nivel, no encuentra la TP de primer nivel: %d", numero_TP_primer_nivel);
+    return numero_TP_segundo_nivel;
+  }
+
+  t_tabla_primer_nivel* tabla_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel));
+
+  if (!dictionary_has_key(tabla_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel))) {
+    xlog(COLOR_ERROR, "Buscando tabla segundo nivel, no encuentra la entrada de primer nivel: %d", numero_entrada_TP_primer_nivel);
+    return numero_TP_segundo_nivel;
+  }
+
+  t_entrada_tabla_primer_nivel* entrada_primer_nivel = dictionary_get(tabla_primer_nivel->entradas_primer_nivel, string_itoa(numero_entrada_TP_primer_nivel));
 
   return entrada_primer_nivel->num_tabla_segundo_nivel;
 }
@@ -437,7 +423,23 @@ uint32_t inicializar_estructuras_de_este_proceso(uint32_t pid, uint32_t tam_proc
   return numero_tabla_primer_nivel;
 }
 
+void liberar_memoria_asignada_a_proceso(int pid) {
+  t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pid);
+  list_iterate(marcos_asignados, (void*)liberar_marco);
+}
+
+void liberar_marco(t_marco* marco) {
+  marco->ocupado = 0;
+  marco->pid = -1;
+  marco->numero_tabla_segundo_nivel = 0;
+  marco->entrada_segundo_nivel = NULL;
+
+  xlog(COLOR_RECURSOS, "Se libera el marco: %d, con el proceso: %d", marco->pid, marco->num_marco)
+}
+
 void liberar_estructuras_en_memoria_de_este_proceso(int pid) {
+  liberar_memoria_asignada_a_proceso(pid);
+
   t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
   int numero_tabla_primer_nivel = TP_primer_nivel->num_tabla;
 
@@ -547,7 +549,7 @@ void llenar_memoria_mock() {
 }
 
 t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
-  t_tabla_primer_nivel* tabla_paginas_primer_nivel = malloc(sizeof(t_tabla_primer_nivel));
+  t_tabla_primer_nivel* tabla_paginas_primer_nivel;
 
   for (int cantidad_tablas_paginas_primer_nivel_leidas = 0; cantidad_tablas_paginas_primer_nivel_leidas < cantidad_tablas_paginas_primer_nivel();
        cantidad_tablas_paginas_primer_nivel_leidas++) {
@@ -561,7 +563,7 @@ t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
 }
 
 t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
-  bool marco_libre_asignado_a_este_proceso(t_marco * marco) {
+  bool marco_asignado_a_este_proceso(t_marco * marco) {
     return marco->pid == pid;
   }
 
@@ -569,7 +571,7 @@ t_list* obtener_marcos_asignados_a_este_proceso(int pid) {
     return marco_menor_numero->num_marco <= marco_mayor_numero->num_marco;
   }
 
-  t_list* marcos_asignados = list_filter(tabla_marcos, (void*)marco_libre_asignado_a_este_proceso);
+  t_list* marcos_asignados = list_filter(tabla_marcos, (void*)marco_asignado_a_este_proceso);
 
   // necesario mantener siempre el mismo orden, para mover el puntero del algoritmo de reemplazo en la cola circular
   t_list* marcos_asignados_ordenados_menor_a_mayor_numero = list_sorted(marcos_asignados, (void*)marco_menor_numero);
