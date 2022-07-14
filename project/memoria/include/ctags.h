@@ -19,6 +19,7 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel,int numero_entrada_TP_s
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel,int numero_entrada_TP_primer_nivel);
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);
 int obtener_posicion_de_marco_del_listado(t_marco * marco,t_list * lista_marcos);
+int obtener_retardo_swap();
 int obtener_tamanio_memoria_por_config();
 int obtener_tamanio_pagina_por_config();
 int obtener_y_asignar_marco_segun_algoritmo_de_reemplazo(int pid,int numero_tabla_segundo_nivel,t_entrada_tabla_segundo_nivel * entrada_segundo_nivel_solicitada_para_acceder);
