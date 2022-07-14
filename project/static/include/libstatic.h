@@ -132,12 +132,12 @@ typedef struct{
 typedef struct{
 	int socket;
 	int num_tabla_segundo_nivel;
-	int entrada_segundo_nivel;
+	uint32_t entrada_segundo_nivel;
   int operacion;// 1: lectura, 2: escritura
 }t_solicitud_marco;
 
 typedef struct{
-	uint32_t num_marco;
+	int num_marco;
 }t_respuesta_solicitud_marco;
 
 typedef struct{
