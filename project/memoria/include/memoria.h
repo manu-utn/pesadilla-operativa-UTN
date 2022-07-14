@@ -109,18 +109,19 @@ int                       ULTIMO_ID_2do_nivel;
 void                  *   memoria_principal;
 
 uint32_t                  buscar_dato_en_memoria                    (uint32_t direccion_fisica);
-uint32_t                  escribir_dato                             (uint32_t direccion_fisica,       uint32_t  valor);
-uint32_t                  obtener_byte_inicio                       (uint32_t direccion_fisica,       uint32_t bit_modificado);
-uint32_t                  obtener_marco_dato                        (uint32_t direccion_fisica);
-uint32_t                  obtener_offset_dato                       (uint32_t direccion_fisica);
-void                      actualizar_bits                           (uint32_t numero_marco,           uint32_t bit_modificado);
-void                      dividir_memoria_principal_en_marcos();
-// FIN MEMORIA PRINCIPAL
+uint32_t                  escribir_dato                             (uint32_t direccion_fisica,         uint32_t  valor);
+uint32_t                  obtener_byte_inicio                       (uint32_t direccion_fisica,         uint32_t bit_modificado);
+uint32_t                  obtener_marco_dato                        (uint32_t direccion_fisica);  
+uint32_t                  obtener_offset_dato                       (uint32_t direccion_fisica);  
+void                      actualizar_bits                           (uint32_t numero_marco,             uint32_t bit_modificado);
+void                      dividir_memoria_principal_en_marcos();  
+// FIN MEMORIA PRINCIPAL  
 
-uint32_t                  inicializar_estructuras_de_este_proceso   (uint32_t pid,                    uint32_t tam_proceso);
+uint32_t                  inicializar_estructuras_de_este_proceso   (uint32_t pid,                      uint32_t tam_proceso);
 t_tabla_primer_nivel  *   tabla_paginas_primer_nivel_create         (uint32_t pid);
 t_tabla_segundo_nivel *   tabla_paginas_segundo_nivel_create        (uint32_t pid);
 void                      inicializar_entrada_de_tabla_paginas      (t_entrada_tabla_segundo_nivel  *   entrada_tabla_segundo_nivel);
+int                       obtener_numero_TP_segundo_nivel           (int numero_TP_primer_nivel,        int entrada_tabla);
 
 bool estado_conexion_memoria;
 bool estado_conexion_con_cliente;
@@ -154,12 +155,9 @@ void llenar_memoria_mock();
 
 
 
-
-
-
 int cantidad_tablas_paginas_primer_nivel();
 
-int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int entrada_tabla);
+
 t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid);
 t_entrada_tabla_segundo_nivel* obtener_entrada_tabla_segundo_nivel(int numero_TP_segundo_nivel, int numero_entrada_TP_segundo_nivel);
 int obtener_pid_asignado_TP_segundo_nivel(int numero_entrada_TP_segundo_nivel);

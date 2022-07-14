@@ -479,17 +479,7 @@ void* escuchar_conexiones_entrantes_en_interrupt() {
         case OPERACION_INTERRUPT: {
           t_paquete* paquete = recibir_paquete(socket_cliente);
           xlog(COLOR_PAQUETE, "se recibió una Interrupción");
-          /*
-          t_paquete* paquete_con_pcb = malloc(sizeof(t_paquete) + 1);
-          paquete_con_pcb = recibir_paquete(socket_cliente);
-          t_pcb* pcb_deserializado = paquete_obtener_pcb(paquete_con_pcb);
 
-          pcb_deserializado->program_counter++;
-          t_paquete* paquete_respuesta = paquete_create();
-          t_buffer* mensaje = crear_mensaje_pcb_actualizado(pcb_deserializado, 0);
-          paquete_cambiar_mensaje(paquete_respuesta, mensaje);
-          enviar_pcb_interrupt(socket_cliente, paquete_respuesta);
-          */
           HAY_INTERRUPCION_ = 1;
           paquete_destroy(paquete);
         } break;

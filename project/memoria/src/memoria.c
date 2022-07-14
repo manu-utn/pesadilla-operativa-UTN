@@ -86,8 +86,8 @@ void* manejar_nueva_conexion(void* args) {
 
         int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
 
-        int numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
-        int entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
+        uint32_t numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
+        uint32_t entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
 
         if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel))) {
           numero_TP_segundo_nivel = -1;
@@ -100,9 +100,6 @@ void* manejar_nueva_conexion(void* args) {
             numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
           }
         }
-
-        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
-        // numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
 
         // TODO: validar si no hay una función que agregue el contenido más fácil ó crear una abstracción
         t_paquete* paquete_respuesta = paquete_create();
@@ -235,7 +232,9 @@ void* manejar_nueva_conexion(void* args) {
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
 
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
+        paquete_destroy(paquete);
         paquete_destroy(paquete_con_pcb_actualizado);
+        free(pcb);
       } break;
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
