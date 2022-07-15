@@ -1,5 +1,23 @@
 #include "planificador.h"
 
+void enviar_interrupcion() {
+  t_paquete *paquete = paquete_create();
+  paquete->codigo_operacion = OPERACION_INTERRUPT;
+
+  int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
+
+  if (socket_destino != -1) {
+    int status = enviar(socket_destino, paquete);
+    paquete_destroy(paquete);
+
+    if (status != -1) {
+      xlog(COLOR_CONEXION, "La interrupción fue enviada con éxito (socket_destino=%d)", socket_destino);
+      SE_ENVIO_INTERRUPCION = 1;
+      close(socket_destino);
+    }
+  }
+}
+
 void iniciar_conexion_cpu_dispatch() {
   pthread_t th;
   pthread_create(&th, NULL, escuchar_conexion_cpu_dispatch, NULL);
