@@ -36,7 +36,8 @@ void realizar_handshake_memoria() {
   socket_memoria = conectarse_a_memoria();
   enviar_mensaje_handshake(socket_memoria, paquete);
 
-  int cliente_fd = esperar_cliente(socket_memoria);
+  // int cliente_fd = esperar_cliente(socket_memoria);
+  esperar_cliente(socket_memoria);
 
   int cod_op = recibir_operacion(socket_memoria);
 
@@ -298,7 +299,7 @@ void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
 
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  if (resultado = 1) {
+  if (resultado == 1) {
     xlog(COLOR_INFO, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");
@@ -315,7 +316,7 @@ void execute_copy(t_pcb* pcb, t_instruccion* instruccion, uint32_t dato_a_escrib
 
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
-  if (resultado = 1) {
+  if (resultado == 1) {
     xlog(COLOR_INFO, "OPERACION COPY - Dato copiado correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION COPY - Error al copiar dato.");
@@ -414,7 +415,7 @@ uint32_t obtener_dato_fisico(uint32_t direccion_fisica) {
   solicitud->dir_fisica = direccion_fisica;
 
   t_paquete* paquete = paquete_create();
-  t_buffer* mensaje = crear_mensaje_obtener_marco(solicitud);
+  t_buffer* mensaje = crear_mensaje_obtener_dato_fisico(solicitud);
   paquete_cambiar_mensaje(paquete, mensaje);
   enviar_operacion_obtener_dato(socket_memoria, paquete);
 
@@ -508,7 +509,7 @@ void* iniciar_conexion_interrupt() {
   xlog(COLOR_CONEXION, "Conexión Interrupt lista con el cliente Kernel");
 
   pthread_t th;
-  pthread_create(&th, NULL, escuchar_conexiones_entrantes_en_interrupt, NULL), pthread_detach(th);
+  pthread_create(&th, NULL, (void*)escuchar_conexiones_entrantes_en_interrupt, NULL), pthread_detach(th);
 
   pthread_exit(NULL);
 }
