@@ -392,12 +392,17 @@ int obtener_marco_memoria(uint32_t tabla_primer_nivel, uint32_t numero_pagina) {
     return tabla_segundo_nivel;
   }
 
+  xlog(COLOR_INFO, "TABLA SEGUNDO NIVEL obtenida de memoria: %d", tabla_segundo_nivel);
+
   uint32_t entrada_segundo_nivel = obtener_entrada_2do_nivel(numero_pagina, entradas_por_tabla);
   int marco = obtener_marco(tabla_segundo_nivel, entrada_segundo_nivel);
 
   if (marco < 0) {
     xlog(COLOR_ERROR, "Ocurrio un error al consultar el marco a memoria. Respuesta: %d", marco);
+    return marco;
   }
+
+  xlog(COLOR_INFO, "MARCO obtenido de memoria: %d", marco);
 
   return marco;
 }

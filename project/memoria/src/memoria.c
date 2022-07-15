@@ -231,7 +231,7 @@ bool marco_modificado(t_marco* marco) {
 }
 
 bool tiene_marco_asignado_entrada_TP(t_entrada_tabla_segundo_nivel* entrada) {
-  return entrada->num_marco != -1;
+  return (entrada->num_marco != -1 && entrada->bit_presencia == 1);
 }
 
 int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_segundo_nivel) {

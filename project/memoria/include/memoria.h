@@ -231,8 +231,8 @@ void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_
 char* get_filepath(char* file, char* path, int pid);
 void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
 void eliminar_archivo_swap(uint32_t pid);
-void escribir_archivo_swap(char* filepath, void* datos, int num_pagina);
-char* leer_archivo_swap(char* filepath, int num_pagina);
+void escribir_archivo_swap(char* filepath, uint32_t* datos, int num_pagina);
+uint32_t* leer_archivo_swap(char* filepath, int num_pagina);
 void escribir_datos_de_swap_en_marco(t_marco* marco);
 void liberar_estructuras_en_swap(int pid);
 void escribir_datos_de_marcos_en_swap(t_list* marcos);

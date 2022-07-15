@@ -14,12 +14,12 @@ int main() {
   pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL);
   pthread_detach(th1);
 
-  inicializar_estructuras_de_este_proceso(1, 500);
+  // inicializar_estructuras_de_este_proceso(1, 500);
 
-  mostrar_tabla_marcos();
-  imprimir_tablas_de_paginas();
+  // mostrar_tabla_marcos();
+  // imprimir_tablas_de_paginas();
 
-  simular_asignacion_marcos_1();
+  // simular_asignacion_marcos_1();
   // simular_asignacion_marcos_2();
 
   // simular_solicitud_marco_por_mmu();
