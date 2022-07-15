@@ -47,6 +47,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
+        realizar_retardo_memoria();
+
         uint32_t entradas_por_tabla = obtener_cantidad_entradas_por_tabla_por_config();
         uint32_t tam_pagina = obtener_tamanio_pagina_por_config();
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
@@ -76,6 +78,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = obtener_solicitud_tabla_segundo_nivel(paquete);
 
+        realizar_retardo_memoria();
+
         uint32_t numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
         uint32_t entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
 
@@ -101,6 +105,8 @@ void* manejar_nueva_conexion(void* args) {
         xlog(COLOR_CONEXION, "Obteniendo numero de marco");
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_marco* solicitud_numero_marco = malloc(sizeof(t_solicitud_marco));
+
+        realizar_retardo_memoria();
 
         solicitud_numero_marco = obtener_solicitud_marco(paquete);
 
@@ -128,6 +134,8 @@ void* manejar_nueva_conexion(void* args) {
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
         req = obtener_solicitud_dato(paquete);
 
+        realizar_retardo_memoria();
+
         uint32_t direccion_fisica = req->dir_fisica;
         free(req);
 
@@ -149,6 +157,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
         req = obtener_solicitud_escritura_dato(paquete);
+
+        realizar_retardo_memoria();
 
         uint32_t direccion_fisica = req->dir_fisica;
         uint32_t valor = req->valor;
@@ -267,15 +277,16 @@ int obtener_marco(int numero_tabla_paginas_segundo_nivel, int numero_entrada_TP_
          numero_entrada_TP_segundo_nivel,
          pid,
          marco);
-  } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
-    marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
+    // TODO: lo comento porque creo que no sirve para nada. Revisar desp, en caso de decidir que va agregarle lo de swap
+    // } else if (hay_marcos_libres_asignados_al_proceso(pid)) {
+    //   marco = obtener_y_asignar_primer_marco_libre_asignado_al_proceso(pid, entrada_segundo_nivel);
 
-    xlog(COLOR_TAREA,
-         "Se obtuvo el primer marco libre ASIGNADO AL PROCESO (%d) para a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, marco= %d)",
-         pid,
-         numero_tabla_paginas_segundo_nivel,
-         numero_entrada_TP_segundo_nivel,
-         marco);
+    //   xlog(COLOR_TAREA,
+    //        "Se obtuvo el primer marco libre ASIGNADO AL PROCESO (%d) para a la entrada solicitada (TP de segundo nivel= %d, entrada segundo nivel= %d, marco= %d)",
+    //        pid,
+    //        numero_tabla_paginas_segundo_nivel,
+    //        numero_entrada_TP_segundo_nivel,
+    //        marco);
   } else if (hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(
                pid)) { // Aca revisa si hay marcos libres sin asignar a otros procesos sin superar el maximo de marcos por proceso
     marco = obtener_y_asignar_primer_marco_libre(pid, entrada_segundo_nivel);
@@ -748,4 +759,9 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
   marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
 
   return numero_marco;
+}
+
+void realizar_retardo_memoria() {
+  xlog(COLOR_INFO, "Realizando retardo en memoria de: %d ", obtener_retardo_memoria());
+  bloquear_por_milisegundos(obtener_retardo_memoria());
 }

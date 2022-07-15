@@ -33,3 +33,7 @@ char* obtener_path_archivos_swap() {
 int obtener_retardo_swap() {
   return config_get_int_value(config, "RETARDO_SWAP");
 }
+
+int obtener_retardo_memoria() {
+  return config_get_int_value(config, "RETARDO_MEMORIA");
+}

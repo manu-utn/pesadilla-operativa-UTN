@@ -126,6 +126,7 @@ int                       obtener_numero_TP_segundo_nivel           (int numero_
 int                       obtener_y_asignar_primer_marco_libre      (int pid,                           t_entrada_tabla_segundo_nivel  *   entrada_TP_segundo_nivel);
 void                      liberar_memoria_asignada_a_proceso        (int pid);
 void                      liberar_marco                             (t_marco* marco);
+void                      realizar_retardo_memoria                  (void);
 
 bool                      hay_marcos_libres_sin_superar_maximo_marcos_por_proceso(int pid);
 bool estado_conexion_memoria;
@@ -192,6 +193,7 @@ char* obtener_algoritmo_reemplazo_por_config();
 char* obtener_path_archivos_swap();
 int obtener_tamanio_pagina_por_config();
 int obtener_retardo_swap();
+int obtener_retardo_memoria();
 
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder);
 bool es_victima_segun_algoritmo_clock(t_entrada_tabla_segundo_nivel* entrada_elegida);
@@ -232,7 +234,7 @@ char* get_filepath(char* file, char* path, int pid);
 void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
 void eliminar_archivo_swap(uint32_t pid);
 void escribir_archivo_swap(char* filepath, uint32_t* datos, int num_pagina);
-uint32_t* leer_archivo_swap(char* filepath, int num_pagina);
+void leer_archivo_swap(char* filepath, int num_pagina, uint32_t* datos, int tamanio_datos);
 void escribir_datos_de_swap_en_marco(t_marco* marco);
 void liberar_estructuras_en_swap(int pid);
 void escribir_datos_de_marcos_en_swap(t_list* marcos);
