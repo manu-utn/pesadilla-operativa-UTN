@@ -84,7 +84,7 @@ void eliminar_archivo_swap(uint32_t pid) {
   }
 }
 
-void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
+void escribir_archivo_swap(char* filepath, void* datos, int num_pagina) {
   int retardo = obtener_retardo_swap();
   xlog(COLOR_INFO, "Retardo de escribir archivo swap en milisegundos: %d", retardo);
   usleep(retardo * 1000);
@@ -92,10 +92,12 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
   FILE* fd = fopen(filepath, "rb+");
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
 
-  int desplazamiento = numPagina * tamanio_pagina;
+  int desplazamiento = num_pagina * tamanio_pagina;
   int longitudDatos = string_length((char*)datos);
 
-  log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
+  xlog(COLOR_INFO, "Numero de pagina %d y tamanio de pagina %d", num_pagina, tamanio_pagina);
+
+  xlog(COLOR_INFO, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
 
   fseek(fd, desplazamiento, SEEK_SET);
 
@@ -106,24 +108,27 @@ void escribir_archivo_swap(char* filepath, void* datos, int numPagina) {
   fclose(fd);
 }
 
-char* leer_archivo_swap(char* filepath, int numPagina) {
+char* leer_archivo_swap(char* filepath, int num_pagina) {
   int retardo = obtener_retardo_swap();
   xlog(COLOR_INFO, "Retardo de leer archivo swap en milisegundos: %d", retardo);
   usleep(retardo * 1000);
 
   FILE* fd = fopen(filepath, "rb+");
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
+  int tamanio_datos = tamanio_pagina / 4;
+
   void* datos[tamanio_pagina];
 
-  int desplazamiento = numPagina * tamanio_pagina;
+  int desplazamiento = num_pagina * tamanio_pagina;
+  xlog(COLOR_INFO, "Numero de pagina %d y tamanio de pagina %d", num_pagina, tamanio_pagina);
 
-  log_info(logger, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
+  xlog(COLOR_INFO, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
 
   fseek(fd, desplazamiento, SEEK_SET);
 
   fread(datos, sizeof(char), tamanio_pagina, fd);
 
-  log_info(logger, "Leimos %s", (char*)datos);
+  xlog(COLOR_TAREA, "Leimos de Swap %s", (char*)datos);
 
   fclose(fd);
 
@@ -145,14 +150,13 @@ void escribir_datos_de_swap_en_marco(t_marco* marco) {
 
   filename = get_filepath(filename, path, marco->pid);
 
-  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
+  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_entrada_primer_nivel;
   int numero_entrada_segundo_nivel = marco->entrada_segundo_nivel->entrada_segundo_nivel;
   int cantidad_entradas_segundo_nivel = obtener_cantidad_entradas_por_tabla_por_config();
 
   int num_pagina = numero_entrada_primer_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
 
   datos = leer_archivo_swap(filename, num_pagina);
-  // char* datosTexto = (char*)datos;
 
   int limite = tamanio_pagina / 4;
   int i = 0;
@@ -178,7 +182,7 @@ void escribir_marco_en_swap(t_marco* marco) {
   int i = 0;
   uint32_t direccion = marco->num_marco * tamanio_pagina;
 
-  uint32_t datos[tamanio_pagina];
+  void* datos[limite];
 
   while (i < limite) {
     uint32_t dato = buscar_dato_en_memoria(direccion + i);
@@ -186,12 +190,14 @@ void escribir_marco_en_swap(t_marco* marco) {
     i += 4;
   }
 
+  xlog(COLOR_TAREA, "Leimos del Marco %s", (char*)datos);
+
   char* filename = string_new();
   char* path = obtener_path_archivos_swap();
 
   filename = get_filepath(filename, path, marco->pid);
 
-  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_tabla_segundo_nivel;
+  int numero_entrada_primer_nivel = marco->entrada_segundo_nivel->numero_entrada_primer_nivel;
   int numero_entrada_segundo_nivel = marco->entrada_segundo_nivel->entrada_segundo_nivel;
   int cantidad_entradas_segundo_nivel = obtener_cantidad_entradas_por_tabla_por_config();
 

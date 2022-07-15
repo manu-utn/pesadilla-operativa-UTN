@@ -104,8 +104,8 @@ void* manejar_nueva_conexion(void* args) {
 
         solicitud_numero_marco = obtener_solicitud_marco(paquete);
 
-        int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
-        int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
+        // int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
+        // int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
 
         int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
 
@@ -171,12 +171,12 @@ void* manejar_nueva_conexion(void* args) {
         t_pcb* pcb = paquete_obtener_pcb(paquete);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
-        /*
+
         t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
         escribir_datos_de_marcos_en_swap(marcos_modificados);
-        liberar_memoria_asignada_a_proceso(pcb->pid);*/
+        liberar_memoria_asignada_a_proceso(pcb->pid);
 
         confirmar_suspension_de_proceso(socket_cliente, paquete);
         paquete_destroy(paquete);
@@ -348,7 +348,7 @@ t_tabla_segundo_nivel* obtener_TP_segundo_nivel(int numero_TP_primer_nivel, int 
 int obtener_numero_TP_segundo_nivel(int numero_TP_primer_nivel, int numero_entrada_TP_primer_nivel) {
   int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
 
-  int prueba = dictionary_size(tablas_de_paginas_primer_nivel);
+  // int prueba = dictionary_size(tablas_de_paginas_primer_nivel);
 
   if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_TP_primer_nivel))) {
     xlog(COLOR_ERROR, "Buscando tabla segundo nivel, no encuentra la TP de primer nivel: %d", numero_TP_primer_nivel);
@@ -604,7 +604,7 @@ t_tabla_primer_nivel* tabla_paginas_primer_nivel_create(uint32_t pid) {
 
     // TODO: validar si se debe usar otro criterio para el numero_tabla_segundo_nivel
     t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(numero_entrada_primer_nivel, pid);
-    //t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(pid);
+    // t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = tabla_paginas_segundo_nivel_create(pid);
 
     // agregamos una TP_segundo_nivel en una estructura global
     dictionary_put(tablas_de_paginas_segundo_nivel, string_itoa(tabla_paginas_segundo_nivel->num_tabla), tabla_paginas_segundo_nivel);
@@ -639,7 +639,7 @@ void inicializar_entrada_de_tabla_paginas(t_entrada_tabla_segundo_nivel* entrada
   entrada_tabla_segundo_nivel->num_marco = -1; // valor negativo porque no tiene un marco asignado
 }
 
-t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(uint32_t pid) {
+t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(int numero_entrada_primer_nivel, uint32_t pid) {
   t_tabla_segundo_nivel* tabla_paginas_segundo_nivel = malloc(sizeof(t_tabla_segundo_nivel));
 
   int numero_tabla_segundo_nivel = ULTIMO_ID_2do_nivel++;
@@ -652,6 +652,7 @@ t_tabla_segundo_nivel* tabla_paginas_segundo_nivel_create(uint32_t pid) {
   for (int numero_entrada_segundo_nivel = 0; numero_entrada_segundo_nivel < obtener_cantidad_entradas_por_tabla_por_config(); numero_entrada_segundo_nivel++) {
     t_entrada_tabla_segundo_nivel* entrada_tabla_segundo_nivel = malloc(sizeof(t_entrada_tabla_segundo_nivel));
     entrada_tabla_segundo_nivel->entrada_segundo_nivel = numero_entrada_segundo_nivel;
+    entrada_tabla_segundo_nivel->numero_entrada_primer_nivel = numero_entrada_primer_nivel;
 
     // necesario como metadata para los marcos, algoritmos de sustitución..
     entrada_tabla_segundo_nivel->numero_tabla_segundo_nivel = numero_tabla_segundo_nivel;

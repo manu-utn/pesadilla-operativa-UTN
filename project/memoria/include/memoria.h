@@ -76,6 +76,7 @@ typedef struct{
     int bit_modif;
     int bit_presencia;
     int numero_tabla_segundo_nivel;
+    int numero_entrada_primer_nivel;
 }t_entrada_tabla_segundo_nivel;
 
 typedef struct {
@@ -119,7 +120,7 @@ void                      dividir_memoria_principal_en_marcos();
 
 uint32_t                  inicializar_estructuras_de_este_proceso   (uint32_t pid,                      uint32_t tam_proceso);
 t_tabla_primer_nivel  *   tabla_paginas_primer_nivel_create         (uint32_t pid);
-t_tabla_segundo_nivel *   tabla_paginas_segundo_nivel_create        (uint32_t pid);
+t_tabla_segundo_nivel *   tabla_paginas_segundo_nivel_create        (int numero_entrada_primer_nivel, uint32_t pid);
 void                      inicializar_entrada_de_tabla_paginas      (t_entrada_tabla_segundo_nivel  *   entrada_tabla_segundo_nivel);
 int                       obtener_numero_TP_segundo_nivel           (int numero_TP_primer_nivel,        int entrada_tabla);
 int                       obtener_y_asignar_primer_marco_libre      (int pid,                           t_entrada_tabla_segundo_nivel  *   entrada_TP_segundo_nivel);
@@ -230,8 +231,8 @@ void imprimir_entradas_tabla_paginas_segundo_nivel(t_tabla_segundo_nivel* tabla_
 char* get_filepath(char* file, char* path, int pid);
 void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio);
 void eliminar_archivo_swap(uint32_t pid);
-void escribir_archivo_swap(char* filepath, void* datos, int numPagina);
-char* leer_archivo_swap(char* filepath, int numPagina);
+void escribir_archivo_swap(char* filepath, void* datos, int num_pagina);
+char* leer_archivo_swap(char* filepath, int num_pagina);
 void escribir_datos_de_swap_en_marco(t_marco* marco);
 void liberar_estructuras_en_swap(int pid);
 void escribir_datos_de_marcos_en_swap(t_list* marcos);
