@@ -1,5 +1,15 @@
 #include "serializado.h"
 #include "libstatic.h"
+#include "xlog.h"
+#include <stdint.h>
+
+void serializado_reset() {
+  SERIALIZADO_ATRIBUTOS = 0;
+}
+
+void deserializado_reset() {
+  DESERIALIZADO_ATRIBUTOS = 0;
+}
 
 void* serializar_paquete(t_paquete* paquete) {
   // int size_paquete = sizeof(int) + sizeof(int) + paquete->buffer->size;
@@ -41,58 +51,96 @@ t_list* deserializar_paquete(t_paquete* paquete_serializado) {
 }
 
 void paquete_add_pcb(t_paquete* paquete, t_pcb* pcb) {
-  int offset;
+  int offset = 0;
   int cantidad_columnas_tipo_int = 8; // {socket, tamanio, estimacion_rafaga, ...}
   int paquete_size = sizeof(uint32_t) * cantidad_columnas_tipo_int + sizeof(t_pcb_estado);
 
   paquete->buffer->stream = malloc(paquete_size);
 
-  offset = 0, memcpy(paquete->buffer->stream + offset, &(pcb->socket), sizeof(uint32_t));
+  serializado_inicio("t_pcb");
 
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_de_bloqueado), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(uint32_t));
-
-  offset += sizeof(uint32_t), memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
-
-  offset += sizeof(t_pcb_estado),
-    memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(uint32_t));
-
+  // SOCKET
+  memcpy(paquete->buffer->stream + offset, &(pcb->socket), sizeof(uint32_t));
+  serializado_log("socket = %d", *(uint32_t*)(paquete->buffer->stream + offset));
   offset += sizeof(uint32_t);
 
+  // PID
+  memcpy(paquete->buffer->stream + offset, &(pcb->pid), sizeof(uint32_t));
+  serializado_log("pid = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // TAMAÑO
+  memcpy(paquete->buffer->stream + offset, &(pcb->tamanio), sizeof(uint32_t));
+  serializado_log("tamanio = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // ESTIMACION RAFAGA
+  memcpy(paquete->buffer->stream + offset, &(pcb->estimacion_rafaga), sizeof(uint32_t));
+  serializado_log("estimacion_rafaga = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // TIEMPO EN EJECUCION
+  memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_en_ejecucion), sizeof(uint32_t));
+  serializado_log("tiempo_en_ejecucion = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // TIEMPO DE BLOQUEADO
+  memcpy(paquete->buffer->stream + offset, &(pcb->tiempo_de_bloqueado), sizeof(uint32_t));
+  serializado_log("tiempo_de_bloqueado = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // PROGRAM COUNTER
+  memcpy(paquete->buffer->stream + offset, &(pcb->program_counter), sizeof(uint32_t));
+  serializado_log("program_counter = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  // ESTADO
+  memcpy(paquete->buffer->stream + offset, &(pcb->estado), sizeof(t_pcb_estado));
+  serializado_log("estado = %d", *(t_pcb_estado*)(paquete->buffer->stream + offset));
+  offset += sizeof(t_pcb_estado);
+
+  // NUMERO TABLA PRIMER NIVEL
+  memcpy(paquete->buffer->stream + offset, &(pcb->tabla_primer_nivel), sizeof(uint32_t));
+  serializado_log("tabla_primer_nivel = %d", *(uint32_t*)(paquete->buffer->stream + offset));
+  offset += sizeof(uint32_t);
+
+  serializado_fin(atributos_serializados);
+
+  // TODO: Pendiente chequear
   paquete->buffer->size = offset;
+  // las instrucciones se deben asignar previamente (el módulo consola es un ejemplo)
+  // Ej. pcb->instrucciones = (t_list*) lista_instrucciones
   for (int i = 0; i < list_size(pcb->instrucciones); i++) {
+    // el serializado con memcpy() de las instrucciones lo hacemos en paquete_add_instruccion()
+    // acá usamos estructuras porque la longitud de los datos a serializar es dinámico (no es solo un Int)
     t_instruccion* instruccion = list_get(pcb->instrucciones, i);
 
-    int identificador_longitud = strlen(instruccion->identificador) + 1;
+    int identificador_longitud = strlen(instruccion->identificador) + 1; // le sumamos el '\0'
     int identificador_size = identificador_longitud * sizeof(char);
 
-    int params_longitud = strlen(instruccion->params) + 1;
+    int params_longitud = strlen(instruccion->params) + 1; // le sumamos el '\0'
     int params_size = params_longitud * sizeof(char);
 
+    // los primeros dos size: es el espacio que ocupa el valor que contienen los atributos
+    // los ultimos dos sizeof(int): es lo que ocupa el propio size
     int instruccion_size = identificador_size + params_size + sizeof(int) + sizeof(int);
 
+    // sumamos el offset porque antes está el resto de los atributos del pcb (socket, pid, ...)
     paquete->buffer->stream = realloc(paquete->buffer->stream, offset + instruccion_size);
     paquete_add_instruccion(paquete, instruccion);
 
+    // desplazamos el espacio que ocupa ésta instrucción, para luego agregar nuevas
     offset += instruccion_size;
   }
+
   paquete->buffer->size = offset;
 }
 
 void paquete_add_instruccion(t_paquete* paquete, t_instruccion* instruccion) {
-  int identificador_longitud = strlen(instruccion->identificador) + 1;
+  int identificador_longitud = strlen(instruccion->identificador) + 1; // le sumamos el '\0'
   int identificador_size = identificador_longitud * sizeof(char);
 
-  int params_longitud = strlen(instruccion->params) + 1;
+  int params_longitud = strlen(instruccion->params) + 1; // le sumamos el '\0'
   int params_size = params_longitud * sizeof(char);
 
   int instruccion_size = identificador_size + params_size + sizeof(int) + sizeof(int);
@@ -107,14 +155,17 @@ void paquete_add_instruccion(t_paquete* paquete, t_instruccion* instruccion) {
   }
 
   memcpy(paquete->buffer->stream + offset, &identificador_size, sizeof(int));
-
+  /* xlog(COLOR_SERIALIZADO, "identificador_size = %d", identificador_size); */
   offset += sizeof(int);
+
   memcpy(paquete->buffer->stream + offset, instruccion->identificador, identificador_size);
-
+  /* xlog(COLOR_SERIALIZADO, "instruccion->identificador= %s", instruccion->identificador); */
   offset += identificador_size;
-  memcpy(paquete->buffer->stream + offset, &params_size, sizeof(int));
 
+  memcpy(paquete->buffer->stream + offset, &params_size, sizeof(int));
+  /* xlog(COLOR_SERIALIZADO, "params_size = %d", params_size); */
   offset += sizeof(int);
+
   memcpy(paquete->buffer->stream + offset, instruccion->params, params_size);
 
   paquete->buffer->size = paquete->buffer->size + instruccion_size;
@@ -156,40 +207,51 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
 
   t_pcb* pcb = malloc(sizeof(t_pcb));
 
+  deserializado_inicio("t_pcb");
+
+  // SOCKET
   memcpy(&(pcb->socket), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-
+  deserializado_log("socket = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // PID
   memcpy(&(pcb->pid), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->pid = %d", pcb->pid);
-
+  deserializado_log("pid = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // TAMANIO
   memcpy(&(pcb->tamanio), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->tamanio = %d", pcb->tamanio);
-
+  deserializado_log("tamanio = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // ESTIMACION RAFAGA
   memcpy(&(pcb->estimacion_rafaga), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->estimacion_rafaga = %d", pcb->estimacion_rafaga);
-
+  deserializado_log("estimacion_rafaga = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // TIEMPO EN EJECUCION
   memcpy(&(pcb->tiempo_en_ejecucion), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->tiempo_en_ejecucion = %d", pcb->tiempo_en_ejecucion);
-
+  deserializado_log("tiempo_en_ejecucion = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // TIEMPO DE BLOQUEADO
   memcpy(&(pcb->tiempo_de_bloqueado), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->tiempo_de_bloqueado = %d", pcb->tiempo_de_bloqueado);
-
+  deserializado_log("tiempo_de_bloqueado = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // PROGRAM COUNTER
   memcpy(&(pcb->program_counter), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->program_counter = %d", pcb->program_counter);
-
+  deserializado_log("program_counter = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
+
+  // ESTADO
   memcpy(&(pcb->estado), paquete_serializado->buffer->stream + offset, sizeof(t_pcb_estado));
-  xlog(COLOR_DESERIALIZADO, "pcb->estado = %d", pcb->estado);
-
+  deserializado_log("estado = %d", *(t_pcb_estado*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(t_pcb_estado);
-  memcpy(&(pcb->tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
-  xlog(COLOR_DESERIALIZADO, "pcb->tabla_primer_nivel = %d", pcb->tabla_primer_nivel);
 
+  // NUMERO TABLA PRIMER NIVEL
+  memcpy(&(pcb->tabla_primer_nivel), paquete_serializado->buffer->stream + offset, sizeof(uint32_t));
+  deserializado_log("tabla_primer_nivel = %d", *(uint32_t*)(paquete_serializado->buffer->stream + offset));
   offset += sizeof(uint32_t);
 
   int instrucciones_size = paquete_serializado->buffer->size - offset;
@@ -200,6 +262,7 @@ t_pcb* paquete_obtener_pcb(t_paquete* paquete_serializado) {
   /* paquete_con_instrucciones->buffer->stream = malloc(instrucciones_size); */
   /* paquete_con_instrucciones->buffer->size = instrucciones_size; */
 
+  // TODO: pendiente validar
   memcpy(paquete_con_instrucciones->buffer->stream, paquete_serializado->buffer->stream + offset, instrucciones_size);
 
   pcb->instrucciones = paquete_obtener_instrucciones(paquete_con_instrucciones);
