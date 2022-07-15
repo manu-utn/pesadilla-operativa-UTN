@@ -20,6 +20,10 @@ git clone git@github.com:sisoputnfrba/tp-2022-1c-Sisop-Oh-Yeah.git
 #+END_SRC
 
 * Diagramas para comunicar
+** Diagrama Serialización de Paquetes
+
+   [[doc/diagrama-wbs.png]]
+
 ** Diagrama de Actividades de CPU/MMU
    #+BEGIN_QUOTE
    Se enfatiza el proceso de traducción de las DL
