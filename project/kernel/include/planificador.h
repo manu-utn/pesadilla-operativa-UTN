@@ -102,7 +102,6 @@ void liberar_cpu();
 void enviar_interrupcion();
 bool hay_algun_proceso_ejecutando();
 void transicion_ready_a_running(t_pcb *pcb);
-char *obtener_algoritmo_cargado();
 void ejecutar_proceso(t_pcb*pcb);
 void imprimir_proceso_en_running();
 int calcular_estimacion_rafaga(t_pcb *pcb);
@@ -115,4 +114,10 @@ int conectarse_a_memoria();
 void escuchar_conexion_con_memoria();
 
 void evaluar_replanificacion_pcp();
+
+// CONFIGS
+int obtener_tiempo_maximo_bloqueado();
+char *obtener_algoritmo_cargado();
+double obtener_alfa_por_config();
+int obtener_grado_multiprogramacion_por_config();
 #endif

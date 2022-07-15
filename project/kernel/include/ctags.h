@@ -1,11 +1,13 @@
 bool algoritmo_cargado_es(char * algoritmo);
 bool hay_algun_proceso_ejecutando();
 char * obtener_algoritmo_cargado();
+double obtener_alfa_por_config();
 int calcular_estimacion_rafaga(t_pcb * pcb);
 int conectarse_a_cpu(char * conexion_puerto);
 int conectarse_a_memoria();
 int main();
 int obtener_cantidad_procesos_disponibles_en_memoria();
+int obtener_grado_multiprogramacion_por_config();
 int obtener_tiempo_maximo_bloqueado();
 int pcb_get_posicion(t_pcb * pcb,t_list * lista);
 int pcb_tiempo_restante_de_ejecucion(t_pcb * pcb);

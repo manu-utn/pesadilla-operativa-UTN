@@ -7,6 +7,7 @@
 #include <semaphore.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 // COMMONS HEADERS
 #include <commons/collections/list.h>

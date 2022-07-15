@@ -1,11 +1,10 @@
 #include "planificador.h"
-#include <stdio.h>
-#include <string.h>
 
 int SE_ENVIO_INTERRUPCION = 0;
 t_pcb *PROCESO_EJECUTANDO = NULL;
 int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
+// TODO: validar, se da mucha vueltas con evaluar_replanificacion_pcp() y iniciar_corto_plazo()
 void avisar_a_pcp_que_decida() {
   SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
   sem_post(&EJECUTAR_ALGORITMO_PCP);
@@ -31,8 +30,7 @@ void iniciar_planificacion() {
   pthread_create(&th1, NULL, iniciar_largo_plazo, NULL), pthread_detach(th1);
   pthread_create(&th2, NULL, iniciar_corto_plazo, NULL), pthread_detach(th2);
 
-  // Se mantiene la conexion dispatch, especialmente porque se deben escuchar por mensajes de esta conexion ademas de
-  // enviar
+  // Se mantiene la conexion dispatch, para escuchar/enviar mensajes
   iniciar_conexion_cpu_dispatch();
   pthread_create(&th3, NULL, gestor_de_procesos_bloqueados, NULL);
   pthread_detach(th3);
@@ -49,48 +47,6 @@ void cola_destroy(t_cola_planificacion *cola) {
   free(cola);
 }
 
-void *iniciar_corto_plazo() {
-  xlog(COLOR_INFO, "Planificador de Corto Plazo: Ejecutando...");
-
-  sem_init(&EJECUTAR_ALGORITMO_PCP, 0, 0);
-
-  while (1) {
-    // Semaforo creado xq cuando se bloquea un proceso se debe mandar un nuevo proceso a cpu
-    sem_wait(&EJECUTAR_ALGORITMO_PCP);
-
-    xlog(COLOR_INFO, "PCP: Realizar toma de decision");
-    sem_wait(&(COLA_READY->cantidad_procesos)); // Si no hay pcbs en ready se queda bloqueado aca hasta q haya
-    // Ver transicion_new_a_ready para ver como se evita q el planificador siga si el algoritmo es FIFO y hay proceso
-    // en ejecucion usando el semaforo EJECUTAR_ALGORITMO_PCP
-
-    t_pcb *pcb_elegido_a_ejecutar = NULL;
-
-    imprimir_proceso_en_running();
-    if (!algoritmo_cargado_es("FIFO") && !algoritmo_cargado_es("SRT")) {
-      xlog(COLOR_ERROR, "No hay un algoritmo de planificación cargado ó dicho algoritmo no está implementado");
-    } else {
-      if (algoritmo_cargado_es("SRT") && hay_algun_proceso_ejecutando()) {
-        enviar_interrupcion();
-        sem_wait(&HAY_PCB_DESALOJADO); // Se bloquea hasta recibir el pcb de cpu
-        SE_ENVIO_INTERRUPCION = 0;
-      }
-    }
-
-    pcb_elegido_a_ejecutar = elegir_pcb_segun_algoritmo(COLA_READY);
-    imprimir_pcb(pcb_elegido_a_ejecutar);
-    xlog(COLOR_TAREA,
-         "Se seleccionó un Proceso para ejecutar en CPU (pid=%d, algoritmo=%s)",
-         pcb_elegido_a_ejecutar->pid,
-         obtener_algoritmo_cargado());
-
-    ejecutar_proceso(pcb_elegido_a_ejecutar);
-
-    SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
-  }
-
-  pthread_exit(NULL);
-}
-
 void ejecutar_proceso(t_pcb *pcb) {
   transicion_ready_a_running(pcb);
   xlog(COLOR_TAREA, "Cantidad de procesos en cola READY: %d", list_size(COLA_READY->lista_pcbs));
@@ -101,36 +57,6 @@ void ejecutar_proceso(t_pcb *pcb) {
   paquete_destroy(paquete);
   xlog(COLOR_INFO, "[TIMER]: Contando..");
   clock_gettime(CLOCK_REALTIME, &BEGIN);
-}
-
-void *iniciar_largo_plazo() {
-  xlog(COLOR_INFO, "Planificador de Largo Plazo: Ejecutando...");
-
-  pthread_t th;
-  pthread_create(&th, NULL, plp_pcb_finished, NULL);
-  pthread_detach(th);
-
-  while (1) {
-    sem_wait(&(COLA_NEW->cantidad_procesos));
-    sem_wait(&HAY_PROCESOS_ENTRANTES);
-
-    t_pcb *pcb = elegir_pcb_fifo(COLA_NEW);
-
-    // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
-    controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
-
-    t_paquete *paquete = paquete_create();
-    paquete_add_pcb(paquete, pcb);
-    solicitar_inicializar_estructuras_en_memoria(SOCKET_CONEXION_MEMORIA, paquete);
-    paquete_destroy(paquete);
-    sem_wait(&INICIALIZACION_ESTRUCTURAS_EXITOSA);
-    pcb->tabla_primer_nivel = REFERENCIA_TABLA_RECIBIDA;
-
-    transicion_new_a_ready(pcb);
-    imprimir_cantidad_procesos_disponibles_en_memoria();
-  }
-
-  pthread_exit(NULL);
 }
 
 void *plp_pcb_finished() {
@@ -155,24 +81,8 @@ void *plp_pcb_finished() {
   }
 }
 
-// Se encarga de realizar la transacion de SUSREADY a READY
-void *iniciar_mediano_plazo() {
-  xlog(COLOR_INFO, "Planificador de Mediano Plazo: Ejecutando...");
-
-  while (1) {
-    sem_wait(&(COLA_SUSREADY->cantidad_procesos));
-
-    t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
-
-    // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
-    controlar_procesos_disponibles_en_memoria(0); // Llamado por PMP
-    transicion_susready_a_ready(pcb);
-    imprimir_cantidad_procesos_disponibles_en_memoria();
-  }
-
-  pthread_exit(NULL);
-}
-
+// No se necesita una transición a una cola de suspensión, con tener un cambio de estado es suficiente
+// https://github.com/sisoputnfrba/foro/issues/2639
 void pmp_suspender_proceso(t_pcb *pcb) {
   t_paquete *paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
@@ -310,11 +220,14 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
   evaluar_replanificacion_pcp();
 }
 
+// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
+// ocurre
 void transicion_blocked_a_susready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
   agregar_pcb_a_cola(pcb, COLA_SUSREADY);
 
+  // nota temporal: si hay un proceso en SUSREADY => se bloquea el semáforo binario
   if (list_size(COLA_SUSREADY->lista_pcbs) == 1) {
     sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
@@ -325,11 +238,14 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
        list_size(COLA_SUSREADY->lista_pcbs));
 }
 
+// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
+// ocurre
 void transicion_susready_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSREADY);
   cambiar_estado_pcb(pcb, READY);
   agregar_pcb_a_cola(pcb, COLA_READY);
 
+  // nota temporal: si no hay procesos en SUSREADY => se desbloquea el semáforo binario
   if (list_size(COLA_SUSREADY->lista_pcbs) == 0) {
     sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
@@ -338,12 +254,15 @@ void transicion_susready_a_ready(t_pcb *pcb) {
        "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
        pcb->pid,
        list_size(COLA_READY->lista_pcbs));
+
   evaluar_replanificacion_pcp();
 }
 
 void evaluar_replanificacion_pcp() {
   if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
     xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
+
+    // TODO: validar porque quedó el criterio viejo comentado
     if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
       // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
       avisar_a_pcp_que_decida();
@@ -366,7 +285,8 @@ t_cola_planificacion *cola_planificacion_create() {
 }
 
 void inicializar_grado_multiprogramacion() {
-  int grado = atoi(config_get_string_value(config, "GRADO_MULTIPROGRAMACION"));
+  int grado = obtener_grado_multiprogramacion_por_config();
+
   sem_init(&PROCESOS_DISPONIBLES_EN_MEMORIA, 0, grado);
 }
 
@@ -389,6 +309,8 @@ void liberar_espacio_en_memoria_para_proceso() {
   // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
+// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
+// ocurre
 void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
   imprimir_cantidad_procesos_disponibles_en_memoria();
   xlog(COLOR_TAREA, "Controlamos contra el grado de multiprogramación antes de ingresar procesos al sistema");
@@ -397,8 +319,11 @@ void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
   while (llamado_por_plp && list_size(COLA_SUSREADY->lista_pcbs) != 0) {
     xlog(COLOR_TAREA, "Se entro en el ciclo del while al controlar los procesos disponibles en memoria");
     sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+
+    // TODO: validar, bloqueo+desbloqueo? apesar de los comentarios, presta a confusión esa lógica
     sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar espera activa
     sem_post(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar posible deadlock si se entra en el ciclo otra vez
+
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
   }
 
@@ -451,30 +376,8 @@ t_pcb *elegir_pcb_segun_algoritmo(t_cola_planificacion *cola) {
   return pcb;
 }
 
-char *obtener_algoritmo_cargado() {
-  return config_get_string_value(config, "ALGORITMO_PLANIFICACION");
-}
-
 bool algoritmo_cargado_es(char *algoritmo) {
   return strcmp(obtener_algoritmo_cargado(), algoritmo) == 0;
-}
-
-void enviar_interrupcion() {
-  t_paquete *paquete = paquete_create();
-  paquete->codigo_operacion = OPERACION_INTERRUPT;
-
-  int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
-
-  if (socket_destino != -1) {
-    int status = enviar(socket_destino, paquete);
-    paquete_destroy(paquete);
-
-    if (status != -1) {
-      xlog(COLOR_CONEXION, "La interrupción fue enviada con éxito (socket_destino=%d)", socket_destino);
-      SE_ENVIO_INTERRUPCION = 1;
-      close(socket_destino);
-    }
-  }
 }
 
 bool hay_algun_proceso_ejecutando() {
@@ -495,15 +398,11 @@ void imprimir_proceso_en_running() {
 }
 
 int calcular_estimacion_rafaga(t_pcb *pcb) {
-  double alfa = config_get_double_value(config, "ALFA");
+  double alfa = obtener_alfa_por_config();
+
   xlog(COLOR_INFO, "El alfa es: %.2f", alfa);
   int estimacion_proxima_rafaga = alfa * pcb->tiempo_en_ejecucion + (1 - alfa) * pcb->estimacion_rafaga;
   return estimacion_proxima_rafaga;
-}
-
-int obtener_tiempo_maximo_bloqueado() {
-  int tiempo_maximo_bloqueado = config_get_int_value(config, "TIEMPO_MAXIMO_BLOQUEADO");
-  return tiempo_maximo_bloqueado;
 }
 
 void timer_suspension_proceso(t_pcb *pcb) {
