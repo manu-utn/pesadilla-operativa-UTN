@@ -45,10 +45,10 @@ char* get_filepath(char* file, char* path, int pid) {
 
 void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio) {
   char* filename = string_new();
-  void* contenido = string_repeat('0', tamanio);
+  uint32_t contenido = 0000;
+  uint32_t tamanio_archivo = tamanio / sizeof(uint32_t);
   char* path = obtener_path_archivos_swap();
-
-  size_t resultado;
+  int desplazamiento = 0;
 
   filename = get_filepath(filename, path, pid);
 
@@ -58,9 +58,15 @@ void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio) {
     log_error(logger, "Error al crear el archivo swap");
   }
 
-  resultado = fwrite(contenido, sizeof(char), tamanio, fd);
+  for (int i = 0; i < tamanio_archivo; i++) {
+    fseek(fd, desplazamiento, SEEK_SET);
+    fwrite(&contenido, sizeof(uint32_t), 1, fd);
+    desplazamiento = desplazamiento + sizeof(uint32_t);
+  }
 
-  if (resultado != tamanio) {
+  // resultado = fwrite(&contenido, sizeof(uint32_t), tamanio_archivo, fd);
+
+  if (desplazamiento != tamanio) {
     log_error(logger, "No se ha inicializado correctamente el archivo.");
   } else {
     log_info(logger, "Archivo %s creado correctamente.", filename);
@@ -93,16 +99,16 @@ void escribir_archivo_swap(char* filepath, uint32_t* datos, int num_pagina) {
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
 
   int desplazamiento = num_pagina * tamanio_pagina;
-  int longitudDatos = tamanio_pagina / sizeof(uint32_t);
+  int longitud_datos = tamanio_pagina / sizeof(uint32_t);
 
   xlog(COLOR_INFO, "Numero de pagina %d y tamanio de pagina %d", num_pagina, tamanio_pagina);
 
   xlog(COLOR_INFO, "Se desplazo %d en el archivo %s", desplazamiento, filepath);
 
-  for (int i = 0; i < longitudDatos; i++) {
+  for (int i = 0; i < longitud_datos; i++) {
     fseek(fd, desplazamiento, SEEK_SET);
-    uint32_t numero = datos[i];
-    fwrite(&numero, sizeof(uint32_t), 1, fd);
+    uint32_t dato = datos[i];
+    fwrite(&dato, sizeof(uint32_t), 1, fd);
     desplazamiento = desplazamiento + sizeof(uint32_t);
   }
 
@@ -124,7 +130,7 @@ uint32_t* leer_archivo_swap(char* filepath, int num_pagina) {
   int tamanio_pagina = obtener_tamanio_pagina_por_config();
   int tamanio_datos = tamanio_pagina / sizeof(uint32_t);
 
-  uint32_t* datos[tamanio_datos];
+  uint32_t datos[tamanio_datos];
 
   int desplazamiento = num_pagina * tamanio_pagina;
   xlog(COLOR_INFO, "Numero de pagina %d y tamanio de pagina %d", num_pagina, tamanio_pagina);
@@ -133,20 +139,20 @@ uint32_t* leer_archivo_swap(char* filepath, int num_pagina) {
 
   for (int i = 0; i < tamanio_datos; i++) {
     fseek(fd, desplazamiento, SEEK_SET);
-    fread(datos[i], sizeof(uint32_t), 1, fd);
+    fread(&datos[i], sizeof(uint32_t), 1, fd);
     desplazamiento = desplazamiento + sizeof(uint32_t);
   }
+
   // fseek(fd, desplazamiento, SEEK_SET);
+  // fread(&datos, sizeof(uint32_t), tamanio_datos, fd);
 
-  // fread(datos, sizeof(char), tamanio_pagina, fd);
-
-  // xlog(COLOR_TAREA, "Leimos de Swap %s", (char*)datos);
+  xlog(COLOR_TAREA, "Leimos de Swap %d", datos[0]);
 
   fclose(fd);
 
-  // char* datosLeidos = (char*)datos;
+  uint32_t* datos_leidos = (uint32_t*)datos;
 
-  return datos;
+  return datos_leidos;
 }
 
 void liberar_estructuras_en_swap(int pid) {
@@ -169,14 +175,18 @@ void escribir_datos_de_swap_en_marco(t_marco* marco) {
   int num_pagina = numero_entrada_primer_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
 
   datos = leer_archivo_swap(filename, num_pagina);
+  // TODO: Revisar a partir de aca
 
   int limite = tamanio_pagina / 4;
   int i = 0;
   uint32_t direccion = marco->num_marco * tamanio_pagina;
 
+  // uint32_t* datos_leidos = (uint32_t*)datos;
+  int j = 0;
   while (i < limite) {
-    uint32_t dato = datos[i];
+    uint32_t dato = datos[j];
     escribir_dato(direccion + i, dato);
+    j++;
     i += 4;
   }
 }
@@ -218,5 +228,5 @@ void escribir_marco_en_swap(t_marco* marco) {
 
   int num_pagina = numero_entrada_primer_nivel * cantidad_entradas_segundo_nivel + numero_entrada_segundo_nivel;
 
-  escribir_archivo_swap(filename, &datos, num_pagina);
+  escribir_archivo_swap(filename, (uint32_t*)datos, num_pagina);
 }
