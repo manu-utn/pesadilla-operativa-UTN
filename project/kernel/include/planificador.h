@@ -1,24 +1,37 @@
 #ifndef __PLANIFICADOR__H
 #define __PLANIFICADOR__H
-#include <commons/log.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <commons/collections/list.h>
-#include <commons/collections/queue.h>
-#include <commons/config.h>
-#include <libstatic.h>
+
 #include "kernel.h"
 
 #define MODULO "kernel"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/kernel.cfg"
 
+int SOCKET_CONEXION_DISPATCH;
+int SOCKET_CONEXION_MEMORIA;
+
+// requieren usar `extern` porque se utilizan en varios submodulos de kernel
+extern t_pcb *PROCESO_EJECUTANDO;
+extern int SE_ENVIO_INTERRUPCION;
+extern int SE_INDICO_A_PCP_QUE_REPLANIFIQUE;
+
+sem_t HAY_PCB_DESALOJADO;     // semáforo binario
+sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
+sem_t MUTEX_BLOQUEO_SUSPENSION;
+sem_t SUSPENSION_EXITOSA;
+sem_t INICIALIZACION_ESTRUCTURAS_EXITOSA;
+sem_t LIBERACION_RECURSOS_EXITOSA;
+sem_t HAY_PCB_FINISH;
+
 int ULTIMO_PID;
 t_queue* PCBS_PROCESOS_ENTRANTES;
 sem_t HAY_PROCESOS_ENTRANTES;
 sem_t NO_HAY_PROCESOS_EN_SUSREADY;
+
+int REFERENCIA_TABLA_RECIBIDA;
+
+struct timespec BEGIN;
+struct timespec END;
 
 typedef struct {
   t_list *lista_pcbs;
