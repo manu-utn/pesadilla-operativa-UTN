@@ -25,16 +25,19 @@ int main(int argc, char* argv[]) {
       log_error(logger, "se requiere un segundo parámetro, el tamanio archivo)");
     }
 
+    // ARCHIVO INSTRUCCIONES
+    // 1º parámetro que recibe el binario por linea de comando
     strcpy(path_archivo_instrucciones, argv[1]);
 
+    // TAMAÑO PROCESO
+    //  2º parámetro que recibe el binario por linea de comando
     tamanio_proceso = atoi(argv[2]);
   }
 
-  // t_list* lista_instrucciones = obtener_instrucciones_de_archivo(DIR_CONFIG "/instrucciones.txt");
   t_list* lista_instrucciones = obtener_instrucciones_de_archivo(path_archivo_instrucciones);
-  // t_pcb* pcb = pcb_fake();
+
   t_pcb* pcb = pcb_create(0, 0, tamanio_proceso);
-  pcb->tamanio = tamanio_proceso; // TODO: debe ser información recibida por la terminal
+  pcb->tamanio = tamanio_proceso;
   pcb->instrucciones = lista_instrucciones;
 
   t_paquete* paquete_con_pcb = paquete_create();
@@ -67,11 +70,6 @@ void escuchar_a_kernel(int socket_servidor) {
       } break;
       case OPERACION_EXIT: {
         xlog(COLOR_CONEXION, "Finalizando ejecución...");
-
-        // matar_proceso(socket_servidor);
-
-
-        // liberar_conexion(socket_servidor), log_destroy(logger);
         terminar_programa(socket_servidor, logger, config);
         estado_conexion_con_servidor = CONEXION_FINALIZADA;
       } break;
@@ -113,6 +111,7 @@ t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
     char* identificador = instruccion_texto[0];
     char* params = instruccion_texto[1] ? instruccion_texto[1] : "";
     t_instruccion* instruccion;
+
     if (strcmp(identificador, "NO_OP") == 0) {
       char** texto_cantidad_no_op = string_split(params, " ");
       int cantidad_de_veces_no_op = atoi(texto_cantidad_no_op[0]);
@@ -125,7 +124,6 @@ t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
       list_add(lista_instrucciones, instruccion);
     }
 
-    // string_array_destroy(instruccion_texto);
   }
 
   fclose(archivo_con_instrucciones);
