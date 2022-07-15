@@ -13,36 +13,26 @@
 #define COLOR_DESERIALIZADO "\x1b[36m" "[DESERIALIZADO] " // CYAN
 #define COLOR_INFO "\x1b[37m" "[INFO] " // BLANCO
 
-int SERIALIZADO_ATRIBUTOS;
-int DESERIALIZADO_ATRIBUTOS;
-
-void serializado_reset();
-void deserializado_reset();
 
 #define xlog(color, texto, args...) log_info(logger, color texto COLOR_RESET, ##args);
 
 #define serializado_log(texto, args...)                             \
-  log_info(logger, COLOR_SERIALIZADO ">  " texto COLOR_RESET, ##args); \
-  SERIALIZADO_ATRIBUTOS++;
+  log_info(logger, COLOR_SERIALIZADO ">  " texto COLOR_RESET, ##args);
 
-#define serializado_inicio(estructura) \
-  log_info(logger, COLOR_SERIALIZADO "estructura: " estructura COLOR_RESET); \
-  serializado_reset();
+#define serializado_inicio(estructura, args...)                                 \
+  log_info(logger, COLOR_SERIALIZADO "estructura: " estructura COLOR_RESET, ##args); \
 
-#define serializado_fin(cantidad_atributos) \
-  log_info(logger, COLOR_SERIALIZADO "atributos serializados: %d" COLOR_RESET, SERIALIZADO_ATRIBUTOS);
-
+#define serializado_fin() \
+  log_info(logger, COLOR_SERIALIZADO " --------------------------- " COLOR_RESET);
 
 #define deserializado_log(texto, args...) \
   log_info(logger, COLOR_DESERIALIZADO ">  " texto COLOR_RESET, ##args); \
-  DESERIALIZADO_ATRIBUTOS++;
 
-#define deserializado_inicio(estructura) \
-  log_info(logger, COLOR_DESERIALIZADO "estructura: " estructura COLOR_RESET); \
-  deserializado_reset();
+#define deserializado_inicio(estructura, args...)                               \
+  log_info(logger, COLOR_DESERIALIZADO "estructura: " estructura COLOR_RESET, ##args); \
 
-#define deserializado_fin(cantidad_atributos) \
-  log_info(logger, COLOR_DESERIALIZADO "atributos deserializados: %d" COLOR_RESET, DESERIALIZADO_ATRIBUTOS);
+#define deserializado_fin() \
+  log_info(logger, COLOR_DESERIALIZADO " --------------------------- " COLOR_RESET);
 
 t_log *logger;
 #endif
