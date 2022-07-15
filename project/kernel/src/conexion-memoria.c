@@ -1,8 +1,12 @@
 #include "planificador.h"
 
 int conectarse_a_memoria() {
-  char *ip = config_get_string_value(config, "IP_MEMORIA");
-  char *puerto = config_get_string_value(config, "PUERTO_MEMORIA");
+  /* char *ip = config_get_string_value(config, "IP_MEMORIA"); */
+  /* char *puerto = config_get_string_value(config, "PUERTO_MEMORIA"); */
+
+  char *ip = obtener_ip_de_modulo_por_config("MEMORIA");
+  char *puerto = obtener_puerto_de_modulo_por_config("MEMORIA");
+
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
@@ -17,7 +21,6 @@ int conectarse_a_memoria() {
 
   return fd_servidor;
 }
-
 
 void escuchar_conexion_con_memoria() {
   SOCKET_CONEXION_MEMORIA = conectarse_a_memoria();

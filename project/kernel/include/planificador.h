@@ -120,4 +120,7 @@ int obtener_tiempo_maximo_bloqueado();
 char *obtener_algoritmo_cargado();
 double obtener_alfa_por_config();
 int obtener_grado_multiprogramacion_por_config();
+int obtener_estimacion_inicial_por_config();
+char *obtener_ip_de_modulo_por_config(char *nombreDelModulo);
+char *obtener_puerto_de_modulo_por_config(char *nombreDelModulo);
 #endif

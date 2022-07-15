@@ -33,6 +33,7 @@ void *escuchar_conexion_cpu_dispatch() {
   while (estado_conexion) {
     int codigo_operacion = recibir_operacion(SOCKET_CONEXION_DISPATCH);
     xlog(COLOR_PAQUETE, "Operación recibida (codigo=%d)", codigo_operacion);
+
     clock_gettime(CLOCK_REALTIME, &END);
     uint32_t tiempo_en_ejecucion = (END.tv_sec - BEGIN.tv_sec) * 1000 + (END.tv_nsec - BEGIN.tv_nsec) / 1000000;
     xlog(COLOR_INFO, "[TIMER]: Tiempo que pcb estuvo en cpu: %d milisegundos", tiempo_en_ejecucion);
