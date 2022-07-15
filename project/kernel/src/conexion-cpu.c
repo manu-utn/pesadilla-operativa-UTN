@@ -4,7 +4,7 @@ void enviar_interrupcion() {
   t_paquete *paquete = paquete_create();
   paquete->codigo_operacion = OPERACION_INTERRUPT;
 
-  int socket_destino = conectarse_a_cpu("PUERTO_CPU_INTERRUPT");
+  int socket_destino = conectarse_a_cpu("CPU_INTERRUPT");
 
   if (socket_destino != -1) {
     int status = enviar(socket_destino, paquete);
@@ -25,7 +25,7 @@ void iniciar_conexion_cpu_dispatch() {
 }
 
 void *escuchar_conexion_cpu_dispatch() {
-  SOCKET_CONEXION_DISPATCH = conectarse_a_cpu("PUERTO_CPU_DISPATCH");
+  SOCKET_CONEXION_DISPATCH = conectarse_a_cpu("CPU_DISPATCH");
 
   CONEXION_ESTADO estado_conexion = CONEXION_ESCUCHANDO;
   xlog(COLOR_INFO, "Escuchando Conexión CPU Dispatch...");
@@ -109,9 +109,7 @@ void *escuchar_conexion_cpu_dispatch() {
         log_destroy(logger), close(SOCKET_CONEXION_DISPATCH);
         estado_conexion = CONEXION_FINALIZADA;
       } break;
-      default: {
-        xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion);
-      } break;
+      default: { xlog(COLOR_ERROR, "Operacion %d desconocida", codigo_operacion); } break;
     }
   }
 
