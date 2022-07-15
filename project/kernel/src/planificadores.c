@@ -37,7 +37,6 @@ void *iniciar_corto_plazo() {
 
     ejecutar_proceso(pcb_elegido_a_ejecutar);
 
-    // TODO: validar
     SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
   }
 
@@ -53,7 +52,6 @@ void *iniciar_mediano_plazo() {
 
     t_pcb *pcb = elegir_pcb_fifo(COLA_SUSREADY);
 
-    // TODO: validar
     // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
     controlar_procesos_disponibles_en_memoria(0); // Llamado por PMP
     transicion_susready_a_ready(pcb);
@@ -76,7 +74,6 @@ void *iniciar_largo_plazo() {
 
     t_pcb *pcb = elegir_pcb_fifo(COLA_NEW);
 
-    // TODO: validar
     // Esta funcion se encarga de priorizar SUSREADY sobre NEW y maneja el grado de Multiprogramacion
     controlar_procesos_disponibles_en_memoria(1); // Llamado por PLP
 

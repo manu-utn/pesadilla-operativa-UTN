@@ -2,13 +2,11 @@
 
 int SE_ENVIO_INTERRUPCION = 0;
 t_pcb *PROCESO_EJECUTANDO = NULL;
-int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
-// TODO: validar, se da mucha vueltas con evaluar_replanificacion_pcp() y iniciar_corto_plazo()
-void avisar_a_pcp_que_decida() {
-  SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
-  sem_post(&EJECUTAR_ALGORITMO_PCP);
-}
+// Para que si alguien le pidio al PCP que replanifique
+// y este no lo hizo (por ejemplo porque no hay procesos en ready)
+// no se vuelva a pedir y se siga aumentando el valor de los semaforos
+int SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 0;
 
 void iniciar_planificacion() {
   pthread_t th1, th2, th3, th4, th5;
@@ -220,8 +218,6 @@ void transicion_blocked_a_ready(t_pcb *pcb) {
   evaluar_replanificacion_pcp();
 }
 
-// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
-// ocurre
 void transicion_blocked_a_susready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_BLOCKED);
   cambiar_estado_pcb(pcb, SUSREADY);
@@ -238,8 +234,6 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
        list_size(COLA_SUSREADY->lista_pcbs));
 }
 
-// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
-// ocurre
 void transicion_susready_a_ready(t_pcb *pcb) {
   remover_pcb_de_cola(pcb, COLA_SUSREADY);
   cambiar_estado_pcb(pcb, READY);
@@ -262,12 +256,16 @@ void evaluar_replanificacion_pcp() {
   if (!SE_INDICO_A_PCP_QUE_REPLANIFIQUE) {
     xlog(COLOR_INFO, "No se habia indicado a pcp que replanifique");
 
-    // TODO: validar porque quedó el criterio viejo comentado
     if (!algoritmo_cargado_es("FIFO") || !hay_algun_proceso_ejecutando()) {
-      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando())
+      // !(algoritmo_cargado_es("FIFO") && hay_algun_proceso_ejecutando()) => criterio original sin distribuir negacion
       avisar_a_pcp_que_decida();
     }
   }
+}
+
+void avisar_a_pcp_que_decida() {
+  SE_INDICO_A_PCP_QUE_REPLANIFIQUE = 1;
+  sem_post(&EJECUTAR_ALGORITMO_PCP);
 }
 
 t_cola_planificacion *cola_planificacion_create() {
@@ -309,22 +307,28 @@ void liberar_espacio_en_memoria_para_proceso() {
   // imprimir_cantidad_procesos_disponibles_en_memoria();
 }
 
-// TODO: validar lógica de la sincronización del semáforo, porque con seguir el flujo debería de haberse entendido y no
-// ocurre
 void controlar_procesos_disponibles_en_memoria(int llamado_por_plp) {
   imprimir_cantidad_procesos_disponibles_en_memoria();
   xlog(COLOR_TAREA, "Controlamos contra el grado de multiprogramación antes de ingresar procesos al sistema");
 
   sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+
+  // Se entra si el PLP es quien pide pasar un proceso a READY segun el grado de multiprogramacion
+  // pero hay procesos en SUSREADY
   while (llamado_por_plp && list_size(COLA_SUSREADY->lista_pcbs) != 0) {
     xlog(COLOR_TAREA, "Se entro en el ciclo del while al controlar los procesos disponibles en memoria");
+    // Se le permite paso al wait en el que se encuentra o se valla a encontrar el PMP con un proceso en SUSREADY
     sem_post(&PROCESOS_DISPONIBLES_EN_MEMORIA);
 
-    // TODO: validar, bloqueo+desbloqueo? apesar de los comentarios, presta a confusión esa lógica
     sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar espera activa
     sem_post(&NO_HAY_PROCESOS_EN_SUSREADY); // Usado para evitar posible deadlock si se entra en el ciclo otra vez
 
+    // Aunque ya no haya procesos en SUSREADY se debe esperar a que se libere un espacio segun el grado de
+    // multiprogramacion
     sem_wait(&PROCESOS_DISPONIBLES_EN_MEMORIA);
+
+    // Luego de esto si otro proceso entra en SUSREADY se volvera a entrar en el ciclo y se le dara prioridad a ese
+    // proceso
   }
 
   xlog(COLOR_TAREA, "Se acepto a un proceso en memoria");
