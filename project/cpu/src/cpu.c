@@ -207,6 +207,8 @@ int fetch_operands(t_pcb* pcb, t_instruccion* instruccion) {
   }
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
+  xlog(COLOR_TAREA, "FETCH OPERANDS - (COPY) Dato leido a copiar: %d", dato_leido);
+
   return dato_leido;
 }
 
@@ -259,7 +261,7 @@ void check_interrupt(t_pcb* pcb, uint32_t socket_cliente) {
 
 void execute_no_op() {
   int retardo = config_get_int_value(config, "RETARDO_NOOP");
-  xlog(COLOR_INFO, "Retardo de NO_OP en milisegundos: %d", retardo);
+  xlog(COLOR_TAREA, "Retardo de NO_OP en milisegundos: %d", retardo);
   usleep(retardo * 1000);
 }
 
@@ -269,7 +271,7 @@ void execute_io(t_pcb* pcb, t_instruccion* instruccion, uint32_t socket_cliente)
 
   t_paquete* paquete = paquete_create();
   paquete_add_pcb(paquete, pcb);
-  xlog(COLOR_INFO, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
+  xlog(COLOR_TAREA, "Se actualizó el tiempo de bloqueo de un proceso (pid=%d, tiempo=%d)", pcb->pid, tiempo_bloqueado);
   enviar_pcb_con_operacion_io(socket_cliente, paquete);
   HAY_PCB_PARA_EJECUTAR_ = 0;
 }
@@ -284,7 +286,7 @@ void execute_read(t_pcb* pcb, t_instruccion* instruccion) {
 
   uint32_t dato_leido = obtener_dato_fisico(direccion_fisica);
 
-  xlog(COLOR_INFO, "OPERACION READ - Dato leido: %d.", dato_leido);
+  xlog(COLOR_TAREA, "OPERACION READ - Dato leido: %d.", dato_leido);
 }
 
 void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
@@ -300,7 +302,7 @@ void execute_write(t_pcb* pcb, t_instruccion* instruccion) {
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
   if (resultado == 1) {
-    xlog(COLOR_INFO, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
+    xlog(COLOR_TAREA, "OPERACION WRITE - Dato escrito correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION WRITE - Error al escribir dato.");
   }
@@ -317,7 +319,7 @@ void execute_copy(t_pcb* pcb, t_instruccion* instruccion, uint32_t dato_a_escrib
   uint32_t resultado = escribir_dato_memoria(direccion_fisica, dato_a_escribir);
 
   if (resultado == 1) {
-    xlog(COLOR_INFO, "OPERACION COPY - Dato copiado correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
+    xlog(COLOR_TAREA, "OPERACION COPY - Dato copiado correctamente. Dato escrito: %d, DF: %d.", dato_a_escribir, direccion_fisica);
   } else {
     xlog(COLOR_ERROR, "OPERACION COPY - Error al copiar dato.");
   }

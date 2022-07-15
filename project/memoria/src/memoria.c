@@ -434,9 +434,12 @@ void liberar_marco(t_marco* marco) {
 
   xlog(COLOR_RECURSOS, "Se libera el marco: %d, con el proceso: %d", marco->num_marco, marco->pid);
 
+  // TODO: asegurar que este bien inicializado esto
   marco->pid = -1;
-  marco->numero_tabla_segundo_nivel = 0;
+  marco->numero_tabla_segundo_nivel = -1;
   marco->entrada_segundo_nivel->bit_presencia = 0;
+  marco->entrada_segundo_nivel->bit_modif = 0;
+  marco->entrada_segundo_nivel->bit_uso = 0;
   marco->entrada_segundo_nivel = NULL;
 }
 
@@ -747,6 +750,7 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
   int numero_marco = entrada_victima->num_marco;
   t_marco* marco = obtener_marco_de_memoria(numero_marco);
 
+
   // Si tiene bit de M en 1, lo paso al archivo swap
   if (marco->entrada_segundo_nivel->bit_modif == 1) {
     escribir_marco_en_swap(marco);
@@ -757,6 +761,8 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
 
   marco->entrada_segundo_nivel = nueva_entrada;
   marco->numero_tabla_segundo_nivel = nueva_entrada->numero_tabla_segundo_nivel;
+
+  escribir_datos_de_swap_en_marco(marco); // PF - CARGA A MEMORIA DE DISCO
 
   return numero_marco;
 }
