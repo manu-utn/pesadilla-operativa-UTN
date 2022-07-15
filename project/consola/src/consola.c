@@ -123,7 +123,6 @@ t_list* obtener_instrucciones_de_archivo(char* ruta_archivo) {
       instruccion = instruccion_create(identificador, params);
       list_add(lista_instrucciones, instruccion);
     }
-
   }
 
   fclose(archivo_con_instrucciones);
