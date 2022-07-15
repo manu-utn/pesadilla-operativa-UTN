@@ -6,7 +6,7 @@
             "name": "(gdb) Iniciar",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/modulo-3.out",
+            "program": "${workspaceFolder}/bin/kernel.out",
             "cwd": "${workspaceFolder}",
             "args": [],
             "stopAtEntry": true,

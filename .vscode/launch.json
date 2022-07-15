@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/project/cpu/bin/cpu.out",
+            "program": "${workspaceFolder}/project/memoria/bin/memoria.out",
             "args":[],
             //"args": ["ARCHIVO=/home/utnso/tp-2022-1c-Sisop-Oh-Yeah/project/consola/config/instrucciones.txt","TAMANIO=500"],
             "stopAtEntry": false,
