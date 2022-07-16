@@ -56,6 +56,22 @@ void* manejar_nueva_conexion(void* args) {
     int codigo_operacion = recibir_operacion(socket_cliente);
 
     switch (codigo_operacion) {
+      case MENSAJE_HANDSHAKE: {
+        xlog(COLOR_CONEXION, "Handshake cpu - Se recibio solicitud handshake");
+        t_paquete* paquete = recibir_paquete(socket_cliente);
+        paquete_destroy(paquete);
+
+        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "ENTRADAS_POR_TABLA");
+        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
+        t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
+
+        t_paquete* paquete_con_respuesta = paquete_create();
+        paquete_add_mensaje_handshake(paquete_con_respuesta, mensaje_handshake);
+        enviar_mensaje_handshake(socket_cliente, paquete_con_respuesta);
+        paquete_destroy(paquete_con_respuesta);
+
+        break;
+      }
       case OPERACION_MENSAJE: {
         recibir_mensaje(socket_cliente);
 
@@ -128,6 +144,8 @@ void* manejar_nueva_conexion(void* args) {
         int numero_TP_segundo_nivel =
           obtener_numero_TP_segundo_nivel(solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel,
                                           solicitud_numero_tp_segundo_nivel->entrada_primer_nivel);
+        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
+        // int numero_TP_segundo_nivel = 5;
 
         xlog(COLOR_INFO, "SEGUNDA TABLA: %d", numero_TP_segundo_nivel);
 
@@ -158,6 +176,8 @@ void* manejar_nueva_conexion(void* args) {
         // TODO: evaluar como responder si la TP_segundo_nivel no tiene la entrada, responder con un error de operacion?
         int num_marco =
           obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+        // BORRAR GASTON - DESCOMENTAR LINEAS DE ARRIBA Y BORRAR LINEA DE ABAJO
+        // int num_marco = 4;
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
 

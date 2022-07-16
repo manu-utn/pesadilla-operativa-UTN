@@ -26,8 +26,12 @@ int main() {
   sem_init(&ASIGNAR_PID, 0, 1);
   // pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
 
-  char* ip = config_get_string_value(config, "IP_KERNEL");
-  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+  // char* ip = config_get_string_value(config, "IP_KERNEL");
+  // char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+
+  char* ip = obtener_ip_de_modulo_por_config("KERNEL");
+  char* puerto = obtener_puerto_de_modulo_por_config("KERNEL");
+
   SERVIDOR_KERNEL = iniciar_servidor(ip, puerto);
 
   iniciar_planificacion();
@@ -37,7 +41,8 @@ int main() {
   // enviar_interrupcion();
 
   pthread_t th;
-  pthread_create(&th, NULL, escuchar_conexiones_entrantes, NULL), pthread_detach(th);
+  pthread_create(&th, NULL, escuchar_conexiones_entrantes, NULL);
+  pthread_detach(th);
 
   // TODO: remover cuando se solucione el problema del centinela global en loop que contiene a esperar_cliente()
   sem_wait(&CERRAR_PROCESO);
@@ -49,8 +54,12 @@ int main() {
 }
 
 int conectarse_a_cpu(char* conexion_puerto) {
-  char* ip = config_get_string_value(config, "IP_CPU");
-  char* puerto = config_get_string_value(config, conexion_puerto);
+  // char* ip = config_get_string_value(config, "IP_CPU");
+  // char* puerto = config_get_string_value(config, conexion_puerto);
+
+  char* ip = obtener_ip_de_modulo_por_config("CPU");
+  char* puerto = obtener_puerto_de_modulo_por_config(conexion_puerto);
+
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
@@ -76,12 +85,14 @@ void* escuchar_conexiones_entrantes() {
       t_paquete* paquete = paquete_create();
       t_buffer* mensaje = crear_mensaje("Conexión aceptada por Kernel");
 
-      paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-      // paquete_add_mensaje(paquete, mensaje);
+      paquete_cambiar_mensaje(paquete, mensaje);
+      enviar_mensaje(cliente_fd, paquete);
+      paquete_destroy(paquete);
     }
 
     pthread_t th;
-    pthread_create(&th, NULL, escuchar_nueva_conexion, &cliente_fd), pthread_detach(th);
+    pthread_create(&th, NULL, escuchar_nueva_conexion, &cliente_fd);
+    pthread_detach(th);
   }
 
   pthread_exit(NULL);
@@ -94,7 +105,7 @@ void asignar_pid(t_pcb* pcb) {
 }
 
 void asignar_estimacion_rafaga_inicial(t_pcb* pcb) {
-  pcb->estimacion_rafaga = config_get_int_value(config, "ESTIMACION_INICIAL");
+  pcb->estimacion_rafaga = obtener_estimacion_inicial_por_config();
 }
 
 void* escuchar_nueva_conexion(void* args) {

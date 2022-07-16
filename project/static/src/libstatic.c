@@ -87,17 +87,17 @@ t_buffer* crear_mensaje_obtener_segunda_tabla(t_solicitud_segunda_tabla* read) {
 t_buffer* crear_mensaje_respuesta_segunda_tabla(t_respuesta_solicitud_segunda_tabla* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int) * 2;
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t) * 2;
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   // mensaje->size = mensaje_size;
-  memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
-  offset += sizeof(int);
-  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(int));
-  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->socket), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  memcpy(mensaje->stream + offset, &(read->num_tabla_segundo_nivel), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
   mensaje->size = offset;
 
   return mensaje;
@@ -163,32 +163,41 @@ t_buffer* crear_mensaje_obtener_dato_fisico(t_solicitud_dato_fisico* read) {
 }
 
 t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
-  // int mensaje_longitud = strlen(read->dato_buscado);                  // sumamos el '\0' que indica fin de cadena
-  // int mensaje_size = (sizeof(char) * mensaje_longitud) + sizeof(int); // 5 Bytes
-  int mensaje_size = sizeof(int); // 5 Bytes
-
-  // int mensaje_size = sizeof(int);
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t);
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   mensaje->size = mensaje_size;
 
-  // memcpy(mensaje->stream + offset, &mensaje_longitud, sizeof(int));
-  // offset += sizeof(int);
-  memcpy(mensaje->stream + offset, &(read->dato_buscado), mensaje_size);
-  offset += mensaje_size;
+  memcpy(mensaje->stream + offset, &(read->dato_buscado), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
   return mensaje;
 }
 
+// t_buffer* crear_mensaje_respuesta_dato_fisico(t_respuesta_dato_fisico* read) {
+//   int mensaje_longitud = strlen(read->dato_buscado) + 1;            // sumamos el '\0' que indica fin de cadena
+//   int mensaje_size = sizeof(char) * mensaje_longitud + sizeof(int); // 5 Bytes
+//   // int mensaje_size = sizeof(int);
+//   int offset = 0;
+
+//   t_buffer* mensaje = NULL;
+//   mensaje = empty_buffer();               // <- generaba leaks
+//   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
+//   mensaje->size = mensaje_size;
+
+//   memcpy(mensaje->stream + offset, &(read->size_dato), sizeof(int));
+//   offset += sizeof(int);
+//   memcpy(mensaje->stream + offset, read->dato_buscado, mensaje_longitud);
+//   offset += sizeof(int);
+//   return mensaje;
+// }
+
 
 t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
-  // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
-  // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int) * 3;
+  int mensaje_size = sizeof(uint32_t) * 2 + sizeof(int);
   int offset = 0;
-  // int size_valor = ((sizeof(char)) * (strlen(read->valor))) + 1;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
@@ -198,7 +207,7 @@ t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
   memcpy(mensaje->stream + offset, &(read->socket), sizeof(int));
   offset += sizeof(int);
   memcpy(mensaje->stream + offset, &(read->dir_fisica), sizeof(uint32_t));
-  offset += sizeof(int);
+  offset += sizeof(uint32_t);
   memcpy(mensaje->stream + offset, &(read->valor), sizeof(uint32_t));
   offset += sizeof(uint32_t);
   return mensaje;
@@ -207,20 +216,19 @@ t_buffer* crear_mensaje_escritura_dato_fisico(t_escritura_dato_fisico* read) {
 t_buffer* crear_mensaje_respuesta_escritura_dato_fisico(t_respuesta_escritura_dato_fisico* read) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
   // int mensaje_size = sizeof(char) * mensaje_longitud; // 5 Bytes
-  int mensaje_size = sizeof(int);
-  int offset = 0;
+  uint32_t mensaje_size = sizeof(uint32_t);
+  uint32_t offset = 0;
 
   t_buffer* mensaje = NULL;
   mensaje = empty_buffer();               // <- generaba leaks
   mensaje->stream = malloc(mensaje_size); // TODO: need free (2)
   mensaje->size = mensaje_size;
 
-  memcpy(mensaje->stream + offset, &(read->resultado), sizeof(int));
-  offset += sizeof(int);
+  memcpy(mensaje->stream + offset, &(read->resultado), sizeof(uint32_t));
+  offset += sizeof(uint32_t);
 
   return mensaje;
 }
-
 /*
 t_buffer* crear_mensaje_pcb_actualizado(t_pcb* pcb, int tiempo_bloqueo) {
   // int mensaje_longitud = strlen(texto) + 1;           // sumamos el '\0' que indica fin de cadena
@@ -375,12 +383,12 @@ t_pcb* pcb_create(int socket, int pid, int tamanio) {
   return pcb;
 }
 
-t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(char* mensaje) {
+t_mensaje_handshake_cpu_memoria* mensaje_handshake_create(uint32_t entradas_por_tabla, uint32_t tamanio_pagina) {
   t_mensaje_handshake_cpu_memoria* mensaje_handshake = NULL;
   mensaje_handshake = malloc(sizeof(t_mensaje_handshake_cpu_memoria));
 
-  mensaje_handshake->mensaje_handshake = mensaje;
-  mensaje_handshake->size_mensaje = strlen(mensaje);
+  mensaje_handshake->entradas_por_tabla = entradas_por_tabla;
+  mensaje_handshake->tamanio_pagina = tamanio_pagina;
 
   return mensaje_handshake;
 }

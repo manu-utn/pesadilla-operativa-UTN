@@ -1,24 +1,37 @@
 #ifndef __PLANIFICADOR__H
 #define __PLANIFICADOR__H
-#include <commons/log.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <commons/collections/list.h>
-#include <commons/collections/queue.h>
-#include <commons/config.h>
-#include <libstatic.h>
+
 #include "kernel.h"
 
 #define MODULO "kernel"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
 #define DIR_SERVIDOR_CFG DIR_BASE MODULO "/config/kernel.cfg"
 
+int SOCKET_CONEXION_DISPATCH;
+int SOCKET_CONEXION_MEMORIA;
+
+// requieren usar `extern` porque se utilizan en varios submodulos de kernel
+extern t_pcb *PROCESO_EJECUTANDO;
+extern int SE_ENVIO_INTERRUPCION;
+extern int SE_INDICO_A_PCP_QUE_REPLANIFIQUE;
+
+sem_t HAY_PCB_DESALOJADO;     // semáforo binario
+sem_t EJECUTAR_ALGORITMO_PCP; // semaforo binario
+sem_t MUTEX_BLOQUEO_SUSPENSION;
+sem_t SUSPENSION_EXITOSA;
+sem_t INICIALIZACION_ESTRUCTURAS_EXITOSA;
+sem_t LIBERACION_RECURSOS_EXITOSA;
+sem_t HAY_PCB_FINISH;
+
 int ULTIMO_PID;
 t_queue* PCBS_PROCESOS_ENTRANTES;
 sem_t HAY_PROCESOS_ENTRANTES;
 sem_t NO_HAY_PROCESOS_EN_SUSREADY;
+
+int REFERENCIA_TABLA_RECIBIDA;
+
+struct timespec BEGIN;
+struct timespec END;
 
 typedef struct {
   t_list *lista_pcbs;
@@ -89,7 +102,6 @@ void liberar_cpu();
 void enviar_interrupcion();
 bool hay_algun_proceso_ejecutando();
 void transicion_ready_a_running(t_pcb *pcb);
-char *obtener_algoritmo_cargado();
 void ejecutar_proceso(t_pcb*pcb);
 void imprimir_proceso_en_running();
 int calcular_estimacion_rafaga(t_pcb *pcb);
@@ -102,4 +114,13 @@ int conectarse_a_memoria();
 void escuchar_conexion_con_memoria();
 
 void evaluar_replanificacion_pcp();
+
+// CONFIGS
+int obtener_tiempo_maximo_bloqueado();
+char *obtener_algoritmo_cargado();
+double obtener_alfa_por_config();
+int obtener_grado_multiprogramacion_por_config();
+int obtener_estimacion_inicial_por_config();
+char *obtener_ip_de_modulo_por_config(char *nombreDelModulo);
+char *obtener_puerto_de_modulo_por_config(char *nombreDelModulo);
 #endif
