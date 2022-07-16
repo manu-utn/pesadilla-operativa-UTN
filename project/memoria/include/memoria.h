@@ -1,27 +1,30 @@
 #ifndef MEMORIA_H_
 #define MEMORIA_H_
 
+// C HEADERS
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+// para swap
+#include <errno.h>
+#include <sys/stat.h>
+
+// COMMONS HEADERS
 #include <commons/collections/dictionary.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/string.h>
-#include <pthread.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <libstatic.h>
-#include <semaphore.h>
-#include <sys/stat.h>
+#include <commons/memory.h>
 
-#include <stdbool.h>
-#include <ctype.h>
-#include <assert.h>
-#include <sys/mman.h>
-#include <stdarg.h>
-#include <errno.h>
+// OWN HEADERS
+#include <libstatic.h>
+#include "serializado.h"
+#include "utils-cliente.h"
+#include "utils-servidor.h"
 
 #define MODULO "memoria"
 #define DIR_LOG_MESSAGES DIR_BASE MODULO "/logs/messages.log"
@@ -102,6 +105,11 @@ typedef struct{
 
 t_config * config;
 t_log * logger;
+
+// TODO: validar para que se usa, estaba en SWAP
+int ULTIMO_ID_1er_nivel;
+int ULTIMO_ID_2do_nivel;
+
 // MEMORIA PRINCIPAL
 uint32_t      size_memoria_principal; // ANOTACION GASTON: Solo se usa en un lado y esta comentado (Ya estaba).
 void      *   memoria_principal;
@@ -207,6 +215,7 @@ void liberar_estructuras_en_memoria_de_este_proceso(int pid);
 void tabla_paginas_primer_nivel_destroy(t_tabla_primer_nivel* tabla_paginas_primer_nivel);
 void entrada_primer_nivel_destroy(t_entrada_tabla_primer_nivel* entrada_primer_nivel);
 void entrada_segundo_nivel_destroy(t_entrada_tabla_segundo_nivel* entrada_segundo_nivel);
+void inicializar_estructuras();
 
 //SWAP
 int crear_punto_de_montaje(char* path);

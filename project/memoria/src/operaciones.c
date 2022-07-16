@@ -1,11 +1,4 @@
-#include "libstatic.h"
 #include "memoria.h"
-#include "serializado.h"
-#include "utils-cliente.h"
-#include "utils-servidor.h"
-#include <commons/collections/dictionary.h>
-#include <commons/string.h>
-
 
 uint32_t escribir_dato(uint32_t direccion_fisica, uint32_t valor) {
   uint32_t byte_inicio = obtener_byte_inicio(direccion_fisica);

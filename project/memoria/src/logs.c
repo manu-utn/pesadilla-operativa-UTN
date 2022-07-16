@@ -1,7 +1,4 @@
-#include "libstatic.h"
 #include "memoria.h"
-#include <commons/collections/dictionary.h>
-#include <commons/string.h>
 
 void imprimir_marco(t_marco* marco) {
   xlog(COLOR_INFO,
