@@ -1,18 +1,25 @@
 #ifndef __MY_STATIC_LIB_H__
 #define __MY_STATIC_LIB_H__
 
+// COMMONS HEADERS
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/log.h>
+
+// C HEADERS
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "xlog.h"
-#include "timer.h"
+#include <ctype.h>
+#include <stdbool.h>
+
+// OWN HEADERS
 #include "dir.h"
+#include "timer.h"
+#include "xlog.h"
 
 typedef enum {
   OPERACION_EXIT = 0,

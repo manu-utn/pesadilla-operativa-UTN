@@ -1,41 +1,4 @@
-#include "sample.h"
-#include "libstatic.h" // <-- STATIC LIB
 #include "memoria.h"
-#include <stdio.h>
-#include <utils.h>
-
-int main() {
-  inicializar_estructuras();
-
-  // TODO: comentado temporalmente, pido que se utilicen las macros para las rutas
-  /*
-  char* path_punto_monataje = config_get_string_value(config, "PATH_SWAP");
-  crear_punto_de_montaje(path_punto_monataje);
-
-  void* textoPrueba = "123Probaasasa";
-  void* textoPrueba2 = "caca";
-
-  escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba, 2, 32);
-  escribir_archivo_swap("/home/utnso/swap/0.swap", textoPrueba2, 1, 32);
-  eliminar_archivo_swap(1, path_punto_monataje);
-  leer_archivo_swap("/home/utnso/swap/0.swap", 2, 32);*/
-
-  pthread_t th1;
-  pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL), pthread_detach(th1);
-
-  // inicializar_estructuras_de_este_proceso(0, 500);
-
-  // mostrar_tabla_marcos();
-  // imprimir_tablas_de_paginas();
-
-  // simular_asignacion_marcos_1(); => SEGMENTACION FAULT
-  // simular_asignacion_marcos_2();
-
-  // simular_solicitud_marco_por_mmu();
-
-  pthread_exit(0);
-}
-
 
 void simular_solicitud_marco_por_mmu() {
   int marco = 0;
