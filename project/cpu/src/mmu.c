@@ -124,8 +124,11 @@ int existe_pagina_en_tlb(uint32_t pagina) {
 int busco_index_oldest() {
   int index = 0;
   int index_buscado = -1;
-  uint64_t aux_time = UINT64_MAX;
-  uint64_t aux_time_micro = UINT64_MAX;
+
+  // cambiamos el tipo y el valor de los uint de aux_time y aux_time_micro,
+  // estos provocaban error en momento de enlazado (gnu link)
+  uint32_t aux_time = 4294967295;
+  uint32_t aux_time_micro = 4294967295;
 
   while (index < list_size(tlb)) {
     t_entrada_tlb* entrada_tlb = list_get(tlb, index);

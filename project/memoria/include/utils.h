@@ -3,5 +3,4 @@
 
 void inicializar_estructuras();
 void reservar_marcos_mock();
-
 #endif /* MEMORIA_H */
