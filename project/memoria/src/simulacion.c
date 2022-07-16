@@ -1,26 +1,26 @@
 #include "memoria.h"
 
 void simular_solicitud_marco_por_mmu() {
-  int marco = 0;
+  // int marco = 0;
 
-  // simulación para OPERACION_OBTENER_MARCO en memoria.c
-  // configuración de la simulación para memoria con 4 frames
+  // // simulación para OPERACION_OBTENER_MARCO en memoria.c
+  // // configuración de la simulación para memoria con 4 frames
 
-  int numero_tp_segundo_nivel;
-  // estas peticiones encontrará el frame asignado (pid=1)
-  numero_tp_segundo_nivel = 1;
-  marco = obtener_marco(numero_tp_segundo_nivel, 0);
-  marco = obtener_marco(numero_tp_segundo_nivel, 1);
-  marco = obtener_marco(numero_tp_segundo_nivel, 2);
-  marco = obtener_marco(numero_tp_segundo_nivel, 3);
-  printf("\n");
+  // int numero_tp_segundo_nivel;
+  // // estas peticiones encontrará el frame asignado (pid=1)
+  // numero_tp_segundo_nivel = 1;
+  // marco = obtener_marco(numero_tp_segundo_nivel, 0);
+  // marco = obtener_marco(numero_tp_segundo_nivel, 1);
+  // marco = obtener_marco(numero_tp_segundo_nivel, 2);
+  // marco = obtener_marco(numero_tp_segundo_nivel, 3);
+  // printf("\n");
 
-  numero_tp_segundo_nivel = 2;
-  marco = obtener_marco(numero_tp_segundo_nivel, 0);
+  // numero_tp_segundo_nivel = 2;
+  // marco = obtener_marco(numero_tp_segundo_nivel, 0);
 
-  numero_tp_segundo_nivel = 2;
-  printf("\n");
-  marco = obtener_marco(numero_tp_segundo_nivel, 2);
+  // numero_tp_segundo_nivel = 2;
+  // printf("\n");
+  // marco = obtener_marco(numero_tp_segundo_nivel, 2);
 }
 
 void simular_asignacion_marcos_1() {

@@ -2,7 +2,7 @@
 
 // int main() {
 //   t_list* lista = prueba_crear_datos_tlb();
-//   reemplazo_tlb = "LRU";
+//   reemplazo_tlb = "FIFO";
 //   realizar_pruebas_tlb(lista);
 // }
 
@@ -10,6 +10,7 @@ void iniciar_tlb() {
   tlb = list_create();
   cantidad_entradas_tlb = config_get_int_value(config, "ENTRADAS_TLB");
   reemplazo_tlb = config_get_string_value(config, "REEMPLAZO_TLB");
+  xlog(COLOR_RECURSOS, "TLB CREADA - cantidad entradas: %d, algoritmo reemplazo: %s", cantidad_entradas_tlb, reemplazo_tlb);
 }
 
 void limpiar_tlb(u_int32_t pid) {
@@ -18,8 +19,12 @@ void limpiar_tlb(u_int32_t pid) {
 
   t_entrada_tlb* entrada_tlb = list_get(tlb, 0);
   if (pid != entrada_tlb->pid) {
+    xlog(COLOR_RECURSOS, "TLB LIMPIEZA - se realiza limpieza. Entradas borradas del pid: %d", entrada_tlb->pid);
     list_clean(tlb);
+    return;
   }
+
+  xlog(COLOR_RECURSOS, "TLB LIMPIEZA - no se realiza. Vuelve el mismo pid (%d)", pid);
 }
 
 uint32_t obtener_numero_pagina(uint32_t direccion_logica) {
@@ -45,7 +50,8 @@ uint32_t obtener_direccion_fisica(uint32_t desplazamiento, uint32_t marco) {
 uint32_t obtener_marco_tlb(int indice) {
   t_entrada_tlb* entrada_tlb = list_get(tlb, indice);
   uint32_t marco = entrada_tlb->marco;
-  free(entrada_tlb);
+  xlog(COLOR_RECURSOS, "TLB HIT - Pagina: %d, marco: %d", entrada_tlb->pagina, marco);
+  // free(entrada_tlb);
   return marco;
 }
 
@@ -66,6 +72,7 @@ t_entrada_tlb* obtener_entrada_tlb(uint32_t pagina, uint32_t marco, uint32_t pid
   retorno->time_sec = timestamp.tv_sec;
   retorno->time_nanosec = timestamp.tv_nsec;
 
+
   return retorno;
 }
 
@@ -78,6 +85,7 @@ void agregar_entrada_tlb(t_entrada_tlb* entrada_tlb) {
     }
   } else {
     list_add(tlb, entrada_tlb);
+    xlog(COLOR_RECURSOS, "TLB INGRESO - Agrego pagina: %d a TLB", entrada_tlb->pagina);
   }
 }
 
@@ -85,10 +93,12 @@ void realizar_reemplazo_fifo(t_entrada_tlb* entrada_tlb) {
   int existe_pagina = existe_pagina_en_tlb(entrada_tlb->pagina);
 
   if (existe_pagina != -1) {
+    free(entrada_tlb);
     return;
   } else {
     int index_buscado = busco_index_oldest();
     void* entrada_tlb_reemplazada = list_replace(tlb, index_buscado, entrada_tlb);
+    xlog(COLOR_RECURSOS, "TLB REEMPLAZO - pagina reemplazada: %d, nueva pagina: %d", ((t_entrada_tlb*)entrada_tlb_reemplazada)->pagina, entrada_tlb->pagina);
     free(entrada_tlb_reemplazada);
   }
 }
@@ -100,9 +110,11 @@ void realizar_reemplazo_lru(t_entrada_tlb* entrada_tlb) {
 
   if (existe_pagina != -1) {
     entrada_tlb_reemplazada = list_replace(tlb, existe_pagina, entrada_tlb);
+    xlog(COLOR_RECURSOS, "TLB REEMPLAZO - pagina: %d, actualizo tiempo de referencia: %d", entrada_tlb->pagina, entrada_tlb->time_sec);
   } else {
     int index_buscado = busco_index_oldest();
     entrada_tlb_reemplazada = list_replace(tlb, index_buscado, entrada_tlb);
+    xlog(COLOR_RECURSOS, "TLB REEMPLAZO - pagina reemplazada: %d, nueva pagina: %d", ((t_entrada_tlb*)entrada_tlb_reemplazada)->pagina, entrada_tlb->pagina);
   }
   free(entrada_tlb_reemplazada);
 }
@@ -151,19 +163,19 @@ int busco_index_oldest() {
 
 t_list* prueba_crear_datos_tlb() {
   tlb = list_create();
-  cantidad_entradas_tlb = 3;
-  t_entrada_tlb* entrada1 = obtener_entrada_tlb(2, 2, 1);
-  t_entrada_tlb* entrada2 = obtener_entrada_tlb(3, 3, 1);
+  cantidad_entradas_tlb = 4;
+  t_entrada_tlb* entrada1 = obtener_entrada_tlb(0, 0, 1);
+  t_entrada_tlb* entrada2 = obtener_entrada_tlb(1, 1, 1);
   t_entrada_tlb* entrada3 = obtener_entrada_tlb(2, 2, 1);
-  t_entrada_tlb* entrada4 = obtener_entrada_tlb(1, 1, 1);
-  t_entrada_tlb* entrada5 = obtener_entrada_tlb(5, 5, 1);
-  t_entrada_tlb* entrada6 = obtener_entrada_tlb(2, 2, 1);
-  t_entrada_tlb* entrada7 = obtener_entrada_tlb(4, 4, 1);
-  t_entrada_tlb* entrada8 = obtener_entrada_tlb(5, 5, 1);
-  t_entrada_tlb* entrada9 = obtener_entrada_tlb(3, 3, 1);
-  t_entrada_tlb* entrada10 = obtener_entrada_tlb(2, 2, 1);
-  t_entrada_tlb* entrada11 = obtener_entrada_tlb(5, 5, 1);
-  t_entrada_tlb* entrada12 = obtener_entrada_tlb(2, 2, 1);
+  t_entrada_tlb* entrada4 = obtener_entrada_tlb(4, 4, 1);
+  t_entrada_tlb* entrada5 = obtener_entrada_tlb(0, 0, 1);
+  t_entrada_tlb* entrada6 = obtener_entrada_tlb(0, 0, 1);
+  t_entrada_tlb* entrada7 = obtener_entrada_tlb(8, 8, 1);
+  t_entrada_tlb* entrada8 = obtener_entrada_tlb(0, 0, 1);
+  // t_entrada_tlb* entrada9 = obtener_entrada_tlb(3, 3, 1);
+  // t_entrada_tlb* entrada10 = obtener_entrada_tlb(2, 2, 1);
+  // t_entrada_tlb* entrada11 = obtener_entrada_tlb(5, 5, 1);
+  // t_entrada_tlb* entrada12 = obtener_entrada_tlb(2, 2, 1);
 
   t_list* tlb_prueba = list_create();
 
@@ -175,10 +187,10 @@ t_list* prueba_crear_datos_tlb() {
   list_add(tlb_prueba, entrada6);
   list_add(tlb_prueba, entrada7);
   list_add(tlb_prueba, entrada8);
-  list_add(tlb_prueba, entrada9);
-  list_add(tlb_prueba, entrada10);
-  list_add(tlb_prueba, entrada11);
-  list_add(tlb_prueba, entrada12);
+  // list_add(tlb_prueba, entrada9);
+  // list_add(tlb_prueba, entrada10);
+  // list_add(tlb_prueba, entrada11);
+  // list_add(tlb_prueba, entrada12);
   return tlb_prueba;
 }
 

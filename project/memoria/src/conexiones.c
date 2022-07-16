@@ -9,15 +9,7 @@ void* escuchar_conexiones() {
 
   while (estado_conexion_memoria) {
     int cliente_fd = esperar_cliente(socket_memoria);
-    /*
-        if (cliente_fd != -1) {
-          t_paquete* paquete = paquete_create();
-          t_buffer* mensaje = crear_mensaje("Conexión aceptada por MEMORIA");
 
-          paquete_cambiar_mensaje(paquete, mensaje), enviar_mensaje(cliente_fd, paquete);
-          // paquete_add_mensaje(paquete, mensaje);
-        }
-    */
     pthread_t th;
     pthread_create(&th, NULL, manejar_nueva_conexion, &cliente_fd), pthread_detach(th);
   }
@@ -26,7 +18,6 @@ void* escuchar_conexiones() {
   pthread_exit(NULL);
 }
 
-// TODO: validar
 void* manejar_nueva_conexion(void* args) {
   int socket_cliente = *(int*)args;
   estado_conexion_con_cliente = true;
@@ -39,8 +30,10 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         paquete_destroy(paquete);
 
-        uint32_t entradas_por_tabla = 12; // config_get_int_value(config, "PAGINAS_POR_TABLA");
-        uint32_t tam_pagina = 4;          // config_get_int_value(config, "TAM_PAGINA");
+        realizar_retardo_memoria();
+
+        uint32_t entradas_por_tabla = obtener_cantidad_entradas_por_tabla_por_config();
+        uint32_t tam_pagina = obtener_tamanio_pagina_por_config();
         t_mensaje_handshake_cpu_memoria* mensaje_handshake = mensaje_handshake_create(entradas_por_tabla, tam_pagina);
 
         t_paquete* paquete_con_respuesta = paquete_create();
@@ -68,25 +61,14 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_segunda_tabla* solicitud_numero_tp_segundo_nivel = obtener_solicitud_tabla_segundo_nivel(paquete);
 
-        int numero_TP_segundo_nivel = -1; // por defecto, en caso q no se encuentre
+        realizar_retardo_memoria();
 
-        int numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
-        int entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
+        uint32_t numero_tabla_primer_nivel = solicitud_numero_tp_segundo_nivel->num_tabla_primer_nivel;
+        uint32_t entrada_primer_nivel = solicitud_numero_tp_segundo_nivel->entrada_primer_nivel;
 
-        if (!dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel))) {
-          numero_TP_segundo_nivel = -1;
-        } else {
-          t_tabla_primer_nivel* tabla_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
+        int numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
 
-          if (!dictionary_has_key(tabla_primer_nivel->entradas_primer_nivel, string_itoa(entrada_primer_nivel))) {
-            numero_TP_segundo_nivel = -1;
-          } else {
-            numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
-          }
-        }
-
-        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
-        // numero_TP_segundo_nivel = obtener_numero_TP_segundo_nivel(numero_tabla_primer_nivel, entrada_primer_nivel);
+        xlog(COLOR_INFO, "NUMERO TABLA DE SEGUNDO NIVEL: %d", numero_TP_segundo_nivel);
 
         // TODO: validar si no hay una función que agregue el contenido más fácil ó crear una abstracción
         t_paquete* paquete_respuesta = paquete_create();
@@ -107,31 +89,14 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_marco* solicitud_numero_marco = malloc(sizeof(t_solicitud_marco));
 
+        realizar_retardo_memoria();
+
         solicitud_numero_marco = obtener_solicitud_marco(paquete);
 
-        int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
-        int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
+        // int numero_tabla_segundo_nivel = solicitud_numero_marco->num_tabla_segundo_nivel;
+        // int entrada_segundo_nivel = solicitud_numero_marco->entrada_segundo_nivel;
 
-        int num_marco = -1; // por defecto, en caso q no se encuentre
-
-        // se entiende que si el marco es -1 entonces no se encontró,
-        // el módulo que reciba esta respuesta debe interpretar lo anterior y manejarlo
-        if (!dictionary_has_key(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel))) {
-          num_marco = -1;
-        } else {
-          // TODO: no se está considerando el numero de TP de 1er nivel, debería???
-          // tp_primer_nivel -> entrada_primer_nivel (referencia a la tp 2do nivel, y esta tiene entradas de 2do nivel)
-          t_tabla_segundo_nivel* tabla_segundo_nivel = dictionary_get(tablas_de_paginas_segundo_nivel, string_itoa(numero_tabla_segundo_nivel));
-
-          if (!dictionary_has_key(tabla_segundo_nivel->entradas_segundo_nivel, string_itoa(entrada_segundo_nivel))) {
-            num_marco = -1;
-          } else {
-            num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
-          }
-        }
-
-        // TODO: evaluar si el flujo de manejo de errores anteriores es correcto ò si falta considera otros casos
-        // num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
+        int num_marco = obtener_marco(solicitud_numero_marco->num_tabla_segundo_nivel, solicitud_numero_marco->entrada_segundo_nivel);
 
         xlog(COLOR_INFO, "NUMERO MARCO: %d", num_marco);
 
@@ -151,6 +116,8 @@ void* manejar_nueva_conexion(void* args) {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_solicitud_dato_fisico* req = malloc(sizeof(t_solicitud_dato_fisico));
         req = obtener_solicitud_dato(paquete);
+
+        realizar_retardo_memoria();
 
         uint32_t direccion_fisica = req->dir_fisica;
         free(req);
@@ -174,6 +141,8 @@ void* manejar_nueva_conexion(void* args) {
         t_escritura_dato_fisico* req = malloc(sizeof(t_escritura_dato_fisico));
         req = obtener_solicitud_escritura_dato(paquete);
 
+        realizar_retardo_memoria();
+
         uint32_t direccion_fisica = req->dir_fisica;
         uint32_t valor = req->valor;
         free(req);
@@ -192,39 +161,35 @@ void* manejar_nueva_conexion(void* args) {
       }
       case OPERACION_PROCESO_SUSPENDIDO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
-        /*
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        // TODO: resolver cuando se avance el módulo..
-        // TODO: Escribir en swap paginas con bit M en 1
+
+        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
 
         t_list* marcos_asignados = obtener_marcos_asignados_a_este_proceso(pcb->pid);
 
-        bool marco_modificado(t_marco * marco) {
-          return marco->t_entrada_tabla_segundo_nivel->bit_modif == 1;
-        }
-
         t_list* marcos_modificados = list_filter(marcos_asignados, (void*)marco_modificado);
-        escribir_datos_de_marcos_en_swap(marcos_modificados);*/
+        escribir_datos_de_marcos_en_swap(marcos_modificados);
+        liberar_memoria_asignada_a_proceso(pcb->pid);
 
-        xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para suspender proceso");
         confirmar_suspension_de_proceso(socket_cliente, paquete);
         paquete_destroy(paquete);
       } break;
       case OPERACION_INICIALIZAR_ESTRUCTURAS: {
         t_paquete* paquete = recibir_paquete(socket_cliente);
         t_pcb* pcb = paquete_obtener_pcb(paquete);
-        paquete_destroy(paquete);
 
         xlog(COLOR_CONEXION, "Se recibió solicitud de Kernel para inicializar estructuras de un proceso");
 
         // TODO: validar si no se está contemplando algo más aparte de agregar el numero de TP de 1º nivel al PCB
-        int numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
+        uint32_t numero_tabla_primer_nivel = inicializar_estructuras_de_este_proceso(pcb->pid, pcb->tamanio);
         pcb->tabla_primer_nivel = numero_tabla_primer_nivel;
         t_paquete* paquete_con_pcb_actualizado = paquete_create();
         paquete_add_pcb(paquete_con_pcb_actualizado, pcb);
 
         confirmar_estructuras_en_memoria(socket_cliente, paquete_con_pcb_actualizado);
+        paquete_destroy(paquete);
         paquete_destroy(paquete_con_pcb_actualizado);
+        free(pcb);
       } break;
       case OPERACION_PROCESO_FINALIZADO: {
         t_paquete* paquete = recibir_paquete(socket_cliente);

@@ -9,7 +9,7 @@ int obtener_tamanio_memoria_por_config() {
 }
 
 int obtener_cantidad_marcos_por_proceso_por_config() {
-  return config_get_int_value(config, "TAM_MEMORIA");
+  return config_get_int_value(config, "MARCOS_POR_PROCESO");
 }
 
 int obtener_tamanio_pagina_por_config() {
@@ -26,4 +26,12 @@ bool algoritmo_reemplazo_cargado_es(char* algoritmo) {
 
 char* obtener_path_archivos_swap() {
   return config_get_string_value(config, "PATH_SWAP");
+}
+
+int obtener_retardo_swap() {
+  return config_get_int_value(config, "RETARDO_SWAP");
+}
+
+int obtener_retardo_memoria() {
+  return config_get_int_value(config, "RETARDO_MEMORIA");
 }

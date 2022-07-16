@@ -216,6 +216,8 @@ t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock_modif
     }
   }
 
+  CLOCK_M_NUMERO_BUSQUEDA = 1;
+
   return entrada_victima_elegida;
 }
 t_entrada_tabla_segundo_nivel* entrada_victima_elegida_por_algoritmo_clock(t_list* marcos_asignados, t_entrada_tabla_segundo_nivel* entrada_solicitada_para_acceder) {
