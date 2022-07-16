@@ -26,8 +26,12 @@ int main() {
   sem_init(&ASIGNAR_PID, 0, 1);
   // pthread_mutex_init(&NO_HAY_PROCESOS_EN_SUSREADY, NULL);
 
-  char* ip = config_get_string_value(config, "IP_KERNEL");
-  char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+  // char* ip = config_get_string_value(config, "IP_KERNEL");
+  // char* puerto = config_get_string_value(config, "PUERTO_KERNEL");
+
+  char* ip = obtener_ip_de_modulo_por_config("KERNEL");
+  char* puerto = obtener_puerto_de_modulo_por_config("KERNEL");
+
   SERVIDOR_KERNEL = iniciar_servidor(ip, puerto);
 
   iniciar_planificacion();
@@ -50,8 +54,12 @@ int main() {
 }
 
 int conectarse_a_cpu(char* conexion_puerto) {
-  char* ip = config_get_string_value(config, "IP_CPU");
-  char* puerto = config_get_string_value(config, conexion_puerto);
+  // char* ip = config_get_string_value(config, "IP_CPU");
+  // char* puerto = config_get_string_value(config, conexion_puerto);
+
+  char* ip = obtener_ip_de_modulo_por_config("CPU");
+  char* puerto = obtener_puerto_de_modulo_por_config(conexion_puerto);
+
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
@@ -95,7 +103,7 @@ void asignar_pid(t_pcb* pcb) {
 }
 
 void asignar_estimacion_rafaga_inicial(t_pcb* pcb) {
-  pcb->estimacion_rafaga = config_get_int_value(config, "ESTIMACION_INICIAL");
+  pcb->estimacion_rafaga = obtener_estimacion_inicial_por_config();
 }
 
 void* escuchar_nueva_conexion(void* args) {
