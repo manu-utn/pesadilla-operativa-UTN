@@ -1,0 +1,622 @@
+==4898== Memcheck, a memory error detector
+==4898== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==4898== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==4898== Command: ./project/memoria/bin/memoria.out
+==4898== Parent PID: 3656
+==4898== 
+==4898== Thread 3:
+==4898== Syscall param write(buf) points to uninitialised byte(s)
+==4898==    at 0x414EBBF: ??? (syscall-template.S:84)
+==4898==    by 0x40E20B0: _IO_file_write@@GLIBC_2.1 (fileops.c:1263)
+==4898==    by 0x40E13E3: new_do_write (fileops.c:518)
+==4898==    by 0x40E312C: _IO_do_write@@GLIBC_2.1 (fileops.c:494)
+==4898==    by 0x40E2972: _IO_file_close_it@@GLIBC_2.1 (fileops.c:165)
+==4898==    by 0x40D6A68: fclose@@GLIBC_2.1 (iofclose.c:58)
+==4898==    by 0x804A8C5: escribir_archivo_swap (swap.c:126)
+==4898==    by 0x804ACCD: escribir_marco_en_swap (swap.c:248)
+==4898==    by 0x407288A: list_iterate (in /usr/lib/libcommons.so)
+==4898==    by 0x804AB84: escribir_datos_de_marcos_en_swap (swap.c:213)
+==4898==    by 0x8049B3C: manejar_nueva_conexion (conexiones.c:171)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==  Address 0x67d4818 is 64 bytes inside a block of size 4,096 alloc'd
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40D692D: _IO_file_doallocate (filedoalloc.c:127)
+==4898==    by 0x40E41C6: _IO_doallocbuf (genops.c:398)
+==4898==    by 0x40E1628: _IO_file_seekoff@@GLIBC_2.1 (fileops.c:1023)
+==4898==    by 0x40D8EEB: _IO_seekoff_unlocked (ioseekoff.c:65)
+==4898==    by 0x40DE998: fseek (fseek.c:36)
+==4898==    by 0x804A87A: escribir_archivo_swap (swap.c:115)
+==4898==    by 0x804ACCD: escribir_marco_en_swap (swap.c:248)
+==4898==    by 0x407288A: list_iterate (in /usr/lib/libcommons.so)
+==4898==    by 0x804AB84: escribir_datos_de_marcos_en_swap (swap.c:213)
+==4898==    by 0x8049B3C: manejar_nueva_conexion (conexiones.c:171)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==  Uninitialised value was created by a stack allocation
+==4898==    at 0x804ABFB: escribir_marco_en_swap (swap.c:223)
+==4898== 
+==4898== 
+==4898== Process terminating with default action of signal 2 (SIGINT)
+==4898==    at 0x4060264: accept (accept.c:35)
+==4898==    by 0x804E319: esperar_cliente (utils-servidor.c:48)
+==4898==    by 0x80494BA: escuchar_conexiones (conexiones.c:11)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== HEAP SUMMARY:
+==4898==     in use at exit: 69,989 bytes in 8,005 blocks
+==4898==   total heap usage: 309,935 allocs, 301,930 frees, 16,034,376 bytes allocated
+==4898== 
+==4898== Thread 1:
+==4898== 8 bytes in 1 blocks are definitely lost in loss record 4 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804D6B5: mensaje_handshake_create (libstatic.c:386)
+==4898==    by 0x80495ED: manejar_nueva_conexion (conexiones.c:37)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 10 bytes in 5 blocks are definitely lost in loss record 6 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804A626: inicializar_archivo_swap (swap.c:54)
+==4898==    by 0x804C1AA: inicializar_estructuras_de_este_proceso (memoria.c:206)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 10 bytes in 5 blocks are definitely lost in loss record 7 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C1BB: inicializar_estructuras_de_este_proceso (memoria.c:209)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 10 bytes in 5 blocks are definitely lost in loss record 8 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804A75F: eliminar_archivo_swap (swap.c:89)
+==4898==    by 0x804AA1A: liberar_estructuras_en_swap (swap.c:170)
+==4898==    by 0x8049C7A: manejar_nueva_conexion (conexiones.c:202)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 14 bytes in 7 blocks are definitely lost in loss record 9 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804AC85: escribir_marco_en_swap (swap.c:239)
+==4898==    by 0x407288A: list_iterate (in /usr/lib/libcommons.so)
+==4898==    by 0x804AB84: escribir_datos_de_marcos_en_swap (swap.c:213)
+==4898==    by 0x8049B3C: manejar_nueva_conexion (conexiones.c:171)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898== 
+==4898== 40 bytes in 20 blocks are definitely lost in loss record 16 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C92F: tabla_paginas_primer_nivel_create (memoria.c:428)
+==4898==    by 0x804C18E: inicializar_estructuras_de_este_proceso (memoria.c:203)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 44 bytes in 22 blocks are definitely lost in loss record 17 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804AA69: escribir_datos_de_swap_en_marco (swap.c:179)
+==4898==    by 0x804C5BF: obtener_y_asignar_primer_marco_libre (memoria.c:331)
+==4898==    by 0x804BCAF: obtener_marco (memoria.c:84)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898== 
+==4898== 50 bytes in 20 blocks are definitely lost in loss record 19 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C8CF: tabla_paginas_primer_nivel_create (memoria.c:418)
+==4898==    by 0x804C18E: inicializar_estructuras_de_este_proceso (memoria.c:203)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 68 bytes in 34 blocks are definitely lost in loss record 27 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804AC85: escribir_marco_en_swap (swap.c:239)
+==4898==    by 0x804CCAE: reemplazar_entrada_en_marco_de_memoria (memoria.c:550)
+==4898==    by 0x804ADB1: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:27)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898== 
+==4898== 68 bytes in 34 blocks are definitely lost in loss record 28 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5A2: get_filepath (swap.c:40)
+==4898==    by 0x804AA69: escribir_datos_de_swap_en_marco (swap.c:179)
+==4898==    by 0x804CCE4: reemplazar_entrada_en_marco_de_memoria (memoria.c:559)
+==4898==    by 0x804ADB1: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:27)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898== 
+==4898== 72 (16 direct, 56 indirect) bytes in 2 blocks are definitely lost in loss record 29 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x8049B15: manejar_nueva_conexion (conexiones.c:168)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 72 (16 direct, 56 indirect) bytes in 2 blocks are definitely lost in loss record 30 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x8049B15: manejar_nueva_conexion (conexiones.c:168)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 72 (16 direct, 56 indirect) bytes in 2 blocks are definitely lost in loss record 31 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x8049B2B: manejar_nueva_conexion (conexiones.c:170)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 72 (16 direct, 56 indirect) bytes in 2 blocks are definitely lost in loss record 32 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x804C218: liberar_memoria_asignada_a_proceso (memoria.c:220)
+==4898==    by 0x8049B4E: manejar_nueva_conexion (conexiones.c:172)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 72 (16 direct, 56 indirect) bytes in 2 blocks are definitely lost in loss record 33 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x804C218: liberar_memoria_asignada_a_proceso (memoria.c:220)
+==4898==    by 0x8049B4E: manejar_nueva_conexion (conexiones.c:172)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 120 bytes in 5 blocks are definitely lost in loss record 42 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804A626: inicializar_archivo_swap (swap.c:54)
+==4898==    by 0x804C1AA: inicializar_estructuras_de_este_proceso (memoria.c:206)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 120 bytes in 5 blocks are definitely lost in loss record 43 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804A75F: eliminar_archivo_swap (swap.c:89)
+==4898==    by 0x804AA1A: liberar_estructuras_en_swap (swap.c:170)
+==4898==    by 0x8049C7A: manejar_nueva_conexion (conexiones.c:202)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 136 bytes in 1 blocks are possibly lost in loss record 44 of 114
+==4898==    at 0x402E0B8: calloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x4011726: allocate_dtv (dl-tls.c:322)
+==4898==    by 0x401214B: _dl_allocate_tls (dl-tls.c:539)
+==4898==    by 0x4057CC3: allocate_stack (allocatestack.c:588)
+==4898==    by 0x4057CC3: pthread_create@@GLIBC_2.1 (pthread_create.c:539)
+==4898==    by 0x804BAA0: main (memoria.c:12)
+==4898== 
+==4898== 160 (40 direct, 120 indirect) bytes in 5 blocks are definitely lost in loss record 48 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x804C218: liberar_memoria_asignada_a_proceso (memoria.c:220)
+==4898==    by 0x804C2BD: liberar_estructuras_en_memoria_de_este_proceso (memoria.c:239)
+==4898==    by 0x8049C68: manejar_nueva_conexion (conexiones.c:199)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 160 (40 direct, 120 indirect) bytes in 5 blocks are definitely lost in loss record 49 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x804C218: liberar_memoria_asignada_a_proceso (memoria.c:220)
+==4898==    by 0x804C2BD: liberar_estructuras_en_memoria_de_este_proceso (memoria.c:239)
+==4898==    by 0x8049C68: manejar_nueva_conexion (conexiones.c:199)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 160 bytes in 40 blocks are definitely lost in loss record 50 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x8049A74: manejar_nueva_conexion (conexiones.c:153)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 160 bytes in 80 blocks are definitely lost in loss record 51 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804CA6A: tabla_paginas_segundo_nivel_create (memoria.c:470)
+==4898==    by 0x804C8BB: tabla_paginas_primer_nivel_create (memoria.c:414)
+==4898==    by 0x804C18E: inicializar_estructuras_de_este_proceso (memoria.c:203)
+==4898==    by 0x8049BC9: manejar_nueva_conexion (conexiones.c:184)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 168 bytes in 7 blocks are definitely lost in loss record 52 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804AC85: escribir_marco_en_swap (swap.c:239)
+==4898==    by 0x407288A: list_iterate (in /usr/lib/libcommons.so)
+==4898==    by 0x804AB84: escribir_datos_de_marcos_en_swap (swap.c:213)
+==4898==    by 0x8049B3C: manejar_nueva_conexion (conexiones.c:171)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 53 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804BFC4: obtener_numero_TP_segundo_nivel (memoria.c:156)
+==4898==    by 0x8049723: manejar_nueva_conexion (conexiones.c:69)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 54 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C00E: obtener_numero_TP_segundo_nivel (memoria.c:161)
+==4898==    by 0x8049723: manejar_nueva_conexion (conexiones.c:69)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 55 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C033: obtener_numero_TP_segundo_nivel (memoria.c:163)
+==4898==    by 0x8049723: manejar_nueva_conexion (conexiones.c:69)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 56 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804C07B: obtener_numero_TP_segundo_nivel (memoria.c:168)
+==4898==    by 0x8049723: manejar_nueva_conexion (conexiones.c:69)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 57 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804BBB7: obtener_marco (memoria.c:50)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 196 bytes in 98 blocks are definitely lost in loss record 58 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804BC02: obtener_marco (memoria.c:55)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 278 bytes in 98 blocks are definitely lost in loss record 61 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804BB48: obtener_marco (memoria.c:43)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 278 bytes in 98 blocks are definitely lost in loss record 62 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x407203B: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==4898==    by 0x40715E0: string_from_vformat (in /usr/lib/libcommons.so)
+==4898==    by 0x407157E: string_from_format (in /usr/lib/libcommons.so)
+==4898==    by 0x4071621: string_itoa (in /usr/lib/libcommons.so)
+==4898==    by 0x804BB92: obtener_marco (memoria.c:48)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 352 bytes in 88 blocks are definitely lost in loss record 69 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x8049983: manejar_nueva_conexion (conexiones.c:128)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 392 bytes in 98 blocks are definitely lost in loss record 70 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804988E: manejar_nueva_conexion (conexiones.c:105)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 480 bytes in 40 blocks are definitely lost in loss record 74 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x8049A12: manejar_nueva_conexion (conexiones.c:141)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 528 bytes in 22 blocks are definitely lost in loss record 75 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804AA69: escribir_datos_de_swap_en_marco (swap.c:179)
+==4898==    by 0x804C5BF: obtener_y_asignar_primer_marco_libre (memoria.c:331)
+==4898==    by 0x804BCAF: obtener_marco (memoria.c:84)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 704 bytes in 88 blocks are definitely lost in loss record 78 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804992A: manejar_nueva_conexion (conexiones.c:117)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 784 bytes in 98 blocks are definitely lost in loss record 79 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804975D: manejar_nueva_conexion (conexiones.c:75)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 816 bytes in 34 blocks are definitely lost in loss record 80 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804AC85: escribir_marco_en_swap (swap.c:239)
+==4898==    by 0x804CCAE: reemplazar_entrada_en_marco_de_memoria (memoria.c:550)
+==4898==    by 0x804ADB1: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:27)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 816 bytes in 34 blocks are definitely lost in loss record 81 of 114
+==4898==    at 0x402E2CC: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40714F4: string_append (in /usr/lib/libcommons.so)
+==4898==    by 0x804A5C4: get_filepath (swap.c:41)
+==4898==    by 0x804AA69: escribir_datos_de_swap_en_marco (swap.c:179)
+==4898==    by 0x804CCE4: reemplazar_entrada_en_marco_de_memoria (memoria.c:559)
+==4898==    by 0x804ADB1: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:27)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 952 bytes in 34 blocks are definitely lost in loss record 82 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804AD0A: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:11)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 952 bytes in 34 blocks are definitely lost in loss record 83 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804AF1F: entrada_victima_elegida_por_algoritmo_clock_modificado (algoritmos.c:77)
+==4898==    by 0x804AD9D: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:21)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,120 (320 direct, 800 indirect) bytes in 40 blocks are definitely lost in loss record 91 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804CEA4: paquete_create (libstatic.c:40)
+==4898==    by 0x804E50B: recibir_paquete (utils-servidor.c:126)
+==4898==    by 0x8049A02: manejar_nueva_conexion (conexiones.c:140)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,176 bytes in 98 blocks are definitely lost in loss record 92 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804F7E6: obtener_solicitud_tabla_segundo_nivel (serializado.c:463)
+==4898==    by 0x80496E1: manejar_nueva_conexion (conexiones.c:62)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 94 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x804ACFA: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:10)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 95 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x804ACFA: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:10)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 96 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x804B618: algoritmo_reemplazo_imprimir_marcos_asignados (logs.c:36)
+==4898==    by 0x804AD4E: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:16)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 97 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x804B618: algoritmo_reemplazo_imprimir_marcos_asignados (logs.c:36)
+==4898==    by 0x804AD4E: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:16)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 98 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4072EF6: list_filter (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7BB: obtener_marcos_asignados_a_este_proceso (memoria.c:382)
+==4898==    by 0x804B618: algoritmo_reemplazo_imprimir_marcos_asignados (logs.c:36)
+==4898==    by 0x804ADE2: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:36)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,360 (272 direct, 1,088 indirect) bytes in 34 blocks are definitely lost in loss record 99 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x4073383: list_duplicate (in /usr/lib/libcommons.so)
+==4898==    by 0x407322A: list_sorted (in /usr/lib/libcommons.so)
+==4898==    by 0x804C7D3: obtener_marcos_asignados_a_este_proceso (memoria.c:385)
+==4898==    by 0x804B618: algoritmo_reemplazo_imprimir_marcos_asignados (logs.c:36)
+==4898==    by 0x804ADE2: obtener_y_asignar_marco_segun_algoritmo_de_reemplazo (algoritmos.c:36)
+==4898==    by 0x804BCE7: obtener_marco (memoria.c:93)
+==4898==    by 0x804985D: manejar_nueva_conexion (conexiones.c:99)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,568 bytes in 98 blocks are definitely lost in loss record 102 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x8049826: manejar_nueva_conexion (conexiones.c:90)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 1,568 bytes in 98 blocks are definitely lost in loss record 103 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804F868: obtener_solicitud_marco (serializado.c:477)
+==4898==    by 0x804983F: manejar_nueva_conexion (conexiones.c:94)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 2,112 (704 direct, 1,408 indirect) bytes in 88 blocks are definitely lost in loss record 107 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804CEA4: paquete_create (libstatic.c:40)
+==4898==    by 0x804E50B: recibir_paquete (utils-servidor.c:126)
+==4898==    by 0x804991A: manejar_nueva_conexion (conexiones.c:116)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 6,128 (80 direct, 6,048 indirect) bytes in 2 blocks are definitely lost in loss record 112 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x804EEE5: paquete_obtener_pcb (serializado.c:234)
+==4898==    by 0x8049AEA: manejar_nueva_conexion (conexiones.c:164)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== 17,700 (40 direct, 17,660 indirect) bytes in 5 blocks are definitely lost in loss record 114 of 114
+==4898==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==4898==    by 0x40723FE: list_create (in /usr/lib/libcommons.so)
+==4898==    by 0x804ED0A: paquete_obtener_instrucciones (serializado.c:176)
+==4898==    by 0x804F1D2: paquete_obtener_pcb (serializado.c:294)
+==4898==    by 0x8049B97: manejar_nueva_conexion (conexiones.c:179)
+==4898==    by 0x4057294: start_thread (pthread_create.c:333)
+==4898==    by 0x41600AD: clone (clone.S:114)
+==4898== 
+==4898== LEAK SUMMARY:
+==4898==    definitely lost: 16,806 bytes in 2,297 blocks
+==4898==    indirectly lost: 32,964 bytes in 5,159 blocks
+==4898==      possibly lost: 136 bytes in 1 blocks
+==4898==    still reachable: 20,083 bytes in 548 blocks
+==4898==         suppressed: 0 bytes in 0 blocks
+==4898== Reachable blocks (those to which a pointer was found) are not shown.
+==4898== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4898== 
+==4898== For counts of detected and suppressed errors, rerun with: -v
+==4898== ERROR SUMMARY: 95 errors from 55 contexts (suppressed: 0 from 0)
