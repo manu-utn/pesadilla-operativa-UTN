@@ -44,6 +44,7 @@ char* get_filepath(char* file, char* path, int pid) {
 }
 
 void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio) {
+  sem_wait(&MUTEX_SWAP);
   char* filename = string_new();
   uint32_t contenido = 0;
   uint32_t tamanio_archivo = tamanio / sizeof(uint32_t);
@@ -77,9 +78,11 @@ void inicializar_archivo_swap(uint32_t pid, uint32_t tamanio) {
   if (fclose(fd) != 0) {
     log_error(logger, "No se ha podido cerrar el fichero.\n");
   }
+  sem_post(&MUTEX_SWAP);
 }
 
 void eliminar_archivo_swap(uint32_t pid) {
+  sem_wait(&MUTEX_SWAP);
   char* filename = string_new();
   char* path = obtener_path_archivos_swap();
 
@@ -90,9 +93,11 @@ void eliminar_archivo_swap(uint32_t pid) {
   } else {
     log_error(logger, "No se pudo eliminar el archivo\n");
   }
+  sem_post(&MUTEX_SWAP);
 }
 
 void escribir_archivo_swap(char* filepath, uint32_t* datos, int num_pagina) {
+  sem_wait(&MUTEX_SWAP);
   int retardo = obtener_retardo_swap();
   xlog(COLOR_INFO, "Retardo de escribir archivo swap en milisegundos: %d", retardo);
   usleep(retardo * 1000);
@@ -119,9 +124,11 @@ void escribir_archivo_swap(char* filepath, uint32_t* datos, int num_pagina) {
   // fwrite(&datos, sizeof(uint32_t), longitud_datos, fd);
 
   fclose(fd);
+  sem_post(&MUTEX_SWAP);
 }
 
 void leer_archivo_swap(char* filepath, int num_pagina, uint32_t* datos, int tamanio_datos) {
+  sem_wait(&MUTEX_SWAP);
   int retardo = obtener_retardo_swap();
   xlog(COLOR_INFO, "Retardo de leer archivo swap en milisegundos: %d", retardo);
   usleep(retardo * 1000);
@@ -155,6 +162,7 @@ void leer_archivo_swap(char* filepath, int num_pagina, uint32_t* datos, int tama
   // uint32_t* datos_leidos = (uint32_t*)datos;
 
   // return datos_leidos;
+  sem_post(&MUTEX_SWAP);
 }
 
 void liberar_estructuras_en_swap(int pid) {

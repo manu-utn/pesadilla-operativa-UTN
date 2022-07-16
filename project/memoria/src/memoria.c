@@ -11,10 +11,10 @@ int main() {
   pthread_t th1;
   pthread_create(&th1, NULL, (void*)escuchar_conexiones, NULL), pthread_detach(th1);
 
-  inicializar_estructuras_de_este_proceso(0, 500);
+  // inicializar_estructuras_de_este_proceso(0, 500);
 
-  mostrar_tabla_marcos();
-  imprimir_tablas_de_paginas();
+  // mostrar_tabla_marcos();
+  // imprimir_tablas_de_paginas();
 
   // simular_asignacion_marcos_1();
   // simular_asignacion_marcos_2();
@@ -238,12 +238,12 @@ void liberar_marco(t_marco* marco) {
 void liberar_estructuras_en_memoria_de_este_proceso(int pid) {
   liberar_memoria_asignada_a_proceso(pid);
 
-  t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
-  int numero_tabla_primer_nivel = TP_primer_nivel->num_tabla;
+  // t_tabla_primer_nivel* TP_primer_nivel = obtener_tabla_paginas_primer_nivel_por_pid(pid);
+  // int numero_tabla_primer_nivel = TP_primer_nivel->num_tabla;
 
-  tabla_paginas_primer_nivel_destroy(TP_primer_nivel);
-  dictionary_remove(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
-  free(TP_primer_nivel);
+  // tabla_paginas_primer_nivel_destroy(TP_primer_nivel);
+  // dictionary_remove(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel));
+  // free(TP_primer_nivel);
   // dictionary_remove_and_destroy(tablas_de_paginas_primer_nivel, string_itoa(numero_tabla_primer_nivel), (void*)tabla_paginas_primer_nivel_destroy);
 }
 
@@ -252,7 +252,7 @@ void tabla_paginas_primer_nivel_destroy(t_tabla_primer_nivel* tabla_paginas_prim
   // dictionary_remove_and_destroy(tabla_paginas_primer_nivel->entradas_primer_nivel, (void*)entrada_primer_nivel_destroy);
   xlog(COLOR_RECURSOS, "Se liberaron con éxito los recursos asignados a la tabla de primer nivel (tp_primer_nivel=%d)", tabla_paginas_primer_nivel->num_tabla);
 
-  free(tabla_paginas_primer_nivel);
+  // free(tabla_paginas_primer_nivel);
 }
 
 void entrada_primer_nivel_destroy(t_entrada_tabla_primer_nivel* entrada_primer_nivel) {
@@ -359,10 +359,12 @@ t_tabla_primer_nivel* obtener_tabla_paginas_primer_nivel_por_pid(int pid) {
 
   for (int cantidad_tablas_paginas_primer_nivel_leidas = 0; cantidad_tablas_paginas_primer_nivel_leidas < cantidad_tablas_paginas_primer_nivel();
        cantidad_tablas_paginas_primer_nivel_leidas++) {
-    tabla_paginas_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(cantidad_tablas_paginas_primer_nivel_leidas));
+    if (dictionary_has_key(tablas_de_paginas_primer_nivel, string_itoa(cantidad_tablas_paginas_primer_nivel_leidas))) {
+      tabla_paginas_primer_nivel = dictionary_get(tablas_de_paginas_primer_nivel, string_itoa(cantidad_tablas_paginas_primer_nivel_leidas));
 
-    if (tabla_paginas_primer_nivel->pid == pid)
-      break;
+      if (tabla_paginas_primer_nivel->pid == pid)
+        break;
+    }
   }
 
   return tabla_paginas_primer_nivel;
@@ -561,6 +563,8 @@ int reemplazar_entrada_en_marco_de_memoria(t_entrada_tabla_segundo_nivel* entrad
 
 void inicializar_estructuras() {
   estado_conexion_memoria = true;
+  sem_init(&MUTEX_SWAP, 0, 1);
+
   logger = iniciar_logger(DIR_LOG_MESSAGES, "MEMORIA");
   config = iniciar_config(DIR_MEMORIA_CFG);
 

@@ -180,10 +180,7 @@ void transicion_running_a_finished(t_pcb *pcb) {
 
   liberar_cpu();
 
-  xlog(COLOR_TAREA,
-       "Transición de RUNNING a FINISHED, el PCP atendió una operación de FINISHED (pid=%d, pcbs_en_finished=%d)",
-       pcb->pid,
-       list_size(COLA_FINISHED->lista_pcbs));
+  xlog(COLOR_TAREA, "Transición de RUNNING a FINISHED, el PCP atendió una operación de FINISHED (pid=%d, pcbs_en_finished=%d)", pcb->pid, list_size(COLA_FINISHED->lista_pcbs));
 
   sem_post(&HAY_PCB_FINISH);
 }
@@ -192,10 +189,7 @@ void transicion_a_new(t_pcb *pcb) {
   cambiar_estado_pcb(pcb, NEW);
   agregar_pcb_a_cola(pcb, COLA_NEW);
 
-  xlog(COLOR_TAREA,
-       "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)",
-       pcb->pid,
-       list_size(COLA_NEW->lista_pcbs));
+  xlog(COLOR_TAREA, "Se agregó un PCB (pid=%d) a la cola de NEW (cantidad_pcbs=%d)", pcb->pid, list_size(COLA_NEW->lista_pcbs));
 }
 
 void transicion_new_a_ready(t_pcb *pcb) {
@@ -228,10 +222,7 @@ void transicion_blocked_a_susready(t_pcb *pcb) {
     sem_wait(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
 
-  xlog(COLOR_TAREA,
-       "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)",
-       pcb->pid,
-       list_size(COLA_SUSREADY->lista_pcbs));
+  xlog(COLOR_TAREA, "Se agregó un PCB (pid=%d) a la cola de SUSREADY (cantidad_pcbs=%d)", pcb->pid, list_size(COLA_SUSREADY->lista_pcbs));
 }
 
 void transicion_susready_a_ready(t_pcb *pcb) {
@@ -244,10 +235,7 @@ void transicion_susready_a_ready(t_pcb *pcb) {
     sem_post(&NO_HAY_PROCESOS_EN_SUSREADY);
   }
 
-  xlog(COLOR_TAREA,
-       "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)",
-       pcb->pid,
-       list_size(COLA_READY->lista_pcbs));
+  xlog(COLOR_TAREA, "Se agregó un PCB (pid=%d) de la cola de SUSREADY a la cola de READY (cantidad_pcbs=%d)", pcb->pid, list_size(COLA_READY->lista_pcbs));
 
   evaluar_replanificacion_pcp();
 }
@@ -343,8 +331,7 @@ t_pcb *elegir_pcb_srt(t_cola_planificacion *cola) {
   t_pcb *pcb = NULL;
 
   pthread_mutex_lock(&(cola->mutex));
-  pcb = (t_pcb *)list_get_minimum(
-    cola->lista_pcbs, (void *)pcb_menor_tiempo_restante_de_ejecucion_entre); // si hay empate devuelve por FIFO
+  pcb = (t_pcb *)list_get_minimum(cola->lista_pcbs, (void *)pcb_menor_tiempo_restante_de_ejecucion_entre); // si hay empate devuelve por FIFO
   pthread_mutex_unlock(&(cola->mutex));
 
   return pcb;
@@ -406,8 +393,7 @@ void timer_suspension_proceso(t_pcb *pcb) {
   do {
     clock_gettime(CLOCK_REALTIME, &timer_suspension_fin);
 
-    tiempo_timer_suspension = (timer_suspension_fin.tv_sec - timer_suspension_inicio.tv_sec) * 1000 +
-                              (timer_suspension_fin.tv_nsec - timer_suspension_inicio.tv_nsec) / 1000000;
+    tiempo_timer_suspension = (timer_suspension_fin.tv_sec - timer_suspension_inicio.tv_sec) * 1000 + (timer_suspension_fin.tv_nsec - timer_suspension_inicio.tv_nsec) / 1000000;
   } while (pcb->estado == BLOCKED && tiempo_timer_suspension < tiempo_maximo_bloqueado);
 
   xlog(COLOR_INFO, "Finalizando timer de suspension (pid = %d)", pcb->pid);

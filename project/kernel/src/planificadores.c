@@ -30,10 +30,7 @@ void *iniciar_corto_plazo() {
 
     pcb_elegido_a_ejecutar = elegir_pcb_segun_algoritmo(COLA_READY);
     imprimir_pcb(pcb_elegido_a_ejecutar);
-    xlog(COLOR_TAREA,
-         "Se seleccionó un Proceso para ejecutar en CPU (pid=%d, algoritmo=%s)",
-         pcb_elegido_a_ejecutar->pid,
-         obtener_algoritmo_cargado());
+    xlog(COLOR_TAREA, "Se seleccionó un Proceso para ejecutar en CPU (pid=%d, algoritmo=%s)", pcb_elegido_a_ejecutar->pid, obtener_algoritmo_cargado());
 
     ejecutar_proceso(pcb_elegido_a_ejecutar);
 
