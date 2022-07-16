@@ -1,18 +1,25 @@
 #ifndef __MY_STATIC_LIB_H__
 #define __MY_STATIC_LIB_H__
 
+// COMMONS HEADERS
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/log.h>
+
+// C HEADERS
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "xlog.h"
-#include "timer.h"
+#include <ctype.h>
+#include <stdbool.h>
+
+// OWN HEADERS
 #include "dir.h"
+#include "timer.h"
+#include "xlog.h"
 
 typedef enum {
   OPERACION_EXIT = 0,
@@ -132,12 +139,12 @@ typedef struct{
 typedef struct{
 	int socket;
 	int num_tabla_segundo_nivel;
-	int entrada_segundo_nivel;
+	uint32_t entrada_segundo_nivel;
   int operacion;// 1: lectura, 2: escritura
 }t_solicitud_marco;
 
 typedef struct{
-	uint32_t num_marco;
+	int num_marco;
 }t_respuesta_solicitud_marco;
 
 typedef struct{

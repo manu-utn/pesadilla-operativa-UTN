@@ -10,9 +10,7 @@ int conectarse_a_memoria() {
   int fd_servidor = conectar_a_servidor(ip, puerto);
 
   if (fd_servidor == -1) {
-    xlog(COLOR_ERROR,
-         "No se pudo establecer la conexión con Memoria, inicie el servidor con %s e intente nuevamente",
-         puerto);
+    xlog(COLOR_ERROR, "No se pudo establecer la conexión con Memoria, inicie el servidor con %s e intente nuevamente", puerto);
 
     return -1;
   } else {
