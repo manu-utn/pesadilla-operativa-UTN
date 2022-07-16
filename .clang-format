@@ -15,7 +15,7 @@ BinPackParameters: 'false'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: 'false'
-ColumnLimit: '120'
+ColumnLimit: '180'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ContinuationIndentWidth: '2'
 Cpp11BracedListStyle: 'true'
